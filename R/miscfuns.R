@@ -241,7 +241,7 @@ collinearity = function(x, verbose){
 
     } else {
 
-      isIntercept = attr(terms(x$fml),"intercept")
+      isIntercept = attr(terms(x$fml), "intercept")
 
       if(isIntercept && any(constant_id[-1])){
         var_problem = colnames(linear_mat_noIntercept)[constant_id[-1]]
@@ -752,7 +752,7 @@ did_means = function(fml, base, treat_var, post_var, tex = FALSE, treat_dict,
       if(all(!is_num)){
         stop("Function cannot be performed: not any numeric variable.")
       } else if(length(pblm) > 0){
-        message("NOTE: The variable", enumerate_items(pblm, "s.is"), " removed because they are non-numeric.")
+        mema("NOTE: The variable{$s, enum.bq, is ? pblm} removed because {$(it;they), is} non-numeric.")
       }
 
       mat_vars = as.matrix(mat_vars[, is_num, FALSE])
@@ -764,7 +764,7 @@ did_means = function(fml, base, treat_var, post_var, tex = FALSE, treat_dict,
       all_vars = all.vars(fml_x)
       pblm = setdiff(all_vars, names(base))
       if(length(pblm) > 0){
-        stop("The variable", enumerate_items(pblm, "s.is"), " not in the data set (", deparse_short(substitute(base)), ").")
+        stopi("The variable{$s, enum.bq, is ? pblm} not in the data set (", deparse_short(substitute(base)), ").")
       }
 
       # Evaluation control
@@ -3793,8 +3793,8 @@ print_coeftable = function(coeftable, lastLine = "", show_signif = TRUE){
   names(ct)[5] = ""
 
   print(ct)
-
-  cat(lastLine)
+  
+  catma(lastLine)
 
   if(show_signif){
     cat("---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n")
@@ -5666,9 +5666,9 @@ fixest_CI_factor = function(x, level, vcov = NULL, df.t = NULL){
 
 sma = string_magic_alias(.check = FALSE)
 
-catma = cat_magic_alias(.check = FALSE)
+catma = cat_magic_alias(.check = FALSE, .width = NULL)
 
-mema = message_magic_alias(.check = FALSE, .last = "'min(100, .sw)'width")
+mema = message_magic_alias(.check = FALSE)
 
 stvec = stringmagic::string_vec_alias()
 
@@ -7760,36 +7760,7 @@ getFixest_multi = function(){
 }
 
 
-#### .................. ####
-#### DOCUMENTATION DATA ####
-####
 
-
-
-#' Trade data sample
-#'
-#' This data reports trade information between countries of the European Union (EU15).
-#'
-#' @usage
-#' data(trade)
-#'
-#' @format
-#' `trade` is a data frame with 38,325 observations and 6 variables named `Destination`, `Origin`, `Product`, `Year`, `dist_km` and `Euros`.
-#'
-#' * Origin: 2-digits codes of the countries of origin of the trade flow.
-#' * Destination: 2-digits codes of the countries of destination of the trade flow.
-#' * Products: Number representing the product categories (from 1 to 20).
-#' * Year: Years from 2007 to 2016
-#' * dist_km: Geographic distance in km between the centers of the countries of origin and destination.
-#' * Euros: The total amount in euros of the trade flow for the specific year/product category/origin-destination country pair.
-#'
-#'
-#' @source
-#' This data has been extrated from Eurostat on October 2017.
-#'
-#'
-#'
-"trade"
 
 
 

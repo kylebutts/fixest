@@ -17,6 +17,19 @@
 #' @param ... Used to capture different `fixest` estimation objects (obtained with [`femlm`], 
 #' [`feols`] or [`feglm`]). Note that any other type of element is discarded. Note that you can 
 #' give a list of `fixest` objects.
+#' @param vcov Versatile argument to specify the VCOV. 
+#' In general, it is either a character scalar equal to a VCOV type, either a formula of the form:
+#'  vcov_type ~ variables. The VCOV types implemented are: "iid", "hetero" (or "HC1"), 
+#' "cluster", "twoway", "NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley". 
+#' It also accepts object from vcov_cluster, vcov_NW, NW, vcov_DK, DK, vcov_conley and conley. 
+#' It also accepts covariance matrices computed externally. 
+#' Finally it accepts functions to compute the covariances. 
+#' See the vcov documentation in the vignette.
+#' You can pass several VCOVs (as above) if you nest them into a list. 
+#' If the number of VCOVs equals the number of models, eahc VCOV is mapped to the appropriate model.
+#' If there is one model and several VCOVs, or if the first element of the list is equal to
+#' `"each"` or `"times"`, then the estimations will be replicated and the results
+#' for each estimation and each VCOV will be reported.
 #' @param digits Integer or character scalar. Default is 4 and represents the number of significant 
 #' digits to be displayed for the coefficients and standard-errors. To apply rounding instead of 
 #' significance use, e.g., `digits = "r3"` which will round at the first 3 decimals. If character, 

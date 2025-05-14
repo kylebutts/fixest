@@ -3545,7 +3545,7 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
                   nthreads = nthreads, lean = lean, warn = warn, notes = notes,
                   verbose = verbose, combine.quick = combine.quick, mem.clean = mem.clean,
                   only.env = only.env, only.coef = only.coef, data.save = data.save,
-                  origin_bis = "fepois", mc_origin_bis = match.call(),
+                  origin = "fepois", mc_origin_bis = match.call(),
                   call_env_bis = call_env_bis, env = env, ...), silent = TRUE)
 
   if("try-error" %in% class(res)){

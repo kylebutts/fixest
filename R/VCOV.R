@@ -1005,13 +1005,13 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 
       if (is_complex) {
         # we should never have a complex VCOV, but just in case...
-        warning("\nNOTE: The VCOV matrix could not be fixed since its eigenvalues were complex. The complex standard-errors are reported for information purposes.\n", call. = FALSE)
+        warning("The VCOV matrix could not be fixed since its eigenvalues were complex. The complex standard-errors are reported for information purposes.", call. = FALSE)
         vcov_mat = as.complex(vcov_mat)
       } else {
-        warning("\nNOTE: The VCOV matrix is not positive semi-definite. It was 'fixed' (a la Cameron, Gelbach & Miller 2011), but take care with interpreting the results. See `?vcov` for more details.\n", call. = FALSE)
+        warning("The VCOV matrix is not positive semi-definite. It was 'fixed' (a la Cameron, Gelbach & Miller 2011), but take care with interpreting the results. See `?vcov` for more details.", call. = FALSE)
       } 
     } else {
-      warning("\nNOTE: The VCOV matrix is not positive semi-definite. ake care with interpreting the results and consider correcting this via the `vcov_fix` argument.  See `?vcov` for more details.\n", call. = FALSE)
+      warning("The VCOV matrix is not positive semi-definite. Take care with interpreting the results and consider correcting this via the `vcov_fix` argument.  See `?vcov` for more details.", call. = FALSE)
     }
   }
 

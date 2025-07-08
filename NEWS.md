@@ -34,7 +34,7 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 ## Breaking changes
 
-  In `vcov`, the argument `vcov_fix` now defaults to `FALSE`. If the vcov fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors. **No retro compatibility ensured.**
+  In `vcov`, the argument `vcov_fix` now defaults to `FALSE`. If the VCOV fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors. **No retro compatibility ensured.**
  
 
 ## New vignette and data set

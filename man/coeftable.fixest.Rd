@@ -55,15 +55,19 @@
 \arguments{
 \item{object}{A \code{fixest} object. For example an estimation obtained from \code{\link{feols}}.}
 
-\item{vcov}{Versatile argument to specify the VCOV. In general, it is either a character
-scalar equal to a VCOV type, either a formula of the form: \code{vcov_type ~ variables}. The
-VCOV types implemented are: "iid", "hetero" (or "HC1"), "cluster", "twoway",
-"NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley". It also accepts
-object from \code{\link{vcov_cluster}}, \code{\link[=vcov_hac]{vcov_NW}}, \code{\link[=vcov_hac]{NW}},
-\code{\link[=vcov_hac]{vcov_DK}}, \code{\link[=vcov_hac]{DK}}, \code{\link{vcov_conley}} and
-\code{\link[=vcov_conley]{conley}}. It also accepts covariance matrices computed externally.
-Finally it accepts functions to compute the covariances. See the \code{vcov} documentation
-in the \href{https://lrberge.github.io/fixest/articles/fixest_walkthrough.html#the-vcov-argument-1}{vignette}.}
+\item{vcov}{Versatile argument to specify the VCOV.
+In general, it is either a character scalar equal to a VCOV type, either a formula of the form:
+vcov_type ~ variables. The VCOV types implemented are: "iid", "hetero" (or "HC1"),
+"cluster", "twoway", "NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley".
+It also accepts object from vcov_cluster, vcov_NW, NW, vcov_DK, DK, vcov_conley and conley.
+It also accepts covariance matrices computed externally.
+Finally it accepts functions to compute the covariances.
+See the vcov documentation in the vignette.
+You can pass several VCOVs (as above) if you nest them into a list.
+If the number of VCOVs equals the number of models, eahc VCOV is mapped to the appropriate model.
+If there is one model and several VCOVs, or if the first element of the list is equal to
+\code{"each"} or \code{"times"}, then the estimations will be replicated and the results
+for each estimation and each VCOV will be reported.}
 
 \item{ssc}{An object of class \code{ssc.type} obtained with the function \code{\link{ssc}}. Represents
 how the degree of freedom correction should be done.You must use the function \code{\link{ssc}}

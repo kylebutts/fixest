@@ -46,11 +46,11 @@ Timing results of the replication:
         * The benchmark folder containing all replication files has been moved to GitHub
         * New "difficult" benchmark has been added for OLS
 
-	- [18 Nov 2019]:
-		* name harmonizaiton (dropping _rect suffix [coming from a former battery of benchmarks])
-		* variable ln_y (=log(y+1)) now directly exists in the data sets (would otherwise lead to unfair advantage to Stata where the variable was computed before the estimation). Code updated accordingly
-		* functions plm, a2reg, xtpoisson and poi2hdfe removed from the benchmark.
-		* reordering of the models in Benchmark_Stata.do
+    - [18 Nov 2019]:
+        * name harmonizaiton (dropping _rect suffix [coming from a former battery of benchmarks])
+        * variable ln_y (=log(y+1)) now directly exists in the data sets (would otherwise lead to unfair advantage to Stata where the variable was computed before the estimation). Code updated accordingly
+        * functions plm, a2reg, xtpoisson and poi2hdfe removed from the benchmark.
+        * reordering of the models in Benchmark_Stata.do
 
 
 

@@ -317,7 +317,7 @@ est_reg = function(df, yvar, xvar, refgrp) {
   feols(.[yvar] ~ i(.[xvar], ref = refgrp), data = df)
 }
 
-(est = est_reg(iris, "Sepal.Length", "Species", ref = "setosa"))
+est = est_reg(iris, "Sepal.Length", "Species", ref = "setosa")
 
 # checking when it should not work
 base = setNames(iris, c("y", "x1", "x2", "x3", "species"))
@@ -908,6 +908,13 @@ etable(summary(est_iv, stage = 1:2))
 
 setFixest_vcov(reset = TRUE)
 
+# Check the number of instruments
+test(
+  feols(y ~ x1 | x_endo_1 + x_endo_2 ~ x_inst_1, base),
+  "err"
+)
+
+
 ####
 #### ... VCOV at estimation ####
 ####
@@ -1021,16 +1028,6 @@ test(any(grepl("HC3", est_tab$est_multi_HC3.2)), TRUE)
 # deprecated `.vcov` still works
 est_multi_.vcov <- summary(est_multi, .vcov = vcovs_HC3)
 test(est_multi_.vcov[[1]]$se, est_multi_HC3[[1]]$se)
-etable(est_multi, .vcov = vcovs_HC3)
-
-
-# TEMP
-setFixest_fml(..ctrl = ~ poly(Wind, 2) + poly(Temp, 2))
-est_c0 = feols(Ozone ~ Solar.R, data = airquality)
-est_c1 = feols(Ozone ~ Solar.R + ..ctrl, data = airquality)
-est_c2 = feols(Ozone ~ Solar.R + Solar.R^2 + ..ctrl, data = airquality)
-etable(est_c0, est_c1, est_c2, vcov = sandwich::vcovHC)
-
 
 
 

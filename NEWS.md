@@ -34,7 +34,7 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 ## Breaking changes
 
-  In `vcov`, the argument `vcov_fix` now defaults to `FALSE`. If the VCOV fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors. **No retro compatibility ensured.**
+- in `vcov`, the argument `vcov_fix` now defaults to `FALSE`. If the VCOV fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors. **No retro compatibility ensured.** PR #
  
 
 ## New vignette and data set
@@ -51,9 +51,11 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - requires stringmagic >= 1.2.0
 
+- add checks in IVs as regeads the number of instruments and endogenous variables
+
 ## Bugs
 
-- fux bug in `predict` when the data of origin was missing. Thanks to @grantmcdermott, #544
+- fix bug in `predict` when the data of origin was missing. Thanks to @grantmcdermott, #544
 
 - fix bug when several scalars to be evaluated from the calling environment are included in the formula of the regression
 

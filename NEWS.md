@@ -42,9 +42,6 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
   - cluster.df => G.df
   Retro compatibility is ensured. Thanls to Kyle Butts and Grant McDermott for the brainstorm!
 
-- attribute renaming: attribute of the VCOV `dof.K` becomes `df.K` (to be consistent with to other attribute `df.t`)
-
-
 ## Breaking changes
 
 - **the new default VCOV is `iid` for all estimations**. To change the default to the way it was, place `setFixest_vcov(all = "cluster", no_FE = "iid")` in your `.Rprofile`.
@@ -68,6 +65,18 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 - requires stringmagic >= 1.2.0
 
 - add checks in IVs as regeads the number of instruments and endogenous variables
+
+- attribute renaming: attribute of the VCOV `dof.K` becomes `df.K` (to be consistent with to other attribute `df.t`)
+
+## etable
+
+- `setFixest_etable` now accepts the argument `div.class`
+
+- when a file is created and the containing folders do not exist:
+  - the new default is to create up to the grand grand parent folder
+  - the new argument `create_dirs` (default is `FALSE`) creates all containing directories
+
+- when `markdown = TRUE`, the images are directly inserted in the `<img>` container as URI, avoiding any issue with paths
 
 ## Bugs
 

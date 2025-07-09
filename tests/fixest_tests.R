@@ -1360,6 +1360,28 @@ test(
   vcov(est_pii_singular, "hc2"), "err"
 )
 
+#
+# Newey-west + Driscoll-Kraay
+#
+
+if(requireNamespace("plm", quietly = TRUE)){
+  
+  library(plm)
+  data(Grunfeld, package = "plm")
+  
+  est_panel_plm = plm(inv ~ capital + as.factor(year), Grunfeld, 
+                index = c("firm", "year"), model = "within")
+  est_panel_feols = feols(inv ~ capital | firm + year, Grunfeld, 
+                    panel.id = ~firm + year)
+  
+  # NW
+  se_plm_NW = se(vcovNW(est_panel_plm))["capital"]
+  test(se(est_panel_feols, vcov = NW ~ ssc(adj = FALSE, cluster.adj = FALSE)), se_plm_NW)
+
+  # DK
+  se_plm_DK = se(vcovSCC(est_panel_plm))["capital"]
+  test(se(est_panel_feols, vcov = DK ~ ssc(adj = FALSE, cluster.adj = FALSE)), se_plm_DK)
+}
 
 #
 # Checking the calls work properly
@@ -1459,7 +1481,7 @@ test(se_hetero, se_white)
 # New argument vcov
 #
 
-# We mostly check the absence of errors
+# We mostly check the absence of errors 
 data(base_did)
 
 est_panel = feols(y ~ x1, base_did, panel.id = ~id + period, subset = 1:500)

@@ -97,6 +97,11 @@
 #' export a regular `data.frame`, use argument `tex = FALSE`.
 #' @param replace Logical, default is `FALSE`. Only used if option `file` is used. Should the 
 #' exported table be written in a new file that replaces any existing file?
+#' @param create_dirs Logical, default is `FALSE`. Only used if when some file needs to be 
+#' created (e;g. when `file` or `export` is used). By default, i.e. when `FALSE`, 
+#' if the parent directory does not exist, the containing folders are created 
+#' up to the grand parent. 
+#' If `TRUE`, all containing folders are recursively created.
 #' @param convergence Logical, default is missing. Should the convergence state of the algorithm be 
 #' displayed? By default, convergence information is displayed if at least one model did not 
 #' converge.
@@ -811,7 +816,8 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
                   fitstat = NULL, title = NULL, coefstat = "se", ci = 0.95,
                   se.row = NULL, se.below = NULL,
                   keep = NULL, drop = NULL, order = NULL,
-                  dict = TRUE, file = NULL, replace = FALSE, convergence = NULL,
+                  dict = TRUE, file = NULL, replace = FALSE, 
+                  create_dirs = FALSE, convergence = NULL,
                   signif.code = NULL, label = NULL, float = NULL,
                   headers = list("auto"), fixef_sizes = FALSE,
                   fixef_sizes.simplify = TRUE, keepFactors = TRUE,
@@ -867,7 +873,7 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
         immediate. = TRUE, call. = FALSE)
   }
 
-  check_value(div.class, "character scalar")
+  check_arg(div.class, "character scalar")
 
   # NOTA: now that I allow the use of .(stuff) for headers and extralines
   # list(...) will raise an error if subtitle (now deprec) is used with .()
@@ -960,7 +966,9 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   # Arguments that can be set globally
   opts = getOption("fixest_etable")
 
-  args_global = c("postprocess.tex", "postprocess.df", "view", "markdown", "page.width", "div.class")
+  args_global = c("postprocess.tex", "postprocess.df", "view", "markdown", 
+                  "page.width", "div.class")
+  
   for(arg in setdiff(args_global, names(mc))){
     if(arg %in% names(opts)){
       assign(arg, opts[[arg]])
@@ -1126,6 +1134,7 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   if(is_png){
      make_png = function(x) build_tex_png(x, view = view, export = export,
                                           markdown = markdown, cache = cache,
+                                          create_dirs = create_dirs,
                                           page.width = page.width)
   }
 
@@ -1156,9 +1165,8 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   is_file = !missnull(file)
   if(is_file){
     # Create directory if it doesn't exist
-    if(!DIR_EXISTS(dirname(file))){
-      dir.create(dirname(file), recursive = TRUE)
-    }
+    check_set_path(file, "w", create_dirs = create_dirs)
+    
     error_sender(sink(file = file, append = !replace),
                  "Argument 'file': error when creating the document in ", file)
 
@@ -4699,7 +4707,7 @@ setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
 
   check_arg(view, view.cache, "logical scalar")
   check_arg(markdown, "NULL scalar(logical, character)")
-  check_value(div.class, "character scalar")
+  check_arg(div.class, "character scalar")
 
   page.width = check_set_page_width(page.width)
 
@@ -5343,8 +5351,8 @@ check_build_available = function(){
   return(TRUE)
 }
 
-build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
-             cache = FALSE, page.width = "fit", up = 0){
+build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL, create_dirs = FALSE,
+                         cache = FALSE, page.width = "fit", up = 0){
 
   up = up + 1
   set_up(up)
@@ -5406,7 +5414,7 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
   do_build = TRUE
   export_markdown = id = NULL
   if(!is.null(markdown)){
-    markdown_path = check_set_path(markdown, "w, dir", create = TRUE, up = up, recursive = TRUE)
+    markdown_path = check_set_path(markdown, "w, dir", create_dirs = create_dirs, up = up)
 
     all_files = list.files(markdown_path, "\\.png$", full.names = TRUE)
     id_all = gsub("^.+_|\\.png$", "", all_files)
@@ -5695,14 +5703,14 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
 }
 
 
-check_set_path = function(x, type = "", create = TRUE, up = 0, recursive = FALSE){
+check_set_path = function(x, type = "", create_dirs = TRUE, up = 0){
   # type:
   # + r: read (file or dir must exists), w (file is to be created)
   # + dir: directory and not a document
-  # create:
   # - if file: creates the parent dir if the grand parent exists
   # - if dir: creates the dir only if grand parent exists
-  # - if recursive == TRUE: create all folders
+  # - create_dirs == TRUE: create all folders
+  # 
 
   set_up(up + 1)
 
@@ -5736,48 +5744,42 @@ check_set_path = function(x, type = "", create = TRUE, up = 0, recursive = FALSE
     stop_up("Argument '", x_dp, "' should be a path to a ", msg,
             " that exists. \n  Problem: '", path, "' does not exist.")
   }
-
-  # Here we're in write
-
-  file_name = gsub(".+/", "", path)
-  path_dir = str_trim(path, -nchar(file_name))
-  if(nchar(path_dir) == 0) path_dir = "."
-
-  if(create & recursive) {
-    if(!dir.exists(path)) {
-      dir.create(path, recursive = TRUE)
-    }
-  }
+  
+  #
+  # write
+  #
+  
+  # if is_dir => we create it
+  # else we create the parent dir
 
   path_parent = dirname(path)
-  if(dir.exists(path_parent)){
-    if(is_dir && create){
-      dir.create(path)
-    }
-      
-    # ensure absolute path is returned for working with `tempdir()`
-    path = try(normalizePath(path, "/", mustWork = FALSE))
-    return(path)
-  }
-
-  if(create){
+  if(nchar(path_parent) == 0) path_parent = "."
+  
+  if(!create_dirs && !dir.exists(path_parent)){
     path_grand_parent = dirname(path_parent)
-    if(dir.exists(path_grand_parent)){
-      dir.create(path_parent)
-      if(is_dir){
-        dir.create(path)
+    if(!dir.exists(path_grand_parent)){
+      path_grand_grand_parent = dirname(path_grand_parent)
+      if(!dir.exists(path_grand_grand_parent)){
+        msg = if("dir" %in% flags) "directory" else "file"
+        stop_up("Argument {bq ? x_dp} should be a path to a {msg}.\n",
+                "Problem: {Q ? path_grand_grand_parent} does not exist.",
+                "\nMaybe use the argument `create_dirs = TRUE`?")
       }
-      
-      # ensure absolute path is returned for working with `tempdir()`
-      path = try(normalizePath(path, "/", mustWork = FALSE))
-      return(path)
+    }
+    
+    create_dirs = TRUE
+  }
+  
+  # we create everyone
+  if(create_dirs){
+    if(is_dir){
+      dir.create(path, recursive = TRUE)
+    } else {
+      dir.create(path_parent, recursive = TRUE)
     }
   }
 
-  msg = if("dir" %in% flags) "directory" else "file"
-  stop_up("Argument '", x_dp, "' should be a path to a ", msg, 
-          ". \n  Problem: '", path_parent, "' does not exist.")
-
+  path
 }
 
 viewer_html_template = function(png_name){
@@ -7114,11 +7116,14 @@ is_Rmarkdown = function(){
   "knitr" %in% loadedNamespaces() && !is.null(knitr::pandoc_to())
 }
 
-path_to_relative = function(orig, dest){
+path_to_relative = function(dest, orig = "."){
   # orig = "C:/Users/berge028/Google Drive/R_packages/fixest/fixest"
   # dest = "C:/Users/berge028/Google Drive/R_packages/automake/automake/NAMESPACE"
 
   # I'm not sure it works perfectly well on linux...
+  
+  dest = normalizePath(dest, "/", mustWork = FALSE)
+  orig = normalizePath(orig, "/", mustWork = FALSE)
 
   if(dest == orig) return(".")
 

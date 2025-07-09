@@ -23,7 +23,7 @@ export(did_means)
 # graph
 export(coefplot, iplot)
 # dof
-export(dof, ssc, degrees_freedom)
+export(ssc, degrees_freedom)
 # Lag related
 export(panel, unpanel, f, l, d, lag_fml)
 # factor/interactions/binning

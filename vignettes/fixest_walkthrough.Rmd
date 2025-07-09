@@ -322,7 +322,7 @@ Let's now try with panel identifiers set at estimation time:
 est_panel = feols(y ~ x1, base_did, panel.id = ~id + period)
 summary(est_panel, "newey_west")
 ```
-Oh, now it works! However I can see some shade of disappointment in your eyes: since we need to add `panel.id = ~id + period` we end up with more typing! Well, I'm not done: typically we tend to make many estimations with the same data set, so it may be useful to set some characteristics globally. This can be done with the `setFixest_estimation()` function:
+Oh, now it works! By the way, note that if the same data set is used again and again, it is possible to set some characteristics globally, like the `panel.id` argument. This can be done with the `setFixest_estimation()` function:
 ```{r}
 setFixest_estimation(panel.id = ~id + period)
 est_implicit = feols(y ~ x1, base_did)
@@ -394,9 +394,10 @@ The value of the SEs can (sometimes quite surprisingly) be impacted by the type 
 
 Most `fixest` functions accept an `ssc` argument that you can readily use. Here's an example:
 ```{r}
-est = feols(y ~ x1 | id, base_did)
-est_up = feols(y ~ x1 | id, base_did, ssc = ssc(K.fixef = "full"))
-est_down = feols(y ~ x1 | id, base_did, ssc = ssc(K.adj = FALSE, G.adj = FALSE))
+est = feols(y ~ x1 | id, base_did, vcov = "cluster")
+est_up = feols(y ~ x1 | id, base_did, vcov = "cluster", ssc = ssc(K.fixef = "full"))
+est_down = feols(y ~ x1 | id, base_did, vcov = "cluster", 
+                 ssc = ssc(K.adj = FALSE, G.adj = FALSE))
 etable(est, est_up, est_down)
 ```
 

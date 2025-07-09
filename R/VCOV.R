@@ -2773,15 +2773,15 @@ getFixest_ssc = function(){
 #'
 #' @param no_FE Character scalar equal to either: `"iid"` (default), or `"hetero"`. The type 
 #' of standard-errors to use by default for estimations without fixed-effects.
-#' @param one_FE Character scalar equal to either: `"iid"`, `"hetero"`, or `"cluster"` (default). 
+#' @param one_FE Character scalar equal to either: `"iid"` (default), `"hetero"`, or `"cluster"`. 
 #' The type of standard-errors to use by default for estimations with *one* fixed-effect.
-#' @param two_FE Character scalar equal to either: `"iid"`, `"hetero"`, `"cluster"` (default), or 
+#' @param two_FE Character scalar equal to either: `"iid"` (default), `"hetero"`, `"cluster"`, or 
 #' `"twoway"`. The type of standard-errors to use by default for estimations with *two or more* 
 #' fixed-effects.
-#' @param panel Character scalar equal to either: `"iid"`, `"hetero"`, `"cluster"` (default), or 
+#' @param panel Character scalar equal to either: `"iid"` (default), `"hetero"`, `"cluster"`, or 
 #' `"driscoll_kraaay"`. The type of standard-errors to use by default for estimations with the 
 #' argument `panel.id` set up. Note that panel has precedence over the presence of fixed-effects.
-#' @param all Character scalar equal to either: `"iid"`, or `"hetero"`. By default is is NULL. If 
+#' @param all Character scalar equal to either: `"iid"`, or `"hetero"`. By default is is `NULL`. If 
 #' provided, it sets all the SEs to that value.
 #' @param reset Logical, default is `FALSE`. Whether to reset to the default values.
 #'
@@ -2792,21 +2792,18 @@ getFixest_ssc = function(){
 #'
 #' @examples
 #'
-#' # By default:
-#' # - no fixed-effect (FE): standard
-#' # - one or more FEs: cluster
-#' # - panel: cluster on panel id
+#' # By default: 'standard' VCOVs
 #'
 #' data(base_did)
 #' est_no_FE  = feols(y ~ x1, base_did)
 #' est_one_FE = feols(y ~ x1 | id, base_did)
 #' est_two_FE = feols(y ~ x1 | id + period, base_did)
-#' est_panel = feols(y ~ x1 | id + period, base_did, panel.id = ~id + period)
+#' est_panel  = feols(y ~ x1 | id + period, base_did, panel.id = ~id + period)
 #'
 #' etable(est_no_FE, est_one_FE, est_two_FE)
 #'
 #' # Changing the default standard-errors
-#' setFixest_vcov(no_FE = "hetero", one_FE = "iid",
+#' setFixest_vcov(no_FE = "hetero", one_FE = "cluster",
 #'                two_FE = "twoway", panel = "drisc")
 #' etable(est_no_FE, est_one_FE, est_two_FE, est_panel)
 #'
@@ -2814,8 +2811,8 @@ getFixest_ssc = function(){
 #' setFixest_vcov(reset = TRUE)
 #'
 #'
-setFixest_vcov = function(no_FE = "iid", one_FE = "cluster", two_FE = "cluster",
-                          panel = "cluster", all = NULL, reset = FALSE){
+setFixest_vcov = function(no_FE = "iid", one_FE = "iid", two_FE = "iid",
+                          panel = "iid", all = NULL, reset = FALSE){
 
   # NOTE:
   # The default values should ALWAYS be working.

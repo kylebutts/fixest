@@ -54,7 +54,7 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - add a new vignette on collinearity
 
-- new data set `base_pub`, base on publication data from the Microsoft Academic Graph, used to illustrate the new vignette
+- new data set `base_pub`, based on publication data from the Microsoft Academic Graph, used to illustrate the new vignette
 
 ## Minor changes
 

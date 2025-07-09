@@ -57,7 +57,6 @@
 #' est_pois = fepois(Euros ~ log(dist_km)|Origin+Destination+Product, trade)
 #'
 #' # displaying the results
-#' #  (by default SEs are clustered if FEs are used)
 #' print(est_pois)
 #'
 #' # By default the coefficient table is displayed.
@@ -1680,7 +1679,6 @@ se.matrix = function(object, keep, drop, order, ...){
 #' # Coeftable/se/tstat/pvalue
 #' #
 #'
-#' # Default is clustering along Origin^Product
 #' coeftable(est)
 #' se(est)
 #' tstat(est)
@@ -1694,7 +1692,7 @@ se.matrix = function(object, keep, drop, order, ...){
 #' pvalue(est, cluster = ~Origin + Product)
 #' tstat(est, cluster = ~Origin + Product)
 #'
-#' # Or you can cluster only once:
+#' # Or you can cluster only once using summary:
 #' est_sum = summary(est, cluster = ~Origin + Product)
 #' coeftable(est_sum)
 #' se(est_sum)

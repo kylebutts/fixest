@@ -1246,8 +1246,8 @@ for(cdf in c("conventional", "min")){
 
 # Data generation
 set.seed(0)
-N = 20; G = N/5; T = N/G
-d = data.frame( y=rnorm(N), x=rnorm(N), grp=rep(1:G,T), tm=rep(1:T,each=G) )
+N = 20 ; G = N / 5 ; T = N / G
+d = data.frame(y = rnorm(N), x = rnorm(N), grp = rep(1:G, T), tm = rep(1:T, each = G))
 
 # Estimations
 est_lm    = lm(y ~ x + as.factor(grp) + as.factor(tm), data=d)

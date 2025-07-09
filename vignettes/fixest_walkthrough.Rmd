@@ -395,22 +395,22 @@ The value of the SEs can (sometimes quite surprisingly) be impacted by the type 
 Most `fixest` functions accept an `ssc` argument that you can readily use. Here's an example:
 ```{r}
 est = feols(y ~ x1 | id, base_did)
-est_up = feols(y ~ x1 | id, base_did, ssc = ssc(fixef.K = "full"))
-est_down = feols(y ~ x1 | id, base_did, ssc = ssc(adj = FALSE, cluster.adj = FALSE))
+est_up = feols(y ~ x1 | id, base_did, ssc = ssc(K.fixef = "full"))
+est_down = feols(y ~ x1 | id, base_did, ssc = ssc(K.adj = FALSE, G.adj = FALSE))
 etable(est, est_up, est_down)
 ```
 
 Instead of providing the argument `ssc`, you can instead add the `ssc` call directly within the formula of the `vcov`. In this case you should simply add it as a variable.
 We now replicate the previous example using a list of several VCOVs in `etable` (that's the only function that accepts lists in the argument `vcov`):
 ```{r}
-etable(est, vcov = list(~id, ~id + ssc(fixef.K = "full"), 
-                        ~id + ssc(adj = FALSE, cluster.adj = FALSE)))
+etable(est, vcov = list(~id, ~id + ssc(K.fixef = "full"), 
+                        ~id + ssc(K.adj = FALSE, G.adj = FALSE)))
 ```
 
 You can also tweak `iid` or `hetero` SEs using a formula:
 ```{r}
-feols(y ~ x1 | id, base_did, iid ~ ssc(adj = FALSE))
-feols(y ~ x1 | id, base_did, hetero ~ ssc(adj = FALSE))
+feols(y ~ x1 | id, base_did, iid ~ ssc(K.adj = FALSE))
+feols(y ~ x1 | id, base_did, hetero ~ ssc(K.adj = FALSE))
 ```
 
 

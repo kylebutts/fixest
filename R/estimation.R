@@ -3462,7 +3462,8 @@ femlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian")
                    fixef.tol=fixef.tol, fixef.iter = fixef.iter, nthreads = nthreads,
                    lean = lean, verbose = verbose, warn = warn, notes = notes,
                    theta.init = theta.init, combine.quick = combine.quick,
-                   mem.clean = mem.clean, origin = "femlm", mc_origin_bis = match.call(),
+                   mem.clean = mem.clean, 
+                   origin_bis = "femlm", mc_origin_bis = match.call(),
                    call_env_bis = call_env_bis, only.env = only.env, 
                    only.coef = only.coef, data.save = data.save,
                    env = env, ...), silent = TRUE)
@@ -3492,7 +3493,7 @@ fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "p
   set_defaults("fixest_estimation")
   call_env_bis = new.env(parent = parent.frame())
 
-  res = try(feNmlm(fml = fml, data=data, family = "negbin", theta.init = theta.init,
+  res = try(feNmlm(fml = fml, data = data, family = "negbin", theta.init = theta.init,
                    start = start, fixef = fixef, fixef.rm = fixef.rm, offset = offset,
                    subset = subset, split = split, fsplit = fsplit,
                    split.keep = split.keep, split.drop = split.drop,
@@ -3502,7 +3503,7 @@ fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "p
                    verbose = verbose, warn = warn, notes = notes, combine.quick = combine.quick,
                    mem.clean = mem.clean, only.env = only.env, 
                    only.coef = only.coef, data.save = data.save,
-                   origin = "fenegbin", mc_origin_bis = match.call(),
+                   origin_bis = "fenegbin", mc_origin_bis = match.call(),
                    call_env_bis = call_env_bis, env = env, ...), silent = TRUE)
 
   if("try-error" %in% class(res)){
@@ -3544,7 +3545,7 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
                   nthreads = nthreads, lean = lean, warn = warn, notes = notes,
                   verbose = verbose, combine.quick = combine.quick, mem.clean = mem.clean,
                   only.env = only.env, only.coef = only.coef, data.save = data.save,
-                  origin = "fepois", mc_origin_bis = match.call(),
+                  origin_bis = "fepois", mc_origin_bis = match.call(),
                   call_env_bis = call_env_bis, env = env, ...), silent = TRUE)
 
   if("try-error" %in% class(res)){
@@ -3901,11 +3902,11 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #' points(x, fitted(est2_NL), col = 4, pch = 2)
 #'
 #'
-feNmlm = function(fml, data, family=c("poisson", "negbin", "logit", "gaussian"), NL.fml, vcov,
+feNmlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"), NL.fml, vcov,
                   fixef, fixef.rm = "perfect", NL.start, lower, upper, NL.start.init,
                   offset, subset, split, fsplit, split.keep, split.drop,
                   cluster, se, ssc, panel.id,
-                  start = 0, jacobian.method="simple", useHessian = TRUE,
+                  start = 0, jacobian.method = "simple", useHessian = TRUE,
                   hessian.args = NULL, opt.control = list(), nthreads = getFixest_nthreads(),
                   lean = FALSE, verbose = 0, theta.init, fixef.tol = 1e-5, fixef.iter = 10000,
                   deriv.tol = 1e-4, deriv.iter = 1000, warn = TRUE, notes = getFixest_notes(),
@@ -3932,7 +3933,7 @@ feNmlm = function(fml, data, family=c("poisson", "negbin", "logit", "gaussian"),
                          fixef.tol = fixef.tol, fixef.iter = fixef.iter, deriv.iter = deriv.iter,
                          warn = warn, notes = notes, combine.quick = combine.quick,
                          mem.clean = mem.clean, only.coef = only.coef, data.save = data.save,
-                         mc_origin = match.call(),
+                         origin = "feNmlm", mc_origin = match.call(),
                          call_env = call_env, computeModel0 = TRUE, ...), silent = TRUE)
 
   } else if((r <- !is.environment(env)) || !isTRUE(env$fixest_env)) {

@@ -831,7 +831,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
   }
 
   ####
-  #### ... vcov no adj ####
+  #### ... vcov ####
   ####
 
   # we compute the vcov. The adjustment (which is a pain in the neck) will come after that
@@ -841,13 +841,15 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
   #   this is because there is no generic way to perform it, it is better to keep is VCOV specific
   # 
   
-  # we add the extra two information here to lighten the passing of arguments
-  # and facilitate internal usage
-  ssc$vcov_select = vcov_select
-  ssc$vcov_vars = vcov_vars
+  if(!isTRUE(vcov_select$ssc_allow_nonnested)){
+    # we removed the K from the nested fixed-effects only for some VCOVs, not all
+    ssc$K.fixef = "full"
+  }
+  
+  K = ssc_compute_K(ssc, object, vcov_select, vcov_vars)
 
   fun_name = vcov_select$fun_name
-  args = list(bread = bread, scores = scores, vars = vcov_vars, ssc = ssc,
+  args = list(bread = bread, scores = scores, vars = vcov_vars, ssc = ssc, K = K,
               sandwich = sandwich, nthreads = nthreads,
               vcov_name = vcov_name, object = object,
               var_names_all = var_names_all)
@@ -911,9 +913,6 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
       attr(vcov_mat, "type") = paste0(vcov_select$vcov_label, type_info)
       attr(vcov_mat, "type_info") = NULL
     }
-    
-    # we cleanup the stuff we added before
-    ssc[c("vcov_select", "vcov_vars")] = NULL
     
     attr(vcov_mat, "ssc") = ssc
     attr(vcov_mat, "df.K") = K
@@ -1666,13 +1665,14 @@ vcov_setup = function(){
 
   vcov_iid_setup = list(name = c("iid", "normal", "standard"), 
                         fun_name = "vcov_iid_internal", 
+                        ssc_allow_nonnested = TRUE,
                         vcov_label = "IID")
 
   #
   # Heteroskedasticity robust
   #
 
-  vcov_hetero_setup = list(name = c("hetero", "white", "hc1", "hc2", "hc3"), 
+  vcov_hetero_setup = list(name = c("hetero", "white", "hc1"), 
                            fun_name = "vcov_hetero_internal", 
                            vcov_label = "Heteroskedasticity-robust")
   
@@ -1690,6 +1690,7 @@ vcov_setup = function(){
 
   vcov_clust_setup = list(name = c("cluster", ""), 
                           fun_name = "vcov_cluster_internal", 
+                          ssc_allow_nonnested = TRUE,
                           vcov_label = "Clustered")
   
   vcov_clust_setup$vars = list(
@@ -1715,18 +1716,21 @@ vcov_setup = function(){
 
   vcov_twoway_setup = list(name = "twoway", 
                            fun_name = "vcov_cluster_internal", 
+                           ssc_allow_nonnested = TRUE,
                            vcov_label = "Clustered")
   vcov_twoway_setup$vars = list(cl1 = cl1, cl2 = cl2)
   vcov_twoway_setup$patterns = c("", "cl1 + cl2")
 
   vcov_threeway_setup = list(name = "threeway", 
                              fun_name = "vcov_cluster_internal", 
+                             ssc_allow_nonnested = TRUE,
                              vcov_label = "Clustered")
   vcov_threeway_setup$vars = list(cl1 = cl1, cl2 = cl2, cl3 = cl3)
   vcov_threeway_setup$patterns = c("", "cl1 + cl2 + cl3")
 
   vcov_fourway_setup = list(name = "fourway", 
                             fun_name = "vcov_cluster_internal", 
+                            ssc_allow_nonnested = TRUE,
                             vcov_label = "Clustered")
   vcov_fourway_setup$vars = list(cl1 = cl1, cl2 = cl2, cl3 = cl3, cl4 = cl4)
   vcov_fourway_setup$patterns = c("", "cl1 + cl2 + cl3 + cl4")
@@ -2415,15 +2419,10 @@ slide_args = function(x, ...){
   }
 }
 
-ssc_compute_K = function(ssc, object){
-  # - this function is ALWAYS called after ssc was modified by vcov.fixest to
-  #   include the following two variables: `vcov_select` and `vcov_vars`
-  # - its intended use is within the vcov_X_internal functions
-  #   => this is a very specific function, do not use outside vcov_X_internal funs
+ssc_compute_K = function(ssc, object, vcov_select, vcov_vars){
+  # - this function is ALWAYS called from vcov.fixest
+  #   => this is a very specific function, do not use vcov.fixest
   # 
-  
-  vcov_select = ssc$vcov_select
-  vcov_vars = ssc$vcov_vars
   
   n_fe = n_fe_ok = length(object$fixef_id)
 

@@ -6828,18 +6828,25 @@ get_vars = function(x){
   attr(terms(x), "term.labels")
 }
 
-mat_posdef_fix = function(X, tol = 0){
+mat_posdef_fix = function(X, tol = 1e12, check = FALSE){
   # X must be a symmetric matrix
   # We don't check it
+  
+  if(check){
+    eigval = eigen(X, symmetric = TRUE, only.values = TRUE)$values
+    if(all(eigval > tol)){
+      return(X)
+    }
+  }
 
-  e  = eigen(X, symmetric = TRUE)
+  e = eigen(X, symmetric = TRUE)
   # Should already be TRUE if this function is called, but in case someone else wants to use it, does not hurt to check.
   if (any(e$values < tol)){
     if (is.complex(e$values)) {
       attr(X, "is_complex") = TRUE
     } else {
       dm = dimnames(X)
-      X = tcrossprod(e$vectors %*% diag(pmax(e$values, 1e-12), nrow(X)), e$vectors)
+      X = tcrossprod(e$vectors %*% diag(pmax(e$values, tol), nrow(X)), e$vectors)
       dimnames(X) = dm
     }
   }

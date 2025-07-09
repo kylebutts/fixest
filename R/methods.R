@@ -4071,7 +4071,7 @@ deviance.fixest = function(object, ...){
 #'
 #' @param model A fixest object. For instance from feols or feglm.
 #' @param exact Logical scalar, default is `TRUE`. Whether the diagonals of the projection matrix should be calculated exactly. If `FALSE`, then it will be approximated using a JLA algorithm. See details. Unless you have a very large number of observations, it is recommended to keep the default value.
-#' @param p Numeric scala, default is 1000. This is only used when `exact == FALSE`. This determined the number of bootstrap samples used to estimate the projection matrix.
+#' @param boot.size Numeric scalar, default is 1000. This is only used when `exact == FALSE`. This determines the number of bootstrap samples used to estimate the projection matrix.
 #' @param ... Not currently used.
 #'
 #' @details
@@ -4079,7 +4079,7 @@ deviance.fixest = function(object, ...){
 #' 
 #' Hat values for generalized linear model are disussed in Belsley, Kuh and Welsch (1980), Cook and Weisberg (1982), etc.
 #' 
-#' When `exact == FALSE`, the Johnson-Lindenstrauss approximation (JLA) algorithm is used which approximates the diagonals of the projection matrix. For more precision (but longer time), increase the value of `p`. See Kline, Saggio, and Sølvsten (2020) for details.
+#' When `exact == FALSE`, the Johnson-Lindenstrauss approximation (JLA) algorithm is used which approximates the diagonals of the projection matrix. For more precision (but longer time), increase the value of `boot.size`. See Kline, Saggio, and Sølvsten (2020) for details.
 #' 
 #' 
 #' @references
@@ -4096,12 +4096,15 @@ deviance.fixest = function(object, ...){
 #' Returns a vector of the same length as the number of observations used in the estimation.
 #'
 #'
-hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
+hatvalues.fixest = function(model, exact = TRUE, boot.size = 1000, ...){
   # Only works for feglm/feols objects + no fixed-effects
   # When there are fixed-effects the hatvalues of the reduced form is different from
   #  the hatvalues of the full model. And we cannot get costlessly the hatvalues of the full
   #  model from the reduced form. => we need to reestimate the model with the FEs as
   #  regular variables.
+  
+  check_arg(exact, "logical scalar")
+  check_arg(boot.size, "integer scalar GT{1}")
 
   if(isTRUE(model$lean)){
     # LATER: recompute it
@@ -4118,7 +4121,7 @@ hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
 
   method = model$method_type
   if (!(method %in% c("feols", "feglm"))) {
-    stop("'hatvalues' is currently not implemented for function ", method, ".")
+    stopi("'hatvalues' is currently not implemented for function {bq ? model$method}.")
   }
 
 
@@ -4134,8 +4137,10 @@ hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
       res = cpp_diag_XUtX(XW, model$cov.iid)
   
     } else {
+      # we never get here
       stop("'hatvalues' is currently not implemented for function ", method, ".")
     }
+
     return(res)
   }
 
@@ -4149,7 +4154,7 @@ hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
   # Sum the three parts to get the projection matrix
   P_ii_list = list()
   mats = list()
-  mats$fixef = sparse_model_matrix(model, type = "fixef", collin.rm = TRUE,sortCols = FALSE)
+  mats$fixef = sparse_model_matrix(model, type = "fixef", collin.rm = TRUE, sortCols = FALSE)
 
   # Check for slope.vars and move to seperate matrix
   if (!is.null(model$slope_flag)) {
@@ -4173,20 +4178,28 @@ hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
     f = subset(f, select = model$fixef_vars)
 
     # Matrix of fixed effects times weights
-    if (!is.null(weights)) mats$fixef = mats$fixef * sqrt(weights)
+    if (!is.null(weights)){
+      mats$fixef = mats$fixef * sqrt(weights)
+    }
 
     # Demean X by FEs and slope_vars
     if (is.null(model$onlyFixef) & method == "feols") {
       mats$rhs = demean(model)[, -1, drop = FALSE] 
-      if (!is.null(weights)) mats$rhs = mats$rhs * sqrt(weights)
+      if (!is.null(weights)){
+        mats$rhs = mats$rhs * sqrt(weights)
+      }
     }
+    
     if (is.null(model$onlyFixef) & method == "feglm") {
       mats$rhs = demean(
         model.matrix(model, "rhs"),
         f,
         weights = weights
       )
-      if (!is.null(weights)) mats$rhs = mats$rhs * sqrt(weights)
+      
+      if (!is.null(weights)){
+        mats$rhs = mats$rhs * sqrt(weights)
+      }
     }
 
     # Demean slope_vars by FEs
@@ -4195,8 +4208,11 @@ hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
         as.matrix(mats$slope_vars), 
         f, 
         weights = weights
-      ) 
-      if (!is.null(weights)) mats$slope_vars = mats$slope_vars * sqrt(weights)
+      )
+      
+      if (!is.null(weights)){
+        mats$slope_vars = mats$slope_vars * sqrt(weights)
+      }
     }
 
   } else if (is.null(model$onlyFixef)) {
@@ -4205,7 +4221,9 @@ hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
       collin.rm = TRUE, na.rm = TRUE
     )
 
-    if (!is.null(weights)) mats$rhs = mats$rhs * sqrt(weights)
+    if (!is.null(weights)){
+      mats$rhs = mats$rhs * sqrt(weights)
+    }
   }
 
 
@@ -4219,25 +4237,26 @@ hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
 
   # Note: This might fail if looking at too large of a matrix
   if (exact == TRUE) {
-      if (!is.null(mats$slope_vars)) { 
-          Z = Matrix::solve(
-            Matrix::crossprod(mats$slope_vars), 
-            Matrix::t(mats$slope_vars)
-          )
-          # P_ii = diag(X %*% Z) = rowSums(X * Z)
-          P_ii_list$slope_vars = Matrix::rowSums(
-            mats$slope_vars * Matrix::t(Z)
-          )
-      }
+    if (!is.null(mats$slope_vars)) { 
+      Z = Matrix::solve(
+        Matrix::crossprod(mats$slope_vars), 
+        Matrix::t(mats$slope_vars)
+      )
+      # P_ii = diag(X %*% Z) = rowSums(X * Z)
+      P_ii_list$slope_vars = Matrix::rowSums(
+        mats$slope_vars * Matrix::t(Z)
+      )
+    }
 
-      if (!is.null(mats$rhs)) {
-          tXXinv = model$cov.iid 
-          if (method == "feols") tXXinv = tXXinv / model$sigma2
+    if (!is.null(mats$rhs)) {
+      tXXinv = model$cov.iid 
+      if (method == "feols") tXXinv = tXXinv / model$sigma2
 
-          P_ii_list$rhs = Matrix::rowSums(
-            mats$rhs * Matrix::t(tXXinv %*% Matrix::t(mats$rhs))
-          )
-      }
+      P_ii_list$rhs = Matrix::rowSums(
+        mats$rhs * Matrix::t(tXXinv %*% Matrix::t(mats$rhs))
+      )
+    }
+    
   } else {
     # Theory: https://cs-people.bu.edu/evimaria/cs565/achlioptas.pdf
     n = model$nobs
@@ -4247,13 +4266,14 @@ hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
       tSS = Matrix::crossprod(mats$slope_vars)
       tS = Matrix::t(mats$slope_vars)
     }
+    
     if (!is.null(mats$rhs)) { 
       P_ii_list$rhs = rep(0, n)
       tXX = Matrix::crossprod(mats$rhs)
       tX = Matrix::t(mats$rhs)
     }
 
-    for (j in 1:p) {
+    for (j in 1:boot.size) {
       # Rademacher Weights (-1, 1)
       Rp_j <- matrix(
         (stats::runif(n) > 0.5) * 2 - 1,
@@ -4268,7 +4288,7 @@ hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
         Zj <- Matrix::solve(tSS, tS_Rp_j)
         P_ii_list$slope_vars = 
           P_ii_list$slope_vars + 
-          as.numeric(mats$slope_vars %*% Zj)^2 / p
+          as.numeric(mats$slope_vars %*% Zj)^2 / boot.size
       }
 
       if (!is.null(mats$rhs)) { 
@@ -4277,18 +4297,14 @@ hatvalues.fixest = function(model, exact = TRUE, p = 1000, ...){
         Zj <- Matrix::solve(tXX, tX_Rp_j)
         P_ii_list$rhs = 
           P_ii_list$rhs + 
-          as.numeric(mats$rhs %*% Zj)^2 / p
+          as.numeric(mats$rhs %*% Zj)^2 / boot.size
       }
     }
   }
 
   P_ii = Reduce("+", P_ii_list)
 
-  return(P_ii)
-
-
-
-  res
+  P_ii
 }
 
 

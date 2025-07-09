@@ -1970,7 +1970,7 @@ ffm_fe = feols(y ~ x1 + x2 | species, base)
 
 # I set seed just to prevent low low probability failures
 set.seed(1)
-test(mean(hatvalues(ffm_fe, exact = FALSE, p = 500)), mean(hatvalues(fm_fe)), tol = 0.01)
+test(mean(hatvalues(ffm_fe, exact = FALSE, boot.size = 500)), mean(hatvalues(fm_fe)), tol = 0.01)
 
 # Detect leverage of 1 (P_ii = 1)
 base$species = as.character(base$species)

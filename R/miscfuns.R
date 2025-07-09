@@ -6828,7 +6828,7 @@ get_vars = function(x){
   attr(terms(x), "term.labels")
 }
 
-mat_posdef_fix = function(X, tol = 1e12, check = FALSE){
+mat_posdef_fix = function(X, tol = 1e-12, check = FALSE){
   # X must be a symmetric matrix
   # We don't check it
   

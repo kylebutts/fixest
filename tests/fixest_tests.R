@@ -551,7 +551,7 @@ est_pdat = feols(y ~ x1 | fe, pdat)
 est_panel = feols(y ~ x1 | fe, base_panel, panel.id = ~id+period)
 
 test(attr(vcov(est_pdat, attr = TRUE), "type"),
-   attr(vcov(est_panel, attr = TRUE), "type"))
+     attr(vcov(est_panel, attr = TRUE), "type"))
 
 ####
 #### ... subset ####
@@ -2354,7 +2354,7 @@ res_bis = lm.fit(X[obs_rm, ], y[obs_rm])
 test(res_bis$coefficients, res$coefficients)
 
 # Lag
-res_lag = feols(y1 ~ l(x1, 1:2) + x2 + x3, base, panel = ~id + time)
+res_lag = feols(y1 ~ l(x1, 1:2) + x2 + x3, base, panel.id = ~id + time)
 m_lag = model.matrix(res_lag)
 test(nrow(m_lag), nobs(res_lag))
 
@@ -2528,7 +2528,7 @@ sm_nocons = sparse_model_matrix(res_nocons, type = "rhs")
 test("(Intercept)" %in% colnames(sm_nocons), FALSE)
 
 # Lag 
-res_lag = feols(y1 ~ l(x1, 1:2) + x2 + x3, base, panel = ~id + time)
+res_lag = feols(y1 ~ l(x1, 1:2) + x2 + x3, base, panel.id = ~id + time)
 sm_lag = sparse_model_matrix(res_lag, type = "rhs")
 test(nrow(sm_lag), nobs(res_lag))
 

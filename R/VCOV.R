@@ -2134,8 +2134,8 @@ vcov_newey_west_internal = function(bread, scores, vars, ssc, n, K,
 }
 
 
-vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, sandwich, 
-                                        n, K, nthreads, lag = NULL, ...){
+vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, n, K, 
+                                        sandwich, nthreads, lag = NULL, ...){
   # Function that computes Driscoll-Kraay VCOV
 
   # Setting up
@@ -2182,7 +2182,7 @@ vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, sandwich,
 }
 
 
-vcov_conley_internal = function(bread, scores, vars, sandwich, nthreads, n, K,
+vcov_conley_internal = function(bread, scores, vars, ssc, n, K, sandwich, nthreads,
                                 cutoff = NULL, pixel = 0, distance = "triangular", ...){
 
   lon = vars$lng
@@ -2442,6 +2442,7 @@ ssc_compute_K = function(ssc, object, vcov_select, vcov_vars, var_names_all){
   #   => this is a very specific function, do not use vcov.fixest
   # 
   
+  n = object$nobs
   n_fe = n_fe_ok = length(object$fixef_id)
 
   # we adjust the fixef sizes to account for slopes

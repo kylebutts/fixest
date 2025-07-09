@@ -4634,7 +4634,7 @@ setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
                             interaction.order = NULL, depvar, style.tex = NULL,
                             style.df = NULL, notes = NULL, group = NULL, extralines = NULL,
                             fixef.group = NULL, placement = "htbp", drop.section = NULL,
-                            view = FALSE, markdown = NULL, view.cache = FALSE,
+                            view = FALSE, markdown = NULL, view.cache = TRUE,
                             page.width = "fit", div.class = "etable",
                             postprocess.tex = NULL, postprocess.df = NULL,
                             fit_format = "__var__", meta.time = NULL,
@@ -4768,6 +4768,9 @@ setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
   for(v in args_default){
     opts[[v]] = eval(as.name(v))
   }
+  
+  # we always save view.cache
+  opts[["view.cache"]] = view.cache
 
   options(fixest_etable = opts)
 
@@ -5671,11 +5674,9 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL, create
         setwd(tmp_dir)
       }
       
-      browser()
       URI = knitr::image_uri(png_name)
       html_file = viewer_html_template(URI)
       
-
       writeLines(html_file, "etable.html")
 
       my_viewer("etable.html")

@@ -78,6 +78,8 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - when `markdown = TRUE`, the images are directly inserted in the `<img>` container as URI, avoiding any issue with paths
 
+- the caching of table images is now automatically enabled
+
 ## Bugs
 
 - fix bug in `predict` when the data of origin was missing. Thanks to @grantmcdermott, #544
@@ -92,7 +94,9 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - fix documentation bugs. Reported by @cseveren
 
-- fix bug in etable: `drop.section` was not catching the option `coef`. Thanks to @Oravishayrizi, #540
+- fix bug in `etable`: `drop.section` was not catching the option `coef`. Thanks to @Oravishayrizi, #540
+
+- fix bug in `etable` when `view = TRUE`, now it displays properly in VSCode
 
 # fixest 0.12.1
 

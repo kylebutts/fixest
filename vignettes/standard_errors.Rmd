@@ -176,7 +176,8 @@ The most important differences arise in the presence of fixed-effects. Let's fir
 
 # Estimations
 est_lm    = lm(inv ~ capital + as.factor(firm) + as.factor(year), Grunfeld)
-est_plm   = plm(inv ~ capital + as.factor(year), Grunfeld, index = c("firm", "year"), model = "within")
+est_plm   = plm(inv ~ capital + as.factor(year), Grunfeld, 
+                index = c("firm", "year"), model = "within")
 # we use panel.id so that panel VCOVs can be applied directly
 est_feols = feols(inv ~ capital | firm + year, Grunfeld, panel.id = ~firm + year)
 
@@ -184,9 +185,8 @@ est_feols = feols(inv ~ capital | firm + year, Grunfeld, panel.id = ~firm + year
 # "iid" standard-errors
 #
 
-# By default fixest clusters the SEs when FEs are present,
 #  so we need to ask for iid SEs explicitly.
-rbind(se(est_lm)["capital"], se(est_plm)["capital"], se(est_feols, vcov = "iid"))
+rbind(se(est_lm)["capital"], se(est_plm)["capital"], se(est_feols))
 
 # p-values:
 rbind(pvalue(est_lm)["capital"], pvalue(est_plm)["capital"], pvalue(est_feols, vcov = "iid"))
@@ -204,7 +204,7 @@ Now for clustered SEs:
 se_lm_firm    = se(vcovCL(est_lm, cluster = ~firm, type = "HC1"))["capital"]
 se_plm_firm   = se(vcovHC(est_plm, cluster = "group"))["capital"]
 se_stata_firm = 0.06328129    # vce(cluster firm)
-se_feols_firm = se(est_feols) # By default: clustered according to firm
+se_feols_firm = se(est_feols, vcov = "cluster")
 
 rbind(se_lm_firm, se_plm_firm, se_stata_firm, se_feols_firm)
 ```
@@ -331,10 +331,10 @@ For example, if you want to remove the small sample adjustment, just use:
 setFixest_ssc(ssc(K.adj = FALSE))
 ```
 
-By default, the standard-errors are clustered in the presence of fixed-effects and in the presence of a panel. You can change this behavior with, e.g.:
+By default, the standard-errors are the standard ones (IID). You can change this behavior with, e.g.:
 
 ```{r}
-setFixest_vcov(no_FE = "iid", one_FE = "iid", 
+setFixest_vcov(no_FE = "iid", one_FE = "cluster", 
                two_FE = "hetero", panel = "driscoll_kraay")
 ```
 
@@ -345,6 +345,8 @@ which changes the way the default standard-errors are computed when the estimati
  - Version 0.13.0:
  
     * The arguments of the function `ssc` have been renamed: old => new, `adj` => `K.adj`, `fixef.K` => `K.fixef`, `fixef.force_exact` => `K.exact`, `cluster.adj` => `G.adj`, `cluster.df` => `G.df`.
+    
+    * The new default VCOV for all estimations is "IID" VCOVs. To fall back to the previous values, you need to place `setFixest_vcov(all = "cluster", no_FE = "iid")` in your `.Rprofile`. 
 
  - Version 0.10.0 brings about many important changes:
   

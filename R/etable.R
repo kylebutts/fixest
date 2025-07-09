@@ -998,7 +998,6 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
       is_md = FALSE
     } else {
       tex = TRUE
-      export = NULL
       view = FALSE
       if(knitr::is_latex_output()){
         is_md = FALSE

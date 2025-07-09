@@ -98,6 +98,8 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - fix bug in `etable` when `view = TRUE`, now it displays properly in VSCode
 
+- fix bug in `etable` preventing the use of the argument `export` when `markdown = TRUE` within a Rmd document
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

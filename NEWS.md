@@ -50,6 +50,8 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
  
 - the function `dof`, deprecated, and replaced with the function `ssc` since 2021, is removed
 
+- in `etable`, the argument `replace = TRUE` by default (it was `FALSE`)
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

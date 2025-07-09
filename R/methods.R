@@ -4071,7 +4071,7 @@ deviance.fixest = function(object, ...){
 #'
 #' @param model A fixest object. For instance from feols or feglm.
 #' @param exact Logical scalar, default is `TRUE`. Whether the diagonals of the projection matrix should be calculated exactly. If `FALSE`, then it will be approximated using a JLA algorithm. See details. Unless you have a very large number of observations, it is recommended to keep the default value.
-#' @param boot.size Numeric scalar, default is 1000. This is only used when `exact == FALSE`. This determines the number of bootstrap samples used to estimate the projection matrix.
+#' @param boot.size Integer scalar or `NULL`, default is 1000. This is only used when `exact == FALSE`. This determines the number of bootstrap samples used to estimate the projection matrix. If equal to `NULL`, it falls back to the default value of 1000.
 #' @param ... Not currently used.
 #'
 #' @details
@@ -4104,7 +4104,10 @@ hatvalues.fixest = function(model, exact = TRUE, boot.size = 1000, ...){
   #  regular variables.
   
   check_arg(exact, "logical scalar")
-  check_arg(boot.size, "integer scalar GT{1}")
+  check_arg(boot.size, "NULL integer scalar GT{1}")
+  if(is.null(boot.size)){
+    boot.size = 1000
+  }
 
   if(isTRUE(model$lean)){
     # LATER: recompute it

@@ -439,7 +439,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 
       check_set_arg(vcov, "match", 
                     .choices = all_vcov_names,
-                    .message = "If a formula, the arg. 'vcov' must be of the form 'vcov_type ~ vars'. The vcov_type must be a supported VCOV type.")
+                    .message = "If a formula, the arg. 'vcov' must be of the form 'vcov_type ~ vars'. The `vcov_type` must be a supported VCOV type.")
 
       if(is_extra){
         new_req = eval(vcov_fml[[2]], environment(vcov_fml))
@@ -460,7 +460,8 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 
   # Here vcov **must** be a character scalar
 
-  vcov_id = which(sapply(all_vcov, function(x) vcov %in% x$name))
+  vcov_name = vcov
+  vcov_id = which(sapply(all_vcov, function(x) vcov_name %in% x$name))
 
   if(length(vcov_id) != 1){
     stop("Unexpected problem in the selection of the VCOV. This is an internal error. Could you report?")
@@ -772,45 +773,6 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
     scores = object$scores
   }
 
-  # For HC1, apply cluster.adj (N / N - 1) if ssc$ssc.adj = TRUE to match vcovHC(type = "HC1")
-  if (vcov %in% c("hetero", "white", "hc1") & ssc$cluster.adj) {
-    n = nrow(scores)
-    scores = scores * sqrt(n / (n - 1))
-  }
-
-  # For HC2/ HC3, need to divide scores by hatvalues
-  if (vcov %in% c("hc2", "hc3")) {
-
-    if (isTRUE(object$iv)) {
-      stop("hc2/hc3 vcov are not defined for IV estimates")
-    }
-
-    exact = ifelse(is.null(extra_args$exact), TRUE, extra_args$exact)
-    p = ifelse(is.null(extra_args$p), 500, extra_args$p)
-    P_ii = hatvalues(object, exact = exact, p = p)
-
-    problem_idx = which(P_ii > (1 - sqrt(.Machine$double.eps)))
-    if (length(problem_idx) > 0L) {
-
-      if (length(problem_idx) > 10L) {
-        problem_idx = c(problem_idx[1:10], "...")
-      }
-
-      stop(
-        sprintf(
-          "When calculating the diagonals of the projection matrix, one of the columns was found to equal 1 (or within Machine epsilon). This is most likely due to a fixed effect with only 1 observation, so removing that observation would make that coefficient non-estimable. The problem rows of the data are rows: %s", 
-          paste(problem_idx, collapse = ", ")
-        )
-      )
-    }
-
-    if (vcov == "hc2") {
-      scores = scores / sqrt(1 - P_ii)
-    } else if (vcov == "hc3") {
-      scores = scores / (1 - P_ii)
-    }
-  }
-
 
   ####
   #### ... bread ####
@@ -878,6 +840,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
   fun_name = vcov_select$fun_name
   args = list(bread = bread, scores = scores, vars = vcov_vars, ssc = ssc,
               sandwich = sandwich, nthreads = nthreads,
+              vcov_name = vcov_name, object = object,
               var_names_all = var_names_all)
 
   for(a in names(extra_args)){
@@ -1013,14 +976,34 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
     K = max(K, length(object$coefficients) + 1)
   }
   
-  ss_adj = ifelse(ssc$adj, (n - 1) / (n - K), 1)
+  ### kyle'PR ... ###
+  
+  # ... removed this
+  
+  # === start
+  # Small sample adjustment
+  ss_adj = attr(vcov_noAdj, "ss_adj")
+  if(!is.null(ss_adj)){
+    if(is.function(ss_adj)){
+      ss_adj = ss_adj(n = n, K = K)
+    }
+    attr(vcov_noAdj, "ss_adj") = NULL
+  } else {
+    ss_adj = ifelse(ssc$adj, (n - 1) / (n - K), 1)
+  }
+  # === end
+  
+  # ... and added this (now commented)
+  # === start
+  # ss_adj = ifelse(ssc$adj, (n - 1) / (n - K), 1)
 
   # TODO: think about this? It's not standard to apply ss_adj, but don't like removing the option from the user?
   # Don't apply ss_adj to hc2/hc3 since they are small-sample adjusted already!
   # if (vcov %in% c("hc2", "hc3")) {
   #   ss_adj = 1
   # }
-
+  # === end
+  
   vcov_mat = vcov_noAdj * ss_adj
 
   ####
@@ -1263,11 +1246,11 @@ dof = function(adj = TRUE, fixef.K = "nested", cluster.adj = TRUE, cluster.df = 
 #' Heteroskedasticity-Robust VCOV
 #'
 #' Computes the heteroskedasticity-robust VCOV of `fixest` objects.
+#' 
+#' @inheritParams hatvalues.fixest
 #'
 #' @param x A `fixest` object.
 #' @param type A string scalar. Either "HC1"/"HC2"/"HC3"
-#' @param exact A logical scalar. Should the hat matrix be calculated exactly or approximated using the JLA algorithm? Default = TRUE. See [`hatvalues.fixest`] for details.
-#' @param p A numeric scalar. The number of draws should be used when approximating the hat matrix? Note that larger `p` are more accurate, but slower. This is only used when `exact = TRUE`. Default is 500.
 #' @param ssc An object returned by the function [`ssc`]. It specifies how to perform the small sample correction.
 #'
 #' @return
@@ -1279,7 +1262,7 @@ dof = function(adj = TRUE, fixef.K = "nested", cluster.adj = TRUE, cluster.df = 
 #' Laurent Berge and Kyle Butts
 #'
 #' @references
-#' MacKinnon, J. G. (2012). "Thirty years of heteroscedasticity-robust inference." Recent Advances and Future Directions in Causality, Predic-tion, and Specification Analysis, pp. 437--461. https://doi.org/10.1007/978-1-4614-1653-1_17
+#' MacKinnon, J. G. (2012). "Thirty years of heteroscedasticity-robust inference." Recent Advances and Future Directions in Causality, Prediction, and Specification Analysis, pp. 437--461. https://doi.org/10.1007/978-1-4614-1653-1_17
 #'
 #' @examples
 #' 
@@ -1295,13 +1278,16 @@ dof = function(adj = TRUE, fixef.K = "nested", cluster.adj = TRUE, cluster.df = 
 #' # Using approximate hatvalues
 #' vcov_hetero(est, "hc3", exact = FALSE, p = 500)
 #'
-vcov_hetero = function(x, type = "hc1", exact = TRUE, p = 500, ssc = NULL){
+vcov_hetero = function(x, type = "hc1", exact = TRUE, boot.size = NULL, ssc = NULL){
   # User-level function to compute clustered SEs
   # typically we only do checking and reshaping here
+  
+  check_arg(exact, "logical scalar")
+  check_arg(boot.size, "NULL integer scalar GT{1}")
 
   # slide_args allows the implicit allocation of arguments
   # it makes semi-global changes => the values of the args here are modified
-  slide_args(x, type = type, exact = exact, p = p, ssc = ssc)
+  slide_args(x, type = type, exact = exact, boot.size = boot.size, ssc = ssc)
   IS_REQUEST = is.null(x)
 
   check_value(ssc, "NULL class(ssc.type)", .message = "The argument 'ssc' must be an object created by the function ssc().")
@@ -1310,15 +1296,15 @@ vcov_hetero = function(x, type = "hc1", exact = TRUE, p = 500, ssc = NULL){
   # We create the request
   use_request = IS_REQUEST
 
-  extra_args = list(exact = exact, p = p)
+  extra_args = list(exact = exact, boot.size = boot.size)
   vcov_request = list(vcov = type, ssc = ssc, extra_args = extra_args)
   class(vcov_request) = "fixest_vcov_request"
 
 
   if(IS_REQUEST){
-      res = vcov_request
+    res = vcov_request
   } else {
-      res = vcov(x, vcov = vcov_request)
+    res = vcov(x, vcov = vcov_request)
   }
 
   res
@@ -1826,7 +1812,15 @@ vcov_setup = function(){
   vcov_hetero_setup = list(name = c("hetero", "white", "hc1", "hc2", "hc3"), 
                            fun_name = "vcov_hetero_internal", 
                            vcov_label = "Heteroskedasticity-robust")
-
+  
+  vcov_hc2_setup = list(name = "hc2", 
+                        fun_name = "vcov_hc2_hc3_internal", 
+                        vcov_label = "HC2")
+  
+  vcov_hc3_setup = list(name = "hc3", 
+                        fun_name = "vcov_hc2_hc3_internal", 
+                        vcov_label = "HC3")
+  
   #
   # cluster(s)
   #
@@ -1953,6 +1947,8 @@ vcov_setup = function(){
 
   all_vcov = list(vcov_iid_setup,
                   vcov_hetero_setup,
+                  vcov_hc2_setup,
+                  vcov_hc3_setup,
                   vcov_clust_setup,
                   vcov_twoway_setup,
                   vcov_threeway_setup,
@@ -2018,20 +2014,58 @@ vcov_iid_internal = function(bread, ...){
 }
 
 vcov_hetero_internal = function(bread, scores, sandwich, ssc, nthreads, ...){
+  
+  n = nrow(scores)
+  
+  adj = n / (n - 1)
 
   if(!sandwich){
-    vcov_noAdj = cpp_crossprod(scores, 1, nthreads)
-  } else {
-    # Update: adjustment is now made when grabing the scores to accomodate "HC2"/"HC3"
-    # we make a n/(n-1) adjustment to match vcovHC(type = "HC1")
-    # n = nrow(scores)
-    # adj = ifelse(ssc$cluster.adj, n / (n-1), 1)
+    vcov_mat = cpp_crossprod(scores, 1, nthreads)
     
-    vcov_noAdj = cpp_crossprod(cpp_matprod(scores, bread, nthreads), 1, nthreads)
+  } else {
+    vcov_mat = cpp_crossprod(cpp_matprod(scores, bread, nthreads), 1, nthreads) * adj
+    
   }
 
-  vcov_noAdj
+  vcov_mat
 }
+
+
+vcov_hc2_hc3_internal = function(bread, scores, sandwich, ssc, nthreads, 
+                                vcov_name, object, exact = TRUE, boot.size = NULL, ...){
+  
+  # For HC2/ HC3, need to divide scores by the hatvalues
+  if (isTRUE(object$iv)) {
+    stopi("The VCOV type {bq ? vcov_name} is not defined in IV estimations.")
+  }
+  
+  P_ii = hatvalues(object, exact = exact, boot.sizep = boot.size)
+
+  problem_idx = which(P_ii > (1 - sqrt(.Machine$double.eps)))
+  if (length(problem_idx) > 0L) {
+
+    stopi("When calculating the diagonals of the projection matrix, {n ? problem_idx} value{$s, were} found to equal 1. This is most likely due to dummy variables/fixed-effects with only 1 observation, so that removing that observation would make that coefficient non-estimable. \nThe problematic row{$s, are}: {enum ? problem_idx}.")
+  }
+
+  if (vcov_name == "hc2") {
+    scores = scores / sqrt(1 - P_ii)
+    
+  } else if (vcov_name == "hc3") {
+    scores = scores / (1 - P_ii)
+    
+  }
+  
+  if(!sandwich){
+    vcov_mat = cpp_crossprod(scores, 1, nthreads)
+    
+  } else {
+    vcov_mat = cpp_crossprod(cpp_matprod(scores, bread, nthreads), 1, nthreads)
+    
+  }
+
+  vcov_mat
+}
+
 
 
 vcov_cluster_internal = function(bread, scores, vars, ssc, sandwich, nthreads, var_names_all, ...){
@@ -2041,7 +2075,7 @@ vcov_cluster_internal = function(bread, scores, vars, ssc, sandwich, nthreads, v
   nway = length(cluster)
 
   # initialization
-  vcov = bread * 0
+  vcov_mat = bread * 0
   meat = 0
 
   for(i in 1:nway){
@@ -2076,8 +2110,8 @@ vcov_cluster_internal = function(bread, scores, vars, ssc, sandwich, nthreads, v
 
       }
 
-      vcov = vcov + (-1)**(i+1) * vcovClust(index, bread, scores,
-                                            adj = ssc$cluster.adj && ssc$cluster.df == 
+      vcov_mat = vcov_mat + (-1)**(i+1) * vcovClust(index, bread, scores,
+                                                    adj = ssc$cluster.adj && ssc$cluster.df == 
                                               "conventional",
                                             sandwich = sandwich, nthreads = nthreads)
 
@@ -2086,29 +2120,29 @@ vcov_cluster_internal = function(bread, scores, vars, ssc, sandwich, nthreads, v
 
   G_min = min(sapply(cluster, max))
   if(ssc$cluster.adj && ssc$cluster.df == "min"){
-    vcov = vcov * G_min / (G_min - 1)
-    attr(vcov, "G") = G_min
+    vcov_mat = vcov_mat * G_min / (G_min - 1)
+    attr(vcov_mat, "G") = G_min
   }
 
   if(!sandwich){
-    return(vcov)
+    return(vcov_mat)
   }
 
   # I know I duplicate the information, but they refer to two different things
-  attr(vcov, "min_cluster_size") = G_min
+  attr(vcov_mat, "min_cluster_size") = G_min
 
   var_names_all = var_names_all[nchar(var_names_all) > 0]
   if(length(var_names_all) > 0){
-    attr(vcov, "type_info") = sma(" ({' & 'c ? var_names_all})")
+    attr(vcov_mat, "type_info") = sma(" ({' & 'c ? var_names_all})")
   } else {
-    attr(vcov, "type") = switch(nway,
+    attr(vcov_mat, "type") = switch(nway,
                                 "1" = "Clustered",
                                 "2" = "Two-way",
                                 "3" = "Three-way",
                                 "4" = "Four-way")
   }
 
-  vcov
+  vcov_mat
 }
 
 
@@ -2190,21 +2224,21 @@ vcov_newey_west_internal = function(bread, scores, vars, ssc, sandwich, nthreads
   }
 
   if(sandwich){
-    vcov = prepare_sandwich(bread, meat, nthreads)
+    vcov_mat = prepare_sandwich(bread, meat, nthreads)
   } else {
-    vcov = meat
+    vcov_mat = meat
   }
 
   if(ssc$cluster.adj){
-    vcov = vcov * n_time / (n_time - 1)
+    vcov_mat = vcov_mat * n_time / (n_time - 1)
   }
 
-  attr(vcov, "G") = n_time
-  attr(vcov, "min_cluster_size") = n_time
+  attr(vcov_mat, "G") = n_time
+  attr(vcov_mat, "min_cluster_size") = n_time
 
-  attr(vcov, "type_info") = paste0(" (L=", lag, ")")
+  attr(vcov_mat, "type_info") = paste0(" (L=", lag, ")")
 
-  vcov
+  vcov_mat
 }
 
 
@@ -2233,22 +2267,23 @@ vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, sandwich,
   meat = cpp_driscoll_kraay(scores_ro, w, time_ro, n_time, nthreads)
 
   if(sandwich){
-    vcov = prepare_sandwich(bread, meat, nthreads)
+    vcov_mat = prepare_sandwich(bread, meat, nthreads)
   } else {
-    vcov = meat
+    vcov_mat = meat
   }
 
   if(ssc$cluster.adj){
-    vcov = vcov * n_time / (n_time - 1)
+    vcov_mat = vcov_mat * n_time / (n_time - 1)
   }
 
-  attr(vcov, "G") = n_time
-  attr(vcov, "min_cluster_size") = n_time
+  attr(vcov_mat, "G") = n_time
+  attr(vcov_mat, "min_cluster_size") = n_time
 
-  attr(vcov, "type_info") = paste0(" (L=", lag, ")")
+  attr(vcov_mat, "type_info") = paste0(" (L=", lag, ")")
 
-  vcov
+  vcov_mat
 }
+
 
 vcov_conley_internal = function(bread, scores, vars, sandwich, nthreads,
                                 cutoff = NULL, pixel = 0, distance = "triangular", ...){
@@ -2338,16 +2373,16 @@ vcov_conley_internal = function(bread, scores, vars, sandwich, nthreads,
                          cutoff = cutoff, nthreads = nthreads)
 
   if(sandwich){
-    vcov = prepare_sandwich(bread, meat, nthreads)
+    vcov_mat = prepare_sandwich(bread, meat, nthreads)
   } else {
-    vcov = meat
+    vcov_mat = meat
   }
 
   scale = if(metric == "km") 1 else 1 / 1.60934
 
-  attr(vcov, "type_info") = paste0(" (", cutoff * scale, metric, ")")
+  attr(vcov_mat, "type_info") = paste0(" (", cutoff * scale, metric, ")")
 
-  vcov
+  vcov_mat
 }
 
 ####

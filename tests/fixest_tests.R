@@ -1128,19 +1128,19 @@ est = feols(y ~ x | fe1 + fe2, base)
 
 # Default: K.fixef = "nonnested"
 #  => adjustment K = 1 + 5 (i.e. x + fe2)
-test(attr(vcov(est, ssc = ssc(K.fixef = "nonnested"), attr = TRUE), "dof.K"), 6)
+test(attr(vcov(est, ssc = ssc(K.fixef = "nonnested"), attr = TRUE), "df.K"), 6)
 
 # K.fixef = FALSE
 #  => adjustment K = 1 (i.e. only x)
-test(attr(vcov(est, ssc = ssc(K.fixef = "none"), attr = TRUE), "dof.K"), 1)
+test(attr(vcov(est, ssc = ssc(K.fixef = "none"), attr = TRUE), "df.K"), 1)
 
 # K.fixef = TRUE
 #  => adjustment K = 1 + 3 + 5 - 1 (i.e. x + fe1 + fe2 - 1 restriction)
-test(attr(vcov(est, ssc = ssc(K.fixef = "full"), attr = TRUE), "dof.K"), 8)
+test(attr(vcov(est, ssc = ssc(K.fixef = "full"), attr = TRUE), "df.K"), 8)
 
 # K.fixef = TRUE & fixef.exact = TRUE
 #  => adjustment K = 1 + 3 + 5 - 2 (i.e. x + fe1 + fe2 - 2 restrictions)
-test(attr(vcov(est, ssc = ssc(K.fixef = "full", K.exact = TRUE), attr = TRUE), "dof.K"), 7)
+test(attr(vcov(est, ssc = ssc(K.fixef = "full", K.exact = TRUE), attr = TRUE), "df.K"), 7)
 
 #
 # Manual checks of the SEs

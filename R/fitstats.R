@@ -1523,17 +1523,17 @@ degrees_freedom = function(x, type, vars = NULL, vcov = NULL, se = NULL, cluster
   vcov = x$cov.scaled
 
   if(is.null(vcov)){
-    dof.K = x$nparams
-    df.t = nobs(x) - dof.K
+    df.K = x$nparams
+    df.t = nobs(x) - df.K
   } else {
     # From v0.10.0 onward, "dt.t" is always provided!
     df.t = attr(vcov, "df.t")
-    dof.K = attr(vcov, "dof.K")
+    df.K = attr(vcov, "df.K")
   }
 
   res = switch(type,
-         "k" = dof.K,
-         "resid" = max(nobs(x) - dof.K, 1),
+         "k" = df.K,
+         "resid" = max(nobs(x) - df.K, 1),
          "t" = df.t)
 
   res

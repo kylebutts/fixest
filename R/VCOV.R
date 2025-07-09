@@ -390,7 +390,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 
     # We add the type of the matrix
     attr(vcov, "type") = vcov_name
-    attr(vcov, "dof.K") = object$nparams
+    attr(vcov, "df.K") = object$nparams
 
     return(vcov)
   }
@@ -407,7 +407,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 
     attr(vcov, "type") = if(is.null(user_vcov_name)) "Custom" else user_vcov_name
 
-    attr(vcov, "dof.K") = object$nparams
+    attr(vcov, "df.K") = object$nparams
 
     return(vcov)
   }
@@ -809,7 +809,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
       attr(bread, "type") = "NA (not-available)"
 
       if(is_attr){
-        attr(bread, "dof.K") = object$nparams
+        attr(bread, "df.K") = object$nparams
         attr(bread, "df.t") = NA
       }
 
@@ -836,6 +836,15 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 
   # we compute the vcov. The adjustment (which is a pain in the neck) will come after that
   # Here vcov is ALWAYS a character scalar
+  
+  # EDIT 2025-07-09: the SSC now directly occurs within the vcov_XX_internal functions
+  #   this is because there is no generic way to perform it, it is better to keep is VCOV specific
+  # 
+  
+  # we add the extra two information here to lighten the passing of arguments
+  # and facilitate internal usage
+  ssc$vcov_select = vcov_select
+  ssc$vcov_vars = vcov_vars
 
   fun_name = vcov_select$fun_name
   args = list(bread = bread, scores = scores, vars = vcov_vars, ssc = ssc,
@@ -848,163 +857,13 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
     if(!is.null(extra_args[[a]])) args[[a]] = extra_args[[a]]
   }
 
-  vcov_noAdj = do.call(fun_name, args)
+  vcov_mat = do.call(fun_name, args)
 
   if(!sandwich){
-    return(vcov_noAdj)
+    return(vcov_mat)
   }
 
-  dimnames(vcov_noAdj) = dimnames(bread)
-
-  ####
-  #### ... ssc ####
-  ####
-
-  # ssc is a ssc object in here
-
-  n_fe = n_fe_ok = length(object$fixef_id)
-
-  # we adjust the fixef sizes to account for slopes
-  fixef_sizes_ok = object$fixef_sizes
-  isSlope = FALSE
-  if(!is.null(object$fixef_terms)){
-    isSlope = TRUE
-    # The drop the fixef_sizes for only slopes
-    fixef_sizes_ok[object$slope_flag < 0] = 0
-    n_fe_ok = sum(fixef_sizes_ok > 0)
-  }
-
-  nested_vars = sapply(vcov_select$vars, function(x) isTRUE(x$rm_nested))
-  any_nested_var = length(nested_vars) > 0 && length(vcov_vars) > 0 && any(nested_vars[names(vcov_vars)])
-
-  if(ssc$K.fixef == "none"){
-    # we do it with "minus" because of only slopes
-    K = object$nparams
-    if(n_fe_ok > 0){
-      K = K - (sum(fixef_sizes_ok) - (n_fe_ok - 1))
-    }
-  } else if(ssc$K.fixef == "full" || !any_nested_var){
-    K = object$nparams
-    if(ssc$K.exact && n_fe >= 2 && n_fe_ok >= 1){
-      fe = fixef(object, notes = FALSE)
-      K = K + (n_fe_ok - 1) - sum(attr(fe, "references"))
-    }
-  } else {
-    # nested
-    # we delay the adjustment
-    K = object$nparams
-  }
-
-  #
-  # NESTING (== pain in the neck)
-  #
-
-  if(ssc$K.fixef == "nonnested" && n_fe_ok > 0 && any_nested_var){
-    # OK, let's go checking....
-    # We always try to minimize computation.
-    # So we maximize deduction and apply computation only in last resort.
-
-    nested_vcov_var_names = intersect(names(nested_vars[nested_vars]), names(vcov_vars))
-    nested_var_names = var_names_all[nested_vcov_var_names]
-
-    is_nested = rep(FALSE, n_fe)
-    for(i in 1:n_fe){
-      # We check for each FE
-      fe_name = object$fixef_vars[i]
-
-      if(fe_name %in% nested_var_names){
-        is_nested[i] = TRUE
-        next
-
-      } else if(grepl("^", fe_name, fixed = TRUE)){
-        # nesting of the FE in the parent term
-        fe_name_split = strsplit(fe_name, "^", fixed = TRUE)[[1]]
-        if(any(fe_name_split %in% nested_var_names)){
-          is_nested[i] = TRUE
-          next
-        }
-      }
-    }
-
-
-    # We check the remaining FEs, only if necessary
-    if(!all(is_nested) && !all(nested_var_names %in% object$fixef_vars)){
-      # Note that if all(nested_var_names %in% object$fixef_vars) == TRUE
-      # Then all the variables used to compute the VCOV are part of the FEs
-      # So the nesting would have been correctly spotted right before.
-      # Only caveat: if the user has a^b in FE and includes the parent terms (a and b), we may forget some nested FEs
-      # But then that's the user problem bc it's an erroneous specification
-
-      vcov_vars_nesting = vcov_vars[nested_vcov_var_names]
-      # We put the non integer to integer (needed)
-      id_to_int = which(sapply(vcov_select$vars[nested_vcov_var_names], function(x) !isTRUE(x$to_int)))
-
-      for(i in id_to_int){
-        vcov_vars_nesting[[i]] = quickUnclassFactor(vcov_vars_nesting[[i]])
-      }
-
-      id2check = which(is_nested == FALSE)
-      info = cpp_check_nested(object$fixef_id[id2check], vcov_vars_nesting, 
-                              object$fixef_sizes[id2check], n = n)
-      is_nested[id2check] = info == 1
-    }
-
-
-    if(sum(is_nested) == n_fe){
-      # All FEs are removed, we add 1 for the intercept
-      K = K - (sum(fixef_sizes_ok) - (n_fe_ok - 1)) + 1
-    } else {
-      if(ssc$K.exact && n_fe >= 2){
-        fe = fixef(object, notes = FALSE)
-        nb_ref = attr(fe, "references")
-
-        # Slopes are a pain in the neck!!!
-        if(sum(is_nested) > 1){
-          id_nested = intersect(names(nb_ref), names(object$fixef_id)[is_nested])
-          nb_ref[id_nested] = object$fixef_sizes[id_nested]
-        }
-
-        total_refs = sum(nb_ref)
-
-        K = K - total_refs
-      } else {
-        K = K - (sum(fixef_sizes_ok[is_nested]) - sum(fixef_sizes_ok[is_nested] > 0))
-      }
-    }
-
-    # below for consistency => should *not* be triggered
-    K = max(K, length(object$coefficients) + 1)
-  }
-  
-  ### kyle'PR ... ###
-  
-  # ... removed this
-  
-  # === start
-  # Small sample adjustment
-  ss_adj = attr(vcov_noAdj, "ss_adj")
-  if(!is.null(ss_adj)){
-    if(is.function(ss_adj)){
-      ss_adj = ss_adj(n = n, K = K)
-    }
-    attr(vcov_noAdj, "ss_adj") = NULL
-  } else {
-    ss_adj = ifelse(ssc$K.adj, (n - 1) / (n - K), 1)
-  }
-  # === end
-  
-  # ... and added this (now commented)
-  # === start
-  # ss_adj = ifelse(ssc$K.adj, (n - 1) / (n - K), 1)
-
-  # TODO: think about this? It's not standard to apply ss_adj, but don't like removing the option from the user?
-  # Don't apply ss_adj to hc2/hc3 since they are small-sample adjusted already!
-  # if (vcov %in% c("hc2", "hc3")) {
-  #   ss_adj = 1
-  # }
-  # === end
-  
-  vcov_mat = vcov_noAdj * ss_adj
+  dimnames(vcov_mat) = dimnames(bread)
 
   ####
   #### ... vcov attributes ####
@@ -1052,9 +911,12 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
       attr(vcov_mat, "type") = paste0(vcov_select$vcov_label, type_info)
       attr(vcov_mat, "type_info") = NULL
     }
-
+    
+    # we cleanup the stuff we added before
+    ssc[c("vcov_select", "vcov_vars")] = NULL
+    
     attr(vcov_mat, "ssc") = ssc
-    attr(vcov_mat, "dof.K") = K
+    attr(vcov_mat, "df.K") = K
   } else {
     # We clean the attributes
     all_attr = names(attributes(vcov_mat))
@@ -1176,25 +1038,25 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 #' # Default: K.fixef = "nonnested"
 #' #  => adjustment K = 1 + 5 (i.e. x + fe2)
 #' summary(est)
-#' attributes(vcov(est, attr = TRUE))[c("ssc", "dof.K")]
+#' attributes(vcov(est, attr = TRUE))[c("ssc", "df.K")]
 #'
 #'
 #' # K.fixef = FALSE
 #' #  => adjustment K = 1 (i.e. only x)
 #' summary(est, ssc = ssc(K.fixef = "none"))
-#' attr(vcov(est, ssc = ssc(K.fixef = "none"), attr = TRUE), "dof.K")
+#' attr(vcov(est, ssc = ssc(K.fixef = "none"), attr = TRUE), "df.K")
 #'
 #'
 #' # K.fixef = TRUE
 #' #  => adjustment K = 1 + 3 + 5 - 1 (i.e. x + fe1 + fe2 - 1 restriction)
 #' summary(est, ssc = ssc(K.fixef = "full"))
-#' attr(vcov(est, ssc = ssc(K.fixef = "full"), attr = TRUE), "dof.K")
+#' attr(vcov(est, ssc = ssc(K.fixef = "full"), attr = TRUE), "df.K")
 #'
 #'
 #' # K.fixef = TRUE & K.exact = TRUE
 #' #  => adjustment K = 1 + 3 + 5 - 2 (i.e. x + fe1 + fe2 - 2 restrictions)
 #' summary(est, ssc = ssc(K.fixef = "full", K.exact = TRUE))
-#' attr(vcov(est, ssc = ssc(K.fixef = "full", K.exact = TRUE), attr = TRUE), "dof.K")
+#' attr(vcov(est, ssc = ssc(K.fixef = "full", K.exact = TRUE), attr = TRUE), "df.K")
 #'
 #' # There are two restrictions:
 #' attr(fixef(est), "references")
@@ -2010,18 +1872,26 @@ vcovClust = function (cluster, myBread, scores, adj = FALSE, do.unclass = TRUE,
 }
 
 
-vcov_iid_internal = function(bread, ...){
+vcov_iid_internal = function(bread, ssc, object, ...){
+  
+  if(ssc$K.adj){
+    K = ssc_compute_K(ssc, object)
+    adj = (n - 1) / (n - K)
+    bread = bread * adj
+  }
+  
   bread
 }
 
-vcov_hetero_internal = function(bread, scores, sandwich, ssc, nthreads, ...){
+vcov_hetero_internal = function(bread, scores, sandwich, nthreads, ...){
+  # we don't allow ssc changes
   
   n = nrow(scores)
   
   adj = n / (n - 1)
 
   if(!sandwich){
-    vcov_mat = cpp_crossprod(scores, 1, nthreads)
+    vcov_mat = cpp_crossprod(scores, 1, nthreads) * adj
     
   } else {
     vcov_mat = cpp_crossprod(cpp_matprod(scores, bread, nthreads), 1, nthreads) * adj
@@ -2032,8 +1902,10 @@ vcov_hetero_internal = function(bread, scores, sandwich, ssc, nthreads, ...){
 }
 
 
-vcov_hc2_hc3_internal = function(bread, scores, sandwich, ssc, nthreads, 
+vcov_hc2_hc3_internal = function(bread, scores, sandwich, nthreads, 
                                 vcov_name, object, exact = TRUE, boot.size = NULL, ...){
+  
+  # we don't allow ssc changes => HC2/HC3 **are** SSCs
   
   # For HC2/ HC3, need to divide scores by the hatvalues
   if (isTRUE(object$iv)) {
@@ -2069,7 +1941,8 @@ vcov_hc2_hc3_internal = function(bread, scores, sandwich, ssc, nthreads,
 
 
 
-vcov_cluster_internal = function(bread, scores, vars, ssc, sandwich, nthreads, var_names_all, ...){
+vcov_cluster_internal = function(bread, scores, vars, ssc, object, 
+                                 sandwich, nthreads, var_names_all, ...){
 
   # aliasing to add (a bit of) clarity
   cluster = vars
@@ -2124,6 +1997,12 @@ vcov_cluster_internal = function(bread, scores, vars, ssc, sandwich, nthreads, v
     vcov_mat = vcov_mat * G_min / (G_min - 1)
     attr(vcov_mat, "G") = G_min
   }
+  
+  if(ssc$K.adj){
+    K = ssc_compute_K(ssc, object)
+    adj = (n - 1) / (n - K)
+    vcov_mat = vcov_mat * adj
+  }
 
   if(!sandwich){
     return(vcov_mat)
@@ -2137,10 +2016,10 @@ vcov_cluster_internal = function(bread, scores, vars, ssc, sandwich, nthreads, v
     attr(vcov_mat, "type_info") = sma(" ({' & 'c ? var_names_all})")
   } else {
     attr(vcov_mat, "type") = switch(nway,
-                                "1" = "Clustered",
-                                "2" = "Two-way",
-                                "3" = "Three-way",
-                                "4" = "Four-way")
+                                    "1" = "Clustered",
+                                    "2" = "Two-way",
+                                    "3" = "Three-way",
+                                    "4" = "Four-way")
   }
 
   vcov_mat
@@ -2536,6 +2415,132 @@ slide_args = function(x, ...){
   }
 }
 
+ssc_compute_K = function(ssc, object){
+  # - this function is ALWAYS called after ssc was modified by vcov.fixest to
+  #   include the following two variables: `vcov_select` and `vcov_vars`
+  # - its intended use is within the vcov_X_internal functions
+  #   => this is a very specific function, do not use outside vcov_X_internal funs
+  # 
+  
+  vcov_select = ssc$vcov_select
+  vcov_vars = ssc$vcov_vars
+  
+  n_fe = n_fe_ok = length(object$fixef_id)
+
+  # we adjust the fixef sizes to account for slopes
+  fixef_sizes_ok = object$fixef_sizes
+  isSlope = FALSE
+  if(!is.null(object$fixef_terms)){
+    isSlope = TRUE
+    # The drop the fixef_sizes for only slopes
+    fixef_sizes_ok[object$slope_flag < 0] = 0
+    n_fe_ok = sum(fixef_sizes_ok > 0)
+  }
+
+  nested_vars = sapply(vcov_select$vars, function(x) isTRUE(x$rm_nested))
+  any_nested_var = length(nested_vars) > 0 && length(vcov_vars) > 0 && any(nested_vars[names(vcov_vars)])
+
+  if(ssc$K.fixef == "none"){
+    # we do it with "minus" because of only slopes
+    K = object$nparams
+    if(n_fe_ok > 0){
+      K = K - (sum(fixef_sizes_ok) - (n_fe_ok - 1))
+    }
+  } else if(ssc$K.fixef == "full" || !any_nested_var){
+    K = object$nparams
+    if(ssc$K.exact && n_fe >= 2 && n_fe_ok >= 1){
+      fe = fixef(object, notes = FALSE)
+      K = K + (n_fe_ok - 1) - sum(attr(fe, "references"))
+    }
+  } else {
+    # nested
+    # we delay the adjustment
+    K = object$nparams
+  }
+
+  #
+  # NESTING (== pain in the neck)
+  #
+
+  if(ssc$K.fixef == "nonnested" && n_fe_ok > 0 && any_nested_var){
+    # OK, let's go checking....
+    # We always try to minimize computation.
+    # So we maximize deduction and apply computation only in last resort.
+
+    nested_vcov_var_names = intersect(names(nested_vars[nested_vars]), names(vcov_vars))
+    nested_var_names = var_names_all[nested_vcov_var_names]
+
+    is_nested = rep(FALSE, n_fe)
+    for(i in 1:n_fe){
+      # We check for each FE
+      fe_name = object$fixef_vars[i]
+
+      if(fe_name %in% nested_var_names){
+        is_nested[i] = TRUE
+        next
+
+      } else if(grepl("^", fe_name, fixed = TRUE)){
+        # nesting of the FE in the parent term
+        fe_name_split = strsplit(fe_name, "^", fixed = TRUE)[[1]]
+        if(any(fe_name_split %in% nested_var_names)){
+          is_nested[i] = TRUE
+          next
+        }
+      }
+    }
+
+
+    # We check the remaining FEs, only if necessary
+    if(!all(is_nested) && !all(nested_var_names %in% object$fixef_vars)){
+      # Note that if all(nested_var_names %in% object$fixef_vars) == TRUE
+      # Then all the variables used to compute the VCOV are part of the FEs
+      # So the nesting would have been correctly spotted right before.
+      # Only caveat: if the user has a^b in FE and includes the parent terms (a and b), we may forget some nested FEs
+      # But then that's the user problem bc it's an erroneous specification
+
+      vcov_vars_nesting = vcov_vars[nested_vcov_var_names]
+      # We put the non integer to integer (needed)
+      id_to_int = which(sapply(vcov_select$vars[nested_vcov_var_names], function(x) !isTRUE(x$to_int)))
+
+      for(i in id_to_int){
+        vcov_vars_nesting[[i]] = quickUnclassFactor(vcov_vars_nesting[[i]])
+      }
+
+      id2check = which(is_nested == FALSE)
+      info = cpp_check_nested(object$fixef_id[id2check], vcov_vars_nesting, 
+                              object$fixef_sizes[id2check], n = n)
+      is_nested[id2check] = info == 1
+    }
+
+
+    if(sum(is_nested) == n_fe){
+      # All FEs are removed, we add 1 for the intercept
+      K = K - (sum(fixef_sizes_ok) - (n_fe_ok - 1)) + 1
+    } else {
+      if(ssc$K.exact && n_fe >= 2){
+        fe = fixef(object, notes = FALSE)
+        nb_ref = attr(fe, "references")
+
+        # Slopes are a pain in the neck!!!
+        if(sum(is_nested) > 1){
+          id_nested = intersect(names(nb_ref), names(object$fixef_id)[is_nested])
+          nb_ref[id_nested] = object$fixef_sizes[id_nested]
+        }
+
+        total_refs = sum(nb_ref)
+
+        K = K - total_refs
+      } else {
+        K = K - (sum(fixef_sizes_ok[is_nested]) - sum(fixef_sizes_ok[is_nested] > 0))
+      }
+    }
+
+    # below for consistency => should *not* be triggered
+    K = max(K, length(object$coefficients) + 1)
+  }
+  
+  return(K)
+}
 
 prepare_sandwich = function(bread, meat, nthreads = 1){
   cpp_matprod(cpp_matprod(bread, meat, nthreads), bread, nthreads)

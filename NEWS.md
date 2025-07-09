@@ -40,7 +40,10 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
   - fixef.force_exact => K.exact
   - cluster.adj => G.adj
   - cluster.df => G.df
-  Retro compatibility is ensured.
+  Retro compatibility is ensured. Thanls to Kyle Butts and Grant McDermott for the brainstorm!
+
+- attribute renaming: attribute of the VCOV `dof.K` becomes `df.K` (to be consistent with to other attribute `df.t`)
+
 
 ## Breaking changes
 

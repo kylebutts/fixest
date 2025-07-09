@@ -195,12 +195,12 @@
 #'
 #' # You can change the way the small sample corrections are done with the argument ssc.
 #' # The argument ssc must be created by the ssc function
-#' se(vcov(est, ssc = ssc(adj = FALSE)))
+#' se(vcov(est, ssc = ssc(K.adj = FALSE)))
 #'
 #' # You can add directly the call to ssc in the vcov formula.
 #' # You need to add it like a variable:
-#' se(vcov(est, iid ~ ssc(adj = FALSE)))
-#' se(vcov(est, DK ~ period + ssc(adj = FALSE)))
+#' se(vcov(est, iid ~ ssc(K.adj = FALSE)))
+#' se(vcov(est, DK ~ period + ssc(K.adj = FALSE)))
 #'
 #'
 #'
@@ -877,15 +877,15 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
   nested_vars = sapply(vcov_select$vars, function(x) isTRUE(x$rm_nested))
   any_nested_var = length(nested_vars) > 0 && length(vcov_vars) > 0 && any(nested_vars[names(vcov_vars)])
 
-  if(ssc$fixef.K == "none"){
+  if(ssc$K.fixef == "none"){
     # we do it with "minus" because of only slopes
     K = object$nparams
     if(n_fe_ok > 0){
       K = K - (sum(fixef_sizes_ok) - (n_fe_ok - 1))
     }
-  } else if(ssc$fixef.K == "full" || !any_nested_var){
+  } else if(ssc$K.fixef == "full" || !any_nested_var){
     K = object$nparams
-    if(ssc$fixef.force_exact && n_fe >= 2 && n_fe_ok >= 1){
+    if(ssc$K.exact && n_fe >= 2 && n_fe_ok >= 1){
       fe = fixef(object, notes = FALSE)
       K = K + (n_fe_ok - 1) - sum(attr(fe, "references"))
     }
@@ -899,7 +899,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
   # NESTING (== pain in the neck)
   #
 
-  if(ssc$fixef.K == "nested" && n_fe_ok > 0 && any_nested_var){
+  if(ssc$K.fixef == "nonnested" && n_fe_ok > 0 && any_nested_var){
     # OK, let's go checking....
     # We always try to minimize computation.
     # So we maximize deduction and apply computation only in last resort.
@@ -954,7 +954,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
       # All FEs are removed, we add 1 for the intercept
       K = K - (sum(fixef_sizes_ok) - (n_fe_ok - 1)) + 1
     } else {
-      if(ssc$fixef.force_exact && n_fe >= 2){
+      if(ssc$K.exact && n_fe >= 2){
         fe = fixef(object, notes = FALSE)
         nb_ref = attr(fe, "references")
 
@@ -989,13 +989,13 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
     }
     attr(vcov_noAdj, "ss_adj") = NULL
   } else {
-    ss_adj = ifelse(ssc$adj, (n - 1) / (n - K), 1)
+    ss_adj = ifelse(ssc$K.adj, (n - 1) / (n - K), 1)
   }
   # === end
   
   # ... and added this (now commented)
   # === start
-  # ss_adj = ifelse(ssc$adj, (n - 1) / (n - K), 1)
+  # ss_adj = ifelse(ssc$K.adj, (n - 1) / (n - K), 1)
 
   # TODO: think about this? It's not standard to apply ss_adj, but don't like removing the option from the user?
   # Don't apply ss_adj to hc2/hc3 since they are small-sample adjusted already!
@@ -1079,30 +1079,30 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 #'
 #' Provides how the small sample correction should be calculated in [`vcov.fixest`]/[`summary.fixest`].
 #'
-#' @param adj Logical scalar, defaults to `TRUE`. Whether to apply a small sample adjustment of 
+#' @param K.adj Logical scalar, defaults to `TRUE`. Whether to apply a small sample adjustment of 
 #' the form `(n - 1) / (n - K)`, with `K` the number of estimated parameters. If `FALSE`, then 
 #' no adjustment is made.
-#' @param fixef.K Character scalar equal to `"nested"` (default), `"none"` or `"full"`. In 
+#' @param K.fixef Character scalar equal to `"nonnested"` (default), `"none"` or `"full"`. In 
 #' the small sample adjustment, how to account for the fixed-effects parameters. If `"none"`, 
 #' the fixed-effects parameters are discarded, meaning the number of parameters (`K`) is only 
 #' equal to the number of variables. If `"full"`, then the number of parameters is equal to 
-#' the number of variables plus the number of fixed-effects. Finally, if `"nested"`, then 
+#' the number of variables plus the number of fixed-effects. Finally, if `"nonnested"`, then 
 #' the number of parameters is equal to the number of variables plus the number of 
 #' fixed-effects that *are not* nested in the clusters used to cluster the standard-errors.
-#' @param fixef.force_exact Logical, default is `FALSE`. If there are 2 or more fixed-effects, 
+#' @param K.exact Logical, default is `FALSE`. If there are 2 or more fixed-effects, 
 #' these fixed-effects they can be irregular, meaning they can provide the same information. 
 #' If so, the "real" number of parameters should be lower than the total number of 
-#' fixed-effects. If `fixef.force_exact = TRUE`, then [`fixef.fixest`] is first run to 
+#' fixed-effects. If `K.exact = TRUE`, then [`fixef.fixest`] is first run to 
 #' determine the exact number of parameters among the fixed-effects. Mostly, panels of 
-#' the type individual-firm require `fixef.force_exact = TRUE` (but it adds computational costs).
-#' @param cluster.adj Logical scalar, default is `TRUE`. How to make the small sample correction 
+#' the type individual-firm require `K.exact = TRUE` (but it adds computational costs).
+#' @param G.adj Logical scalar, default is `TRUE`. How to make the small sample correction 
 #' when clustering the standard-errors? If `TRUE` a `G/(G-1)` correction is performed with `G` 
 #' the number of cluster values.
-#' @param cluster.df Either "conventional" or "min" (default). Only relevant when the 
+#' @param G.df Either "conventional" or "min" (default). Only relevant when the 
 #' variance-covariance matrix is two-way clustered (or higher). It governs how the small 
 #' sample adjustment for the clusters is to be performed. \[Sorry for the jargon that follows.\] 
 #' By default a unique adjustment is made, of the form G_min/(G_min-1) with G_min the 
-#' smallest G_i. If `cluster.df="conventional"` then the i-th "sandwich" matrix is adjusted 
+#' smallest G_i. If `G.df="conventional"` then the i-th "sandwich" matrix is adjusted 
 #' with G_i/(G_i-1) with G_i the number of unique clusters.
 #' @param t.df Either "conventional", "min" (default) or an integer scalar. Only relevant when 
 #' the variance-covariance matrix is clustered. It governs how the p-values should be computed. 
@@ -1143,16 +1143,16 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 #'
 #' # GLM
 #' # By default, there is no small sample adjustment in glm, as opposed to feglm.
-#' # To get the same SEs, we need to use ssc(adj = FALSE)
+#' # To get the same SEs, we need to use ssc(K.adj = FALSE)
 #'
 #' res_pois = fepois(round(Petal.Length) ~ Petal.Width + Species, iris)
 #' res_glm = glm(round(Petal.Length) ~ Petal.Width + Species, iris, family = poisson())
-#' vcov(res_pois, ssc = ssc(adj = FALSE)) / vcov(res_glm)
+#' vcov(res_pois, ssc = ssc(K.adj = FALSE)) / vcov(res_glm)
 #'
 #' # Same example with the Gamma
 #' res_gamma = feglm(round(Petal.Length) ~ Petal.Width + Species, iris, family = Gamma())
 #' res_glm_gamma = glm(round(Petal.Length) ~ Petal.Width + Species, iris, family = Gamma())
-#' vcov(res_gamma, ssc = ssc(adj = FALSE)) / vcov(res_glm_gamma)
+#' vcov(res_gamma, ssc = ssc(K.adj = FALSE)) / vcov(res_glm_gamma)
 #'
 #' #
 #' # Fixed-effects corrections
@@ -1173,28 +1173,28 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 #' # Clustered standard-errors: by fe1
 #' #
 #'
-#' # Default: fixef.K = "nested"
+#' # Default: K.fixef = "nonnested"
 #' #  => adjustment K = 1 + 5 (i.e. x + fe2)
 #' summary(est)
 #' attributes(vcov(est, attr = TRUE))[c("ssc", "dof.K")]
 #'
 #'
-#' # fixef.K = FALSE
+#' # K.fixef = FALSE
 #' #  => adjustment K = 1 (i.e. only x)
-#' summary(est, ssc = ssc(fixef.K = "none"))
-#' attr(vcov(est, ssc = ssc(fixef.K = "none"), attr = TRUE), "dof.K")
+#' summary(est, ssc = ssc(K.fixef = "none"))
+#' attr(vcov(est, ssc = ssc(K.fixef = "none"), attr = TRUE), "dof.K")
 #'
 #'
-#' # fixef.K = TRUE
+#' # K.fixef = TRUE
 #' #  => adjustment K = 1 + 3 + 5 - 1 (i.e. x + fe1 + fe2 - 1 restriction)
-#' summary(est, ssc = ssc(fixef.K = "full"))
-#' attr(vcov(est, ssc = ssc(fixef.K = "full"), attr = TRUE), "dof.K")
+#' summary(est, ssc = ssc(K.fixef = "full"))
+#' attr(vcov(est, ssc = ssc(K.fixef = "full"), attr = TRUE), "dof.K")
 #'
 #'
-#' # fixef.K = TRUE & fixef.force_exact = TRUE
+#' # K.fixef = TRUE & K.exact = TRUE
 #' #  => adjustment K = 1 + 3 + 5 - 2 (i.e. x + fe1 + fe2 - 2 restrictions)
-#' summary(est, ssc = ssc(fixef.K = "full", fixef.force_exact = TRUE))
-#' attr(vcov(est, ssc = ssc(fixef.K = "full", fixef.force_exact = TRUE), attr = TRUE), "dof.K")
+#' summary(est, ssc = ssc(K.fixef = "full", K.exact = TRUE))
+#' attr(vcov(est, ssc = ssc(K.fixef = "full", K.exact = TRUE), attr = TRUE), "dof.K")
 #'
 #' # There are two restrictions:
 #' attr(fixef(est), "references")
@@ -1204,22 +1204,31 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 #' #
 #'
 #' # eg no small sample adjustment:
-#' setFixest_ssc(ssc(adj = FALSE))
+#' setFixest_ssc(ssc(K.adj = FALSE))
 #'
 #' # Factory default
 #' setFixest_ssc()
 #'
-ssc = function(adj = TRUE, fixef.K = "nested", cluster.adj = TRUE, cluster.df = "min",
-               t.df = "min", fixef.force_exact = FALSE){
+ssc = function(K.adj = TRUE, K.fixef = "nonnested", K.exact = FALSE,
+               G.adj = TRUE, G.df = "min", t.df = "min"){
 
-  check_set_arg(adj, "loose logical scalar conv")
-  check_set_arg(fixef.K, "match(none, full, nested)")
-  check_set_arg(cluster.df, "match(conventional, min)")
+  check_set_arg(K.adj, "loose logical scalar conv")
+  check_set_arg(K.fixef, "match(none, full, all, nonnested, nested)", 
+                .message = "The argument `K.fixef` must be equal to either: i) none, ii) full, or iii) nonnested. Partial matching applies.")
+  if(identical(K.fixef, "all")){
+    K.fixef = "full"
+  }
+  
+  if(identical(K.fixef, "nested")){
+    K.fixef = "nonnested"
+  }
+  
+  check_set_arg(G.df, "match(conventional, min)")
   check_set_arg(t.df, "match(conventional, min) | integer scalar GT{0}")
-  check_arg(fixef.force_exact, cluster.adj, "logical scalar")
+  check_arg(K.exact, G.adj, "logical scalar")
 
-  res = list(adj = adj, fixef.K = fixef.K, cluster.adj = cluster.adj, cluster.df = cluster.df,
-             t.df = t.df, fixef.force_exact = fixef.force_exact)
+  res = list(K.adj = K.adj, K.fixef = K.fixef, G.adj = G.adj, G.df = G.df,
+             t.df = t.df, K.exact = K.exact)
   class(res) = "ssc.type"
 
   res
@@ -1258,8 +1267,8 @@ ssc = function(adj = TRUE, fixef.K = "nested", cluster.adj = TRUE, cluster.df = 
 #' est = feols(y ~ x1 | species, base)
 #'
 #' vcov_hetero(est, "hc1")
-#' vcov_hetero(est, "hc2", ssc = ssc(adj = FALSE))
-#' vcov_hetero(est, "hc3", ssc = ssc(adj = FALSE))
+#' vcov_hetero(est, "hc2", ssc = ssc(K.adj = FALSE))
+#' vcov_hetero(est, "hc3", ssc = ssc(K.adj = FALSE))
 #'
 #' # Using approximate hatvalues
 #' vcov_hetero(est, "hc3", exact = FALSE, p = 500)
@@ -2097,7 +2106,7 @@ vcov_cluster_internal = function(bread, scores, vars, ssc, sandwich, nthreads, v
       }
 
       vcov_mat = vcov_mat + (-1)**(i+1) * vcovClust(index, bread, scores,
-                                                    adj = ssc$cluster.adj && ssc$cluster.df == 
+                                                    adj = ssc$G.adj && ssc$G.df == 
                                               "conventional",
                                             sandwich = sandwich, nthreads = nthreads)
 
@@ -2105,7 +2114,7 @@ vcov_cluster_internal = function(bread, scores, vars, ssc, sandwich, nthreads, v
   }
 
   G_min = min(sapply(cluster, max))
-  if(ssc$cluster.adj && ssc$cluster.df == "min"){
+  if(ssc$G.adj && ssc$G.df == "min"){
     vcov_mat = vcov_mat * G_min / (G_min - 1)
     attr(vcov_mat, "G") = G_min
   }
@@ -2215,7 +2224,7 @@ vcov_newey_west_internal = function(bread, scores, vars, ssc, sandwich, nthreads
     vcov_mat = meat
   }
 
-  if(ssc$cluster.adj){
+  if(ssc$G.adj){
     vcov_mat = vcov_mat * n_time / (n_time - 1)
   }
 
@@ -2258,7 +2267,7 @@ vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, sandwich,
     vcov_mat = meat
   }
 
-  if(ssc$cluster.adj){
+  if(ssc$G.adj){
     vcov_mat = vcov_mat * n_time / (n_time - 1)
   }
 

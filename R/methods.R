@@ -374,8 +374,8 @@ print.fixest = function(x, n, type = "table", fitstat = NULL, ...){
 #' @param ssc An object of class `ssc.type` obtained with the function [`ssc`]. Represents 
 #' how the degree of freedom correction should be done.You must use the function [`ssc`] 
 #' for this argument. The arguments and defaults of the function [`ssc`] are: 
-#' `adj = TRUE`, `fixef.K="nested"`, `cluster.adj = TRUE`, `cluster.df = "min"`, 
-#' `t.df = "min"`, `fixef.force_exact=FALSE)`. See the help of the function [`ssc`] for details.
+#' `K.adj = TRUE`, `K.fixef = "nonnested"`, `G.adj = TRUE`, `G.df = "min"`, 
+#' `t.df = "min"`, `K.exact = FALSE)`. See the help of the function [`ssc`] for details.
 #' @param lean Logical, default is `FALSE`. Used to reduce the (memory) size of the summary object.
 #'  If `TRUE`, then all objects of length N (the number of observations) are removed 
 #' from the result. Note that some `fixest` methods may consequently not work when applied 

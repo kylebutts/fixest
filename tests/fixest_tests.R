@@ -159,8 +159,8 @@ for(model in c("ols", "pois", "logit", "negbin", "Gamma")){
         }
 
         test(coef(res)["x1"], coef(res_bis)["x1"], "~", tol)
-        test(se(res, se = "st", ssc = ssc(adj = adj))["x1"], se(res_bis)["x1"], "~", tol)
-        test(pvalue(res, se = "st", ssc = ssc(adj = adj))["x1"], pvalue(res_bis)["x1"], "~", tol*10**(model == "negbin"))
+        test(se(res, se = "st", ssc = ssc(K.adj = adj))["x1"], se(res_bis)["x1"], "~", tol)
+        test(pvalue(res, se = "st", ssc = ssc(K.adj = adj))["x1"], pvalue(res_bis)["x1"], "~", tol*10**(model == "negbin"))
         # cat("Model: ", model, ", FE: ", id_fe, ", weight: ", use_weights,  ", offset: ", use_offset, "\n", sep="")
 
       }
@@ -368,7 +368,7 @@ for(useWeights in c(FALSE, TRUE)){
       }
 
       test(coef(res)["x1"], coef(res_bis)["x1"], "~")
-      test(se(res, se = "st", ssc = ssc(adj=adj))["x1"], se(res_bis)["x1"], "~")
+      test(se(res, se = "st", ssc = ssc(K.adj=adj))["x1"], se(res_bis)["x1"], "~")
       # cat("Weight: ", useWeights, ", model: ", model, ", FE: ", use_fe, "\n", sep="")
 
     }
@@ -926,7 +926,7 @@ names(base) = c("y", "x1", "x2", "x3", "species")
 base$clu = sample(6, 150, TRUE)
 base$clu[1:5] = NA
 
-est = feols(y ~ x1 | species, base, cluster = ~clu, ssc = ssc(adj = FALSE))
+est = feols(y ~ x1 | species, base, cluster = ~clu, ssc = ssc(K.adj = FALSE))
 
 # The three should be identical
 v1 = est$cov.scaled
@@ -1126,21 +1126,21 @@ est = feols(y ~ x | fe1 + fe2, base)
 # Clustered standard-errors: by fe1
 #
 
-# Default: fixef.K = "nested"
+# Default: K.fixef = "nonnested"
 #  => adjustment K = 1 + 5 (i.e. x + fe2)
-test(attr(vcov(est, ssc = ssc(fixef.K = "nested"), attr = TRUE), "dof.K"), 6)
+test(attr(vcov(est, ssc = ssc(K.fixef = "nonnested"), attr = TRUE), "dof.K"), 6)
 
-# fixef.K = FALSE
+# K.fixef = FALSE
 #  => adjustment K = 1 (i.e. only x)
-test(attr(vcov(est, ssc = ssc(fixef.K = "none"), attr = TRUE), "dof.K"), 1)
+test(attr(vcov(est, ssc = ssc(K.fixef = "none"), attr = TRUE), "dof.K"), 1)
 
-# fixef.K = TRUE
+# K.fixef = TRUE
 #  => adjustment K = 1 + 3 + 5 - 1 (i.e. x + fe1 + fe2 - 1 restriction)
-test(attr(vcov(est, ssc = ssc(fixef.K = "full"), attr = TRUE), "dof.K"), 8)
+test(attr(vcov(est, ssc = ssc(K.fixef = "full"), attr = TRUE), "dof.K"), 8)
 
-# fixef.K = TRUE & fixef.exact = TRUE
+# K.fixef = TRUE & fixef.exact = TRUE
 #  => adjustment K = 1 + 3 + 5 - 2 (i.e. x + fe1 + fe2 - 2 restrictions)
-test(attr(vcov(est, ssc = ssc(fixef.K = "full", fixef.force_exact = TRUE), attr = TRUE), "dof.K"), 7)
+test(attr(vcov(est, ssc = ssc(K.fixef = "full", K.exact = TRUE), attr = TRUE), "dof.K"), 7)
 
 #
 # Manual checks of the SEs
@@ -1156,9 +1156,9 @@ for(k_val in c("none", "nested", "full")){
     K = switch(k_val, none = 1, nested = 8, full = 8)
     my_adj = ifelse(adj, (n - 1) / (n - K), 1)
 
-    test(vcov(est, se = "standard", ssc = ssc(adj = adj, fixef.K = k_val)), VCOV_raw * my_adj)
+    test(vcov(est, se = "standard", ssc = ssc(K.adj = adj, K.fixef = k_val)), VCOV_raw * my_adj)
 
-    # cat("adj = ", adj, " ; fixef.K = ", k_val, "\n", sep = "")
+    # cat("adj = ", adj, " ; K.fixef = ", k_val, "\n", sep = "")
   }
 }
 
@@ -1180,13 +1180,13 @@ for(tdf in c("conventional", "min")){
         V = H * cluster_factor
 
         # test SE
-        test(vcov(est, se = "cluster", ssc = ssc(adj = adj, fixef.K = k_val, cluster.adj = c_adj)), V * my_adj)
+        test(vcov(est, se = "cluster", ssc = ssc(K.adj = adj, K.fixef = k_val, G.adj = c_adj)), V * my_adj)
 
         # test pvalue
-        my_tstat = tstat(est, se = "cluster", ssc = ssc(adj = adj, fixef.K = k_val, cluster.adj = c_adj))
-        test(pvalue(est, se = "cluster", ssc = ssc(adj = adj, fixef.K = k_val, cluster.adj = c_adj, t.df = tdf)), 2*pt(-abs(my_tstat), df))
+        my_tstat = tstat(est, se = "cluster", ssc = ssc(K.adj = adj, K.fixef = k_val, G.adj = c_adj))
+        test(pvalue(est, se = "cluster", ssc = ssc(K.adj = adj, K.fixef = k_val, G.adj = c_adj, t.df = tdf)), 2*pt(-abs(my_tstat), df))
 
-        # cat("adj = ", adj, " ; fixef.K = ", k_val, " ; cluster.adj = ", c_adj, " t.df = ", tdf, "\n", sep = "")
+        # cat("adj = ", adj, " ; K.fixef = ", k_val, " ; G.adj = ", c_adj, " t.df = ", tdf, "\n", sep = "")
       }
     }
   }
@@ -1200,7 +1200,7 @@ M_t  = vcovClust(est$fixef_id$fe2, VCOV_raw, scores = est$scores, adj = FALSE)
 M_it = vcovClust(paste(base$fe1, base$fe2), VCOV_raw, scores = est$scores, adj = FALSE, do.unclass = TRUE)
 
 M_i + M_t - M_it
-vcov(est, se = "two", ssc = ssc(adj = FALSE, cluster.adj = FALSE))
+vcov(est, se = "two", ssc = ssc(K.adj = FALSE, G.adj = FALSE))
 
 for(cdf in c("conventional", "min")){
   for(tdf in c("conventional", "min")){
@@ -1224,15 +1224,15 @@ for(cdf in c("conventional", "min")){
           my_adj = ifelse(adj, (n - 1) / (n - K), 1)
 
           # test SE
-          test(vcov(est, se = "two", ssc = ssc(adj = adj, fixef.K = k_val, cluster.adj = c_adj, cluster.df = cdf)),
+          test(vcov(est, se = "two", ssc = ssc(K.adj = adj, K.fixef = k_val, G.adj = c_adj, G.df = cdf)),
              V * my_adj)
 
           # test pvalue
-          my_tstat = tstat(est, se = "two", ssc = ssc(adj = adj, fixef.K = k_val, cluster.adj = c_adj, cluster.df = cdf))
-          test(pvalue(est, se = "two", ssc = ssc(adj = adj, fixef.K = k_val, cluster.adj = c_adj, cluster.df = cdf, t.df = tdf)),
+          my_tstat = tstat(est, se = "two", ssc = ssc(K.adj = adj, K.fixef = k_val, G.adj = c_adj, G.df = cdf))
+          test(pvalue(est, se = "two", ssc = ssc(K.adj = adj, K.fixef = k_val, G.adj = c_adj, G.df = cdf, t.df = tdf)),
              2*pt(-abs(my_tstat), df))
 
-          # cat("adj = ", adj, " ; fixef.K = ", k_val, " ; cluster.adj = ", c_adj, " t.df = ", tdf, "\n", sep = "")
+          # cat("adj = ", adj, " ; K.fixef = ", k_val, " ; G.adj = ", c_adj, " t.df = ", tdf, "\n", sep = "")
         }
       }
     }
@@ -1267,7 +1267,7 @@ se_white_lm_HC1 = sqrt(vcovHC(est_lm, type = "HC1")["x", "x"])
 se_white_lm_HC0 = sqrt(vcovHC(est_lm, type = "HC0")["x", "x"])
 
 test(se(est_feols, se = "hetero"), se_white_lm_HC1)
-test(se(est_feols, se = "hetero", ssc = ssc(adj = FALSE, cluster.adj = FALSE)), se_white_lm_HC0)
+test(se(est_feols, se = "hetero", ssc = ssc(K.adj = FALSE, G.adj = FALSE)), se_white_lm_HC0)
 
 
 #
@@ -1279,8 +1279,8 @@ se_CL_grp_lm_HC1 = sqrt(vcovCL(est_lm, cluster = d$grp, type = "HC1")["x", "x"])
 se_CL_grp_lm_HC0 = sqrt(vcovCL(est_lm, cluster = d$grp, type = "HC0")["x", "x"])
 
 # How to get the lm
-test(se(est_feols, ssc = ssc(fixef.K = "full")), se_CL_grp_lm_HC1)
-test(se(est_feols, ssc = ssc(adj = FALSE, fixef.K = "full")), se_CL_grp_lm_HC0)
+test(se(est_feols, ssc = ssc(K.fixef = "full")), se_CL_grp_lm_HC1)
+test(se(est_feols, ssc = ssc(K.adj = FALSE, K.fixef = "full")), se_CL_grp_lm_HC0)
 
 #
 # Two way
@@ -1290,7 +1290,7 @@ test(se(est_feols, ssc = ssc(adj = FALSE, fixef.K = "full")), se_CL_grp_lm_HC0)
 se_CL_2w_lm    = sqrt(vcovCL(est_lm, cluster = ~ grp + tm, type = "HC1")["x", "x"])
 se_CL_2w_feols = se(est_feols, se = "twoway")
 
-test(se(est_feols, se = "twoway", ssc = ssc(fixef.K = "full", cluster.df = "conv")), se_CL_2w_lm)
+test(se(est_feols, se = "twoway", ssc = ssc(K.fixef = "full", G.df = "conv")), se_CL_2w_lm)
 
 # 
 # HC2/HC3
@@ -1304,12 +1304,12 @@ est_feols = feols(Sepal.Length ~ Sepal.Width | Species, base)
 est_lm = lm(Sepal.Length ~ Sepal.Width + factor(Species), base)
 
 test(
-  vcov(est_feols, "hc2", ssc = ssc(adj = FALSE, cluster.adj = FALSE)),
+  vcov(est_feols, "hc2", ssc = ssc(K.adj = FALSE, G.adj = FALSE)),
   sandwich::vcovHC(est_lm, "HC2")["Sepal.Width", "Sepal.Width"]
 )
 
 test(
-  vcov(est_feols, "hc3", ssc = ssc(adj = FALSE, cluster.adj = FALSE)),
+  vcov(est_feols, "hc3", ssc = ssc(K.adj = FALSE, G.adj = FALSE)),
   sandwich::vcovHC(est_lm, "HC3")["Sepal.Width", "Sepal.Width"]
 )
 
@@ -1321,12 +1321,12 @@ est_feols = feols(Sepal.Length ~ Sepal.Width | Species, base, weights = ~ w)
 est_lm = lm(Sepal.Length ~ Sepal.Width + factor(Species), base, weights = base$w)
 
 test(
-  vcov(est_feols, "hc2", ssc = ssc(adj = FALSE, cluster.adj = FALSE)),
+  vcov(est_feols, "hc2", ssc = ssc(K.adj = FALSE, G.adj = FALSE)),
   sandwich::vcovHC(est_lm, "HC2")["Sepal.Width", "Sepal.Width"]
 )
 
 test(
-  vcov(est_feols, "hc3", ssc = ssc(adj = FALSE, cluster.adj = FALSE)),
+  vcov(est_feols, "hc3", ssc = ssc(K.adj = FALSE, G.adj = FALSE)),
   sandwich::vcovHC(est_lm, "HC3")["Sepal.Width", "Sepal.Width"]
 )
 
@@ -1342,11 +1342,11 @@ est_glm = glm(
 )
 
 test(
-  vcov(est_feglm, "hc2", ssc = ssc(adj = FALSE, cluster.adj = FALSE)),
+  vcov(est_feglm, "hc2", ssc = ssc(K.adj = FALSE, G.adj = FALSE)),
   sandwich::vcovHC(est_glm, "HC2")["Sepal.Width", "Sepal.Width"]
 )
 test(
-  vcov(est_feglm, "hc3", ssc = ssc(adj = FALSE, cluster.adj = FALSE)),
+  vcov(est_feglm, "hc3", ssc = ssc(K.adj = FALSE, G.adj = FALSE)),
   sandwich::vcovHC(est_glm, "HC3")["Sepal.Width", "Sepal.Width"]
 )
 
@@ -1468,7 +1468,7 @@ se_est = se(est_panel)
 test(se(est_panel, ~id), se_est)
 
 # changing ssc argument
-test(se(est_panel, ssc = ssc(adj = FALSE)), se(est_panel, ~id + ssc(adj = FALSE)))
+test(se(est_panel, ssc = ssc(K.adj = FALSE)), se(est_panel, ~id + ssc(K.adj = FALSE)))
 
 # using vcov_cluster
 test(se_est, se(est_panel, vcov_cluster("id")))
@@ -1531,12 +1531,12 @@ base$lon = rep(c(0, 80, 160), each = 50)
 est = feols(y ~ x1, base)
 
 # Equivalence 1 -- clustered SEs
-se_clu = se(est, ~lon + ssc(adj = FALSE, cluster.adj = FALSE))
-test(se_clu, se(est, conley(200) ~ ssc(adj = FALSE)))
+se_clu = se(est, ~lon + ssc(K.adj = FALSE, G.adj = FALSE))
+test(se_clu, se(est, conley(200) ~ ssc(K.adj = FALSE)))
 
 # Equivalence 2 -- White SEs
-se_hc1 = se(est, hetero ~ ssc(adj = FALSE, cluster.adj = FALSE))
-test(se_hc1, se(est, conley(1) ~ ssc(adj = FALSE)))
+se_hc1 = se(est, hetero ~ ssc(K.adj = FALSE, G.adj = FALSE))
+test(se_hc1, se(est, conley(1) ~ ssc(K.adj = FALSE)))
 
 
 #
@@ -2004,11 +2004,11 @@ test(vcov(est_pois, cluster = ~id), vcovCL(est_pois, cluster = ~id, type = "HC1"
 
 est = feols(y ~ x1 + I(x1**2) | id, base_did)
 
-test(vcov(est, cluster = ~id, ssc = ssc(adj = FALSE)), vcovCL(est, cluster = ~id))
+test(vcov(est, cluster = ~id, ssc = ssc(K.adj = FALSE)), vcovCL(est, cluster = ~id))
 
 est_pois = fepois(as.integer(y) + 20 ~ x1 + I(x1**2) | id, base_did)
 
-test(vcov(est_pois, cluster = ~id, ssc = ssc(adj = FALSE)), vcovCL(est_pois, cluster = ~id))
+test(vcov(est_pois, cluster = ~id, ssc = ssc(K.adj = FALSE)), vcovCL(est_pois, cluster = ~id))
 
 
 

@@ -1919,7 +1919,7 @@ vcov_hc2_hc3_internal = function(bread, scores, sandwich, nthreads, vcov_name,
     stopi("The VCOV type {bq ? vcov_name} is not defined in IV estimations.")
   }
   
-  P_ii = hatvalues(object, exact = exact, boot.sizep = boot.size)
+  P_ii = hatvalues(object, exact = exact, boot.size = boot.size)
 
   problem_idx = which(P_ii > (1 - sqrt(.Machine$double.eps)))
   if (length(problem_idx) > 0L) {

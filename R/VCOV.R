@@ -206,7 +206,7 @@
 #'
 vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr = FALSE, 
                        forceCovariance = FALSE, keepBounded = FALSE, 
-                       nthreads = getFixest_nthreads(), vcov_fix = FALSE, ...){
+                       nthreads = getFixest_nthreads(), vcov_fix = TRUE, ...){
   # computes the clustered vcov
 
   check_arg(attr, "logical scalar")
@@ -1142,7 +1142,8 @@ ssc = function(K.adj = TRUE, K.fixef = "nonnested", K.exact = FALSE,
 #' # Using approximate hatvalues
 #' vcov_hetero(est, "hc3", exact = FALSE, p = 500)
 #'
-vcov_hetero = function(x, type = "hc1", exact = TRUE, boot.size = NULL, ssc = NULL){
+vcov_hetero = function(x, type = "hc1", exact = TRUE, boot.size = NULL, 
+                       ssc = NULL, vcov_fix = TRUE){
   # User-level function to compute clustered SEs
   # typically we only do checking and reshaping here
   
@@ -1168,7 +1169,7 @@ vcov_hetero = function(x, type = "hc1", exact = TRUE, boot.size = NULL, ssc = NU
   if(IS_REQUEST){
     res = vcov_request
   } else {
-    res = vcov(x, vcov = vcov_request)
+    res = vcov(x, vcov = vcov_request, vcov_fix = vcov_fix)
   }
 
   res
@@ -2134,7 +2135,7 @@ vcov_newey_west_internal = function(bread, scores, vars, ssc, n, K,
 
 
 vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, sandwich, 
-                                        nthreads, lag = NULL, ...){
+                                        n, K, nthreads, lag = NULL, ...){
   # Function that computes Driscoll-Kraay VCOV
 
   # Setting up

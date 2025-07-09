@@ -518,7 +518,7 @@ print.fixest = function(x, n, type = "table", fitstat = NULL, ...){
 #'
 summary.fixest = function(object, vcov = NULL, cluster = NULL, ssc = NULL,
                           stage = NULL, lean = FALSE, agg = NULL, forceCovariance = FALSE,
-                          se = NULL, keepBounded = FALSE, n = 1000, vcov_fix = FALSE,
+                          se = NULL, keepBounded = FALSE, n = 1000, vcov_fix = TRUE,
                           nthreads = getFixest_nthreads(), ...){
 
   # computes the clustered SEs and returns the modified vcov and coeftable

@@ -1150,10 +1150,10 @@ n = est$nobs
 VCOV_raw = est$cov.iid / ((n - 1) / (n - est$nparams))
 
 # standard
-for(k_val in c("none", "nested", "full")){
+for(k_val in c("none", "nonnested", "full")){
   for(adj in c(FALSE, TRUE)){
 
-    K = switch(k_val, none = 1, nested = 8, full = 8)
+    K = switch(k_val, none = 1, nonnested = 8, full = 8)
     my_adj = ifelse(adj, (n - 1) / (n - K), 1)
 
     test(vcov(est, se = "standard", ssc = ssc(K.adj = adj, K.fixef = k_val)), VCOV_raw * my_adj)
@@ -1168,11 +1168,11 @@ H = vcovClust(est$fixef_id$fe1, VCOV_raw, scores = est$scores, adj = FALSE)
 n = nobs(est)
 
 for(tdf in c("conventional", "min")){
-  for(k_val in c("none", "nested", "full")){
+  for(k_val in c("none", "nonnested", "full")){
     for(c_adj in c(FALSE, TRUE)){
       for(adj in c(FALSE, TRUE)){
 
-        K = switch(k_val, none = 1, nested = 6, full = 8)
+        K = switch(k_val, none = 1, nonnested = 6, full = 8)
         cluster_factor = ifelse(c_adj, 3/2, 1)
         df = ifelse(tdf == "min", 2, 20 - K)
         my_adj = ifelse(adj, (n - 1) / (n - K), 1)
@@ -1204,11 +1204,11 @@ vcov(est, se = "two", ssc = ssc(K.adj = FALSE, G.adj = FALSE))
 
 for(cdf in c("conventional", "min")){
   for(tdf in c("conventional", "min")){
-    for(k_val in c("none", "nested", "full")){
+    for(k_val in c("none", "nonnested", "full")){
       for(c_adj in c(FALSE, TRUE)){
         for(adj in c(FALSE, TRUE)){
 
-          K = switch(k_val, none = 1, nested = 2, full = 8)
+          K = switch(k_val, none = 1, nonnested = 2, full = 8)
 
           if(c_adj){
             if(cdf == "min"){

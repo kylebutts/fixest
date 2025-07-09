@@ -847,7 +847,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
     ssc$K.fixef = "full"
   }
   
-  K = ssc_compute_K(ssc, object, vcov_select, vcov_vars)
+  K = ssc_compute_K(ssc, object, vcov_select, vcov_vars, var_names_all)
 
   fun_name = vcov_select$fun_name
   args = list(bread = bread, scores = scores, vars = vcov_vars, 
@@ -1888,7 +1888,7 @@ vcov_iid_internal = function(bread, ssc, object, n, K, ...){
   bread
 }
 
-vcov_hetero_internal = function(bread, scores, sandwich, nthreads, n, ...){
+vcov_hetero_internal = function(bread, scores, sandwich, nthreads, ssc, n, K, ...){
   # we don't allow ssc changes
 
   if(!sandwich){
@@ -1900,7 +1900,7 @@ vcov_hetero_internal = function(bread, scores, sandwich, nthreads, n, ...){
   }
   
   if(ssc$K.adj){
-    adj = n / (n - 1)
+    adj = n / (n - K)
     vcov_mat = vcov_mat * adj
   }
 
@@ -2436,7 +2436,7 @@ slide_args = function(x, ...){
   }
 }
 
-ssc_compute_K = function(ssc, object, vcov_select, vcov_vars){
+ssc_compute_K = function(ssc, object, vcov_select, vcov_vars, var_names_all){
   # - this function is ALWAYS called from vcov.fixest
   #   => this is a very specific function, do not use vcov.fixest
   # 

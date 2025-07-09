@@ -960,7 +960,7 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   # Arguments that can be set globally
   opts = getOption("fixest_etable")
 
-  args_global = c("postprocess.tex", "postprocess.df", "view", "markdown", "page.width")
+  args_global = c("postprocess.tex", "postprocess.df", "view", "markdown", "page.width", "div.class")
   for(arg in setdiff(args_global, names(mc))){
     if(arg %in% names(opts)){
       assign(arg, opts[[arg]])
@@ -1155,6 +1155,10 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   # Export to file
   is_file = !missnull(file)
   if(is_file){
+    # Create directory if it doesn't exist
+    if(!DIR_EXISTS(dirname(file))){
+      dir.create(dirname(file), recursive = TRUE)
+    }
     error_sender(sink(file = file, append = !replace),
                  "Argument 'file': error when creating the document in ", file)
 
@@ -1191,7 +1195,10 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
 
     if(is_md){
       if(!knitr::is_latex_output()){
-        path = path_to_relative(path)
+        
+        orig = knitr::opts_knit$get("output.dir")
+        dest = normalizePath(path, "/", mustWork = FALSE)
+        path = path_to_relative(orig, dest)
         cat(sma('<div class = "{div.class}"><img src = "{path}"></div>\n'))
         return(invisible(NULL))
       }
@@ -4622,7 +4629,7 @@ setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
                             style.df = NULL, notes = NULL, group = NULL, extralines = NULL,
                             fixef.group = NULL, placement = "htbp", drop.section = NULL,
                             view = FALSE, markdown = NULL, view.cache = FALSE,
-                            page.width = "fit",
+                            page.width = "fit", div.class = "etable",
                             postprocess.tex = NULL, postprocess.df = NULL,
                             fit_format = "__var__", meta.time = NULL,
                             meta.author = NULL, meta.sys = NULL,
@@ -4692,6 +4699,7 @@ setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
 
   check_arg(view, view.cache, "logical scalar")
   check_arg(markdown, "NULL scalar(logical, character)")
+  check_value(div.class, "character scalar")
 
   page.width = check_set_page_width(page.width)
 
@@ -5376,7 +5384,12 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
     # (In regular markdown, the temp dir is a bit more elegant since
     #  it does not clutter the workspace)
 
-    markdown = "./images/etable/"
+    markdown = file.path(
+      knitr::opts_knit$get("output.dir"), 
+      knitr::fig_path('.png')
+    )
+    markdown = dirname(markdown)
+    # markdown = "./images/etable/"
   }
 
   # we need to clean all the tmp tags otherwise the caching does not work
@@ -5393,7 +5406,7 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
   do_build = TRUE
   export_markdown = id = NULL
   if(!is.null(markdown)){
-    markdown_path = check_set_path(markdown, "w, dir", create = TRUE, up = up)
+    markdown_path = check_set_path(markdown, "w, dir", create = TRUE, up = up, recursive = TRUE)
 
     all_files = list.files(markdown_path, "\\.png$", full.names = TRUE)
     id_all = gsub("^.+_|\\.png$", "", all_files)
@@ -5407,10 +5420,6 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
       do_build = FALSE
       export_markdown = png_name = normalizePath(all_files[id_all == id][1], "/")
     }
-  }
-
-  if(!is.null(export)){
-    export_path = check_set_path(export, "w", up = up)
   }
 
   dir = NULL
@@ -5433,9 +5442,17 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
         time = gsub(" .+", "", Sys.time())
         png_name = .dsb("etable_tex_.[time]_.[id].png")
       }
+    } else if (!is.null(export) && grepl("^.+_|\\.png$", export)) {
+      # png name specified in export
+      png_name = basename(export)
+      export = dirname(export)
     } else {
       png_name = "etable.png"
     }
+  }
+
+  if(!is.null(export)){
+    export_path = check_set_path(export, "w, dir", create = TRUE, up = up, recursive = TRUE)
   }
 
   if(view || do_build){
@@ -5678,13 +5695,14 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
 }
 
 
-check_set_path = function(x, type = "", create = TRUE, up = 0){
+check_set_path = function(x, type = "", create = TRUE, up = 0, recursive = FALSE){
   # type:
   # + r: read (file or dir must exists), w (file is to be created)
   # + dir: directory and not a document
   # create:
   # - if file: creates the parent dir if the grand parent exists
   # - if dir: creates the dir only if grand parent exists
+  # - if recursive == TRUE: create all folders
 
   set_up(up + 1)
 
@@ -5725,12 +5743,20 @@ check_set_path = function(x, type = "", create = TRUE, up = 0){
   path_dir = str_trim(path, -nchar(file_name))
   if(nchar(path_dir) == 0) path_dir = "."
 
+  if(create & recursive) {
+    if(!dir.exists(path)) {
+      dir.create(path, recursive = TRUE)
+    }
+  }
+
   path_parent = dirname(path)
   if(dir.exists(path_parent)){
     if(is_dir && create){
       dir.create(path)
     }
-
+      
+    # ensure absolute path is returned for working with `tempdir()`
+    path = try(normalizePath(path, "/", mustWork = FALSE))
     return(path)
   }
 
@@ -5741,7 +5767,9 @@ check_set_path = function(x, type = "", create = TRUE, up = 0){
       if(is_dir){
         dir.create(path)
       }
-
+      
+      # ensure absolute path is returned for working with `tempdir()`
+      path = try(normalizePath(path, "/", mustWork = FALSE))
       return(path)
     }
   }
@@ -5753,7 +5781,6 @@ check_set_path = function(x, type = "", create = TRUE, up = 0){
 }
 
 viewer_html_template = function(png_name){
-
   .dsb0('
 <!DOCTYPE html>
 <html> <head>
@@ -7087,14 +7114,11 @@ is_Rmarkdown = function(){
   "knitr" %in% loadedNamespaces() && !is.null(knitr::pandoc_to())
 }
 
-path_to_relative = function(x){
+path_to_relative = function(orig, dest){
   # orig = "C:/Users/berge028/Google Drive/R_packages/fixest/fixest"
   # dest = "C:/Users/berge028/Google Drive/R_packages/automake/automake/NAMESPACE"
 
   # I'm not sure it works perfectly well on linux...
-
-  dest = normalizePath(x, "/", mustWork = FALSE)
-  orig = normalizePath(".", "/", mustWork = FALSE)
 
   if(dest == orig) return(".")
 

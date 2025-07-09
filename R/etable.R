@@ -5663,15 +5663,18 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL, create
       # hence we copy the file there if necessary
 
       tmp_dir = normalizePath(tempdir(), "/")
-
+      
       if(normalizePath(getwd(), "/") != tmp_dir){
         old_name = png_name
         png_name = gsub(".+/", "", png_name)
         file.copy(old_name, file.path(tmp_dir, png_name))
         setwd(tmp_dir)
       }
-
-      html_file = viewer_html_template(png_name)
+      
+      browser()
+      URI = knitr::image_uri(png_name)
+      html_file = viewer_html_template(URI)
+      
 
       writeLines(html_file, "etable.html")
 
@@ -5771,12 +5774,16 @@ check_set_path = function(x, type = "", create_dirs = TRUE, up = 0){
   path
 }
 
-viewer_html_template = function(png_name){
+viewer_html_template = function(uri){
   .dsb0('
 <!DOCTYPE html>
 <html> <head>
 
 <style>
+  
+body {
+  background-color: #fafafa;
+}
 
 #container {
  width: 100%;
@@ -5797,7 +5804,7 @@ img {
 <body>
 
 <div id="container" class = "etable">
-  <img src = ".[png_name]" alt="etable preview">
+  <img src = ".[uri]" alt="etable preview">
 </div>
 
 </body> </html>

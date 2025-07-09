@@ -1203,11 +1203,9 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
 
     if(is_md){
       if(!knitr::is_latex_output()){
-        
-        orig = knitr::opts_knit$get("output.dir")
-        dest = normalizePath(path, "/", mustWork = FALSE)
-        path = path_to_relative(orig, dest)
-        cat(sma('<div class = "{div.class}"><img src = "{path}"></div>\n'))
+        # we insert the URI directly
+        URI = knitr::image_uri(path)
+        catma('<div class = "{div.class}"><img src = "{URI}"></div>\n')
         return(invisible(NULL))
       }
     }
@@ -5392,12 +5390,7 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL, create
     # (In regular markdown, the temp dir is a bit more elegant since
     #  it does not clutter the workspace)
 
-    markdown = file.path(
-      knitr::opts_knit$get("output.dir"), 
-      knitr::fig_path('.png')
-    )
-    markdown = dirname(markdown)
-    # markdown = "./images/etable/"
+    markdown = "./images/etable/"
   }
 
   # we need to clean all the tmp tags otherwise the caching does not work
@@ -5429,6 +5422,10 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL, create
       export_markdown = png_name = normalizePath(all_files[id_all == id][1], "/")
     }
   }
+  
+  if(!is.null(export)){
+    export_path = check_set_path(export, "w, dir", create_dirs = create_dirs, up = up)
+  }
 
   dir = NULL
   if(do_build){
@@ -5450,17 +5447,9 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL, create
         time = gsub(" .+", "", Sys.time())
         png_name = .dsb("etable_tex_.[time]_.[id].png")
       }
-    } else if (!is.null(export) && grepl("^.+_|\\.png$", export)) {
-      # png name specified in export
-      png_name = basename(export)
-      export = dirname(export)
     } else {
       png_name = "etable.png"
     }
-  }
-
-  if(!is.null(export)){
-    export_path = check_set_path(export, "w, dir", create = TRUE, up = up, recursive = TRUE)
   }
 
   if(view || do_build){

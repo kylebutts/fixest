@@ -32,9 +32,19 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 #>  [3,] . 1 . 1 . . . . . .
 ```
 
+## Non breaking changes
+
+- the arguments of the function `ssc` are renamed:
+  - adj => K.adj
+  - fixef.K => K.fixef
+  - fixef.force_exact => K.exact
+  - cluster.adj => G.adj
+  - cluster.df => G.df
+  Retro compatibility is ensured.
+
 ## Breaking changes
 
-- in `vcov`, the argument `vcov_fix` now defaults to `FALSE`. If the VCOV fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors. **No retro compatibility ensured.** PR #
+- in `vcov`, the argument `vcov_fix` now defaults to `FALSE`. If the VCOV fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors. **No retro compatibility ensured.**
  
 - the function `dof`, deprecated, and replaced with the function `ssc` since 2021, is removed
 

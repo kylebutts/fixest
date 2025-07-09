@@ -7270,6 +7270,29 @@ not_too_many_messages = function(key){
   FALSE
 }
 
+rename_and_assign_old_arguments = function(dot_args, ..., error_when_wrong = FALSE){
+  # ...: format: old = new
+  if(length(dot_args) == 0){
+    return()
+  }
+  
+  arg_dict = list(...)
+  
+  old_args = names(dot_args)
+  
+  for(arg in old_args){
+    if(error_when_wrong && !arg %in% names(arg_dict)){
+      sc_all = sys.calls()
+      fun = as.character(sc_all[[length(sc_all) - 1]][[1]])[1]
+      stop_up("The argument {Q ? arg} is not valid for the function {bq ? fun}.")
+    }
+    
+    new_arg = arg_dict[[arg]]
+    assign(new_arg, dot_args[[arg]], parent.frame())
+  }
+  
+}
+
 
 #### --------------- ####
 #### Setters/Getters ####

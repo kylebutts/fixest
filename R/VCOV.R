@@ -1210,7 +1210,13 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 #' setFixest_ssc()
 #'
 ssc = function(K.adj = TRUE, K.fixef = "nonnested", K.exact = FALSE,
-               G.adj = TRUE, G.df = "min", t.df = "min"){
+               G.adj = TRUE, G.df = "min", t.df = "min", ...){
+  
+  # retro compatibility
+  dots = list(...)
+  rename_and_assign_old_arguments(dots, adj = "K.adj", fixef.K = "K.fixef", cluster.adj = "G.adj", 
+                                  fixef.force_exact = "K.exact", cluster.df = "G.df",
+                                  error_when_wrong = TRUE)
 
   check_set_arg(K.adj, "loose logical scalar conv")
   check_set_arg(K.fixef, "match(none, full, all, nonnested, nested)", 

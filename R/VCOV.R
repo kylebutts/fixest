@@ -841,15 +841,17 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
   #   this is because there is no generic way to perform it, it is better to keep is VCOV specific
   # 
   
-  if(!isTRUE(vcov_select$ssc_allow_nonnested)){
-    # we removed the K from the nested fixed-effects only for some VCOVs, not all
+  if(!isTRUE(vcov_select$ssc_allow_nonnested) && identical(ssc$K.fixef, "nonnested")){
+    # we remove the K from the nested fixed-effects only for some VCOVs, not all
+    # => default for other VCOVs is to count all the FEs
     ssc$K.fixef = "full"
   }
   
   K = ssc_compute_K(ssc, object, vcov_select, vcov_vars)
 
   fun_name = vcov_select$fun_name
-  args = list(bread = bread, scores = scores, vars = vcov_vars, ssc = ssc, K = K,
+  args = list(bread = bread, scores = scores, vars = vcov_vars, 
+              ssc = ssc, n = n, K = K,
               sandwich = sandwich, nthreads = nthreads,
               vcov_name = vcov_name, object = object,
               var_names_all = var_names_all)
@@ -1876,10 +1878,9 @@ vcovClust = function (cluster, myBread, scores, adj = FALSE, do.unclass = TRUE,
 }
 
 
-vcov_iid_internal = function(bread, ssc, object, ...){
+vcov_iid_internal = function(bread, ssc, object, n, K, ...){
   
   if(ssc$K.adj){
-    K = ssc_compute_K(ssc, object)
     adj = (n - 1) / (n - K)
     bread = bread * adj
   }
@@ -1887,27 +1888,28 @@ vcov_iid_internal = function(bread, ssc, object, ...){
   bread
 }
 
-vcov_hetero_internal = function(bread, scores, sandwich, nthreads, ...){
+vcov_hetero_internal = function(bread, scores, sandwich, nthreads, n, ...){
   # we don't allow ssc changes
-  
-  n = nrow(scores)
-  
-  adj = n / (n - 1)
 
   if(!sandwich){
-    vcov_mat = cpp_crossprod(scores, 1, nthreads) * adj
+    vcov_mat = cpp_crossprod(scores, 1, nthreads)
     
   } else {
-    vcov_mat = cpp_crossprod(cpp_matprod(scores, bread, nthreads), 1, nthreads) * adj
+    vcov_mat = cpp_crossprod(cpp_matprod(scores, bread, nthreads), 1, nthreads)
     
+  }
+  
+  if(ssc$K.adj){
+    adj = n / (n - 1)
+    vcov_mat = vcov_mat * adj
   }
 
   vcov_mat
 }
 
 
-vcov_hc2_hc3_internal = function(bread, scores, sandwich, nthreads, 
-                                vcov_name, object, exact = TRUE, boot.size = NULL, ...){
+vcov_hc2_hc3_internal = function(bread, scores, sandwich, nthreads, vcov_name, 
+                                 object, exact = TRUE, boot.size = NULL, ...){
   
   # we don't allow ssc changes => HC2/HC3 **are** SSCs
   
@@ -1945,7 +1947,7 @@ vcov_hc2_hc3_internal = function(bread, scores, sandwich, nthreads,
 
 
 
-vcov_cluster_internal = function(bread, scores, vars, ssc, object, 
+vcov_cluster_internal = function(bread, scores, vars, ssc, object, n, K,
                                  sandwich, nthreads, var_names_all, ...){
 
   # aliasing to add (a bit of) clarity
@@ -2003,7 +2005,6 @@ vcov_cluster_internal = function(bread, scores, vars, ssc, object,
   }
   
   if(ssc$K.adj){
-    K = ssc_compute_K(ssc, object)
     adj = (n - 1) / (n - K)
     vcov_mat = vcov_mat * adj
   }
@@ -2030,7 +2031,8 @@ vcov_cluster_internal = function(bread, scores, vars, ssc, object,
 }
 
 
-vcov_newey_west_internal = function(bread, scores, vars, ssc, sandwich, nthreads, lag = NULL, ...){
+vcov_newey_west_internal = function(bread, scores, vars, ssc, n, K,
+                                    sandwich, nthreads, lag = NULL, ...){
   # Function that computes Newey-West VCOV
 
   # Setting up
@@ -2116,6 +2118,11 @@ vcov_newey_west_internal = function(bread, scores, vars, ssc, sandwich, nthreads
   if(ssc$G.adj){
     vcov_mat = vcov_mat * n_time / (n_time - 1)
   }
+  
+  if(ssc$K.adj){
+    adj = (n - 1) / (n - K)
+    vcov_mat = vcov_mat * adj
+  }
 
   attr(vcov_mat, "G") = n_time
   attr(vcov_mat, "min_cluster_size") = n_time
@@ -2159,6 +2166,11 @@ vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, sandwich,
   if(ssc$G.adj){
     vcov_mat = vcov_mat * n_time / (n_time - 1)
   }
+  
+  if(ssc$K.adj){
+    adj = (n - 1) / (n - K)
+    vcov_mat = vcov_mat * adj
+  }
 
   attr(vcov_mat, "G") = n_time
   attr(vcov_mat, "min_cluster_size") = n_time
@@ -2169,7 +2181,7 @@ vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, sandwich,
 }
 
 
-vcov_conley_internal = function(bread, scores, vars, sandwich, nthreads,
+vcov_conley_internal = function(bread, scores, vars, sandwich, nthreads, n, K,
                                 cutoff = NULL, pixel = 0, distance = "triangular", ...){
 
   lon = vars$lng
@@ -2260,6 +2272,11 @@ vcov_conley_internal = function(bread, scores, vars, sandwich, nthreads,
     vcov_mat = prepare_sandwich(bread, meat, nthreads)
   } else {
     vcov_mat = meat
+  }
+  
+  if(ssc$K.adj){
+    adj = (n - 1) / (n - K)
+    vcov_mat = vcov_mat * adj
   }
 
   scale = if(metric == "km") 1 else 1 / 1.60934

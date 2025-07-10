@@ -812,7 +812,8 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       if(inherits(panel.id, "formula")){
         panel_vars = all.vars(panel.id)
       } else {
-        panel_vars = all.vars(.xpd(rhs = panel.id))
+        panel.id = .xpd(rhs = gsub(",", "+", panel.id))
+        panel_vars = all.vars(panel.id)
       }
 
       pblm = setdiff(panel_vars, dataNames)

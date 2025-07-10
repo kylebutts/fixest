@@ -112,6 +112,8 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - fix bug in `etable` preventing the use of the argument `export` when `markdown = TRUE` within a Rmd document
 
+- fix bug regarding panels in estimations, the format `panel.id = "id,time"` did not work. Now fixed. 
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

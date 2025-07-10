@@ -184,6 +184,8 @@
 #' `i()` and not interacted with other variables. For example: `i(species, x1)` 
 #' is good while `i(species):x1` isn't. The latter will also work but the index 
 #' may feel weird in case there are many `i()` variables.
+#' @param do_iplot Logical, default is `FALSE`. For internal use only. 
+#' If `TRUE`, then `iplot` is run instead of `coefplot`.
 #'
 #' @seealso
 #' See [`setFixest_coefplot`] to set the default values of `coefplot`, and the estimation 
@@ -369,7 +371,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
                     ylim.add, only.params = FALSE, sep, as.multiple = FALSE,
                     bg, group = "auto", group.par = list(lwd = 2, line = 3, tcl = 0.75),
                     main = "Effect on __depvar__", value.lab = "Estimate and __ci__ Conf. Int.",
-                    ylab = NULL, xlab = NULL, sub = NULL, i.select = NULL, internal.only.i = NULL){
+                    ylab = NULL, xlab = NULL, sub = NULL, i.select = NULL, do_iplot = NULL){
 
   # Set up the dictionary
   if(is.null(dict)){
@@ -391,7 +393,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   # iplot
   #
 
-  is_iplot = isTRUE(internal.only.i)
+  is_iplot = isTRUE(do_iplot)
   if(is_iplot){
     check_arg(i.select, "integer scalar GE{1}")
   }
@@ -2517,7 +2519,7 @@ gen_iplot = function(){
   # iplot
   #
 
-  qui_keep = !arg_name %in% c("object", "...", "i.select", "internal.only.i")
+  qui_keep = !arg_name %in% c("object", "...", "i.select", "do_iplot")
 
   iplot_args = paste0(arg_name[qui_keep], " = ", arg_default[qui_keep], collapse = ", ")
   iplot_args = gsub(" = ,", ",", iplot_args)
@@ -2525,8 +2527,8 @@ gen_iplot = function(){
   coefplot_call = paste0(arg_name[qui_keep], " = ", arg_name[qui_keep], collapse = ", ")
 
   iplot_fun = paste0("iplot = function(..., i.select = 1, ", iplot_args, "){\n\n",
-            "\tcoefplot(object = object, ..., i.select = i.select, ",
-             coefplot_call, ", internal.only.i = TRUE)\n}")
+            "\tcoefplot(..., i.select = i.select, ",
+             coefplot_call, ", do_iplot = TRUE)\n}")
 
   iplot_rox = "#' @describeIn coefplot Plots the coefficients generated with i()"
 

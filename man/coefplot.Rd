@@ -66,7 +66,7 @@ coefplot(
   xlab = NULL,
   sub = NULL,
   i.select = NULL,
-  internal.only.i = NULL
+  do_iplot = NULL
 )
 
 iplot(
@@ -392,6 +392,9 @@ obtain what you want. Note that it works much better when the variables are "pur
 \code{i()} and not interacted with other variables. For example: \code{i(species, x1)}
 is good while \code{i(species):x1} isn't. The latter will also work but the index
 may feel weird in case there are many \code{i()} variables.}
+
+\item{do_iplot}{Logical, default is \code{FALSE}. For internal use only.
+If \code{TRUE}, then \code{iplot} is run instead of \code{coefplot}.}
 }
 \description{
 This function plots the results of estimations (coefficients and confidence intervals).

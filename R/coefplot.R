@@ -1262,10 +1262,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
         }
       }
 
-
     }
-
-
 
   }
 
@@ -1685,8 +1682,8 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
 
 
-coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shift = 0, dict,
-                         i.select = NULL,
+coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shift = 0, 
+                         dict, i.select = NULL, 
                          keep, drop, order, ci_level = 0.95, df.t = NULL, ref = "auto",
                          only.i = TRUE, sep, as.multiple = FALSE, is_root = TRUE){
 
@@ -1737,10 +1734,23 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
                    silent = TRUE)
 
         if("try-error" %in% class(prms)){
-          if(grepl("^[^\n]+coefplot", prms)){
+          if(grepl("^[^\n]+(coefplot|iplot)", prms)){
             prms = stringmagic::string_clean(prms, "^[^\n]+\n")
           }
-          stop_up("The {nth ? i} model raises and error:\n", prms)
+          
+          # we say if the argument is invalid
+          dots = get("dots", parent.frame())
+          nm_pblm = setdiff(names(dots), c("object", ""))
+          msg = ""
+          if(length(nm_pblm) > 0){
+            msg = sma("NOTA: the argument{$s, enum.bq, are ? nm_pblm} not valid argument{$s}.")
+          }
+          
+          stop_up("The {nth ? i} model raises and error:\n", prms, msg)
+        }
+        
+        if(nb_est == 1){
+          return(prms)
         }
 
         # Some meta variables
@@ -1760,7 +1770,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
         res[[i]] = df_prms
       }
     }
-
+    
     AXIS_AS_NUM = num_axis
 
     all_estimates = do.call("rbind", res)
@@ -1909,17 +1919,9 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
 
     if(missing(sd)){
       if(missing(ci_low) || missing(ci_high)){
-        dots = get("dots", parent.frame(2))
-        nm_pblm = setdiff(names(dots), c("object", ""))
-        msg = ""
-        if(length(nm_pblm) > 0){
-          msg = sma("\nNOTA: the argument{$s, enum.bq, are ? nm_pblm} not valid argument{$s}.")
-        }
-        
         stop_up("When passing a vector of coefficients, the values for ",
                 "`sd` or `ci_low` and `ci_high` must be explicitly provided.\n",
-                "Problem: `sd`, `ci_low` and `ci_high` are missing.",
-                msg)
+                "Problem: `sd`, `ci_low` and `ci_high` are missing.")
       }
 
       varlist$ci = NULL
@@ -2192,7 +2194,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
 
       prms$x = x
     }
-
+    
     # We add the reference
     if(!(identical(ref, "auto") || identical(ref, "all")) && length(ref) > 0 && !isFALSE(ref)){
 
@@ -2334,7 +2336,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
       prms$id = 1
     }
   }
-
+  
   if(multiple_est){
     # We don't allow x.shift
 

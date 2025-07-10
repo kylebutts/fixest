@@ -7,9 +7,9 @@
 \usage{
 setFixest_vcov(
   no_FE = "iid",
-  one_FE = "cluster",
-  two_FE = "cluster",
-  panel = "cluster",
+  one_FE = "iid",
+  two_FE = "iid",
+  panel = "iid",
   all = NULL,
   reset = FALSE
 )
@@ -20,18 +20,18 @@ getFixest_vcov()
 \item{no_FE}{Character scalar equal to either: \code{"iid"} (default), or \code{"hetero"}. The type
 of standard-errors to use by default for estimations without fixed-effects.}
 
-\item{one_FE}{Character scalar equal to either: \code{"iid"}, \code{"hetero"}, or \code{"cluster"} (default).
+\item{one_FE}{Character scalar equal to either: \code{"iid"} (default), \code{"hetero"}, or \code{"cluster"}.
 The type of standard-errors to use by default for estimations with \emph{one} fixed-effect.}
 
-\item{two_FE}{Character scalar equal to either: \code{"iid"}, \code{"hetero"}, \code{"cluster"} (default), or
+\item{two_FE}{Character scalar equal to either: \code{"iid"} (default), \code{"hetero"}, \code{"cluster"}, or
 \code{"twoway"}. The type of standard-errors to use by default for estimations with \emph{two or more}
 fixed-effects.}
 
-\item{panel}{Character scalar equal to either: \code{"iid"}, \code{"hetero"}, \code{"cluster"} (default), or
+\item{panel}{Character scalar equal to either: \code{"iid"} (default), \code{"hetero"}, \code{"cluster"}, or
 \code{"driscoll_kraaay"}. The type of standard-errors to use by default for estimations with the
 argument \code{panel.id} set up. Note that panel has precedence over the presence of fixed-effects.}
 
-\item{all}{Character scalar equal to either: \code{"iid"}, or \code{"hetero"}. By default is is NULL. If
+\item{all}{Character scalar equal to either: \code{"iid"}, or \code{"hetero"}. By default is is \code{NULL}. If
 provided, it sets all the SEs to that value.}
 
 \item{reset}{Logical, default is \code{FALSE}. Whether to reset to the default values.}
@@ -46,21 +46,18 @@ This functions defines or extracts the default type of standard-errors to comput
 }
 \examples{
 
-# By default:
-# - no fixed-effect (FE): standard
-# - one or more FEs: cluster
-# - panel: cluster on panel id
+# By default: 'standard' VCOVs
 
 data(base_did)
 est_no_FE  = feols(y ~ x1, base_did)
 est_one_FE = feols(y ~ x1 | id, base_did)
 est_two_FE = feols(y ~ x1 | id + period, base_did)
-est_panel = feols(y ~ x1 | id + period, base_did, panel.id = ~id + period)
+est_panel  = feols(y ~ x1 | id + period, base_did, panel.id = ~id + period)
 
 etable(est_no_FE, est_one_FE, est_two_FE)
 
 # Changing the default standard-errors
-setFixest_vcov(no_FE = "hetero", one_FE = "iid",
+setFixest_vcov(no_FE = "hetero", one_FE = "cluster",
                two_FE = "twoway", panel = "drisc")
 etable(est_no_FE, est_one_FE, est_two_FE, est_panel)
 

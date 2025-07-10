@@ -52,7 +52,6 @@ data(trade)
 est_pois = fepois(Euros ~ log(dist_km)|Origin+Destination+Product, trade)
 
 # displaying the results
-#  (by default SEs are clustered if FEs are used)
 print(est_pois)
 
 # By default the coefficient table is displayed.

@@ -3,7 +3,7 @@
 
 ## New Features
 
-- add the ability to create sparse model matrices from regression objects and formula in a memory-efficient way.
+- new function: `sparse_model_matrix` which creates sparse model matrices from regression objects in a memory-efficient way
 
 ```R
 est = feols(mpg ~ drat | cyl, mtcars)
@@ -42,16 +42,18 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - **the new default VCOV is `iid` for all estimations**. To change the default to the way it was, place `setFixest_vcov(all = "cluster", no_FE = "iid")` in your `.Rprofile`.
  
-- the function `dof`, deprecated, and replaced with the function `ssc` since 2021, is removed
+- the function `dof` is removed (it was deprecated and replaced with the function `ssc` since 2021)
 
 - in `etable`, the argument `replace = TRUE` by default (it was `FALSE`)
 
 - the arguments of the function `ssc` are renamed:
-  - adj => K.adj
-  - fixef.K => K.fixef
-  - fixef.force_exact => K.exact
-  - cluster.adj => G.adj
-  - cluster.df => G.df
+
+  - `adj` => `K.adj`
+  - `fixef.K` => `K.fixef`
+  - `fixef.force_exact` => `K.exact`
+  - `cluster.adj` => `G.adj`
+  - `cluster.df` => `G.df`
+  
   Retro compatibility is ensured. Thanls to Kyle Butts and Grant McDermott for the brainstorm!
 
 ## Other changes
@@ -73,7 +75,7 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 - `setFixest_etable` now accepts the argument `div.class`
 
 - when a file is created and the containing folders do not exist:
-  - the new default is to create up to the grand grand parent folder
+  - the new default is to create up to the grand parent folder
   - the new argument `create_dirs` (default is `FALSE`) creates all containing directories
 
 - when `markdown = TRUE`, the images are directly inserted in the `<img>` container as URI, avoiding any issue with paths

@@ -172,8 +172,8 @@ you should use \code{vcov} instead.}
 \item{ssc}{An object of class \code{ssc.type} obtained with the function \code{\link{ssc}}. Represents
 how the degree of freedom correction should be done.You must use the function \code{\link{ssc}}
 for this argument. The arguments and defaults of the function \code{\link{ssc}} are:
-\code{adj = TRUE}, \code{fixef.K="nested"}, \code{cluster.adj = TRUE}, \code{cluster.df = "min"},
-\code{t.df = "min"}, \verb{fixef.force_exact=FALSE)}. See the help of the function \code{\link{ssc}} for details.}
+\code{K.adj = TRUE}, \code{K.fixef = "nonnested"}, \code{G.adj = TRUE}, \code{G.df = "min"},
+\code{t.df = "min"}, \verb{K.exact = FALSE)}. See the help of the function \code{\link{ssc}} for details.}
 
 \item{panel.id}{The panel identifiers. Can either be: i) a one sided formula
 (e.g. \code{panel.id = ~id+time}), ii) a character vector of length 2
@@ -409,8 +409,7 @@ The function \code{\link{i}} has in fact more arguments, please see details in i
 
 
 Standard-errors can be computed in different ways, you can use the arguments \code{se} and \code{ssc}
-in \code{\link{summary.fixest}} to define how to compute them. By default, in the presence
-of fixed-effects, standard-errors are automatically clustered.
+in \code{\link{summary.fixest}} to define how to compute them. By default, the VCOV is the "standard" one.
 
 The following vignette: \href{https://lrberge.github.io/fixest/articles/standard_errors.html}{On standard-errors} describes in details how the standard-errors are computed in
 \code{fixest} and how you can replicate standard-errors from other software.
@@ -589,7 +588,7 @@ summary(res, cluster = ~Species)
 #
 
 res = feols(Sepal.Length ~ Sepal.Width + Petal.Length | Species, iris)
-# By default, the SEs are clustered according to the first fixed-effect
+# Here we have "default" SEs
 summary(res)
 
 #
@@ -617,7 +616,7 @@ data(base_did)
 # We need to set up the panel with the arg. panel.id
 est1 = feols(y ~ l(x1, 0:1), base_did, panel.id = ~id+period)
 est2 = feols(f(y) ~ l(x1, -1:1), base_did, panel.id = ~id+period)
-etable(est1, est2, order = "f", drop="Int")
+etable(est1, est2, order = "f", drop = "Int")
 
 #
 # Using interactions:
@@ -625,7 +624,7 @@ etable(est1, est2, order = "f", drop="Int")
 
 data(base_did)
 # We interact the variable 'period' with the variable 'treat'
-est_did = feols(y ~ x1 + i(period, treat, 5) | id+period, base_did)
+est_did = feols(y ~ x1 + i(period, treat, 5) | id + period, base_did)
 
 # Now we can plot the result of the interaction with coefplot
 coefplot(est_did)

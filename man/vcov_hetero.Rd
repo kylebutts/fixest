@@ -4,16 +4,23 @@
 \alias{vcov_hetero}
 \title{Heteroskedasticity-Robust VCOV}
 \usage{
-vcov_hetero(x, type = "hc1", exact = TRUE, p = 500, ssc = NULL)
+vcov_hetero(
+  x,
+  type = "hc1",
+  exact = TRUE,
+  boot.size = NULL,
+  ssc = NULL,
+  vcov_fix = TRUE
+)
 }
 \arguments{
 \item{x}{A \code{fixest} object.}
 
 \item{type}{A string scalar. Either "HC1"/"HC2"/"HC3"}
 
-\item{exact}{A logical scalar. Should the hat matrix be calculated exactly or approximated using the JLA algorithm? Default = TRUE. See \code{\link{hatvalues.fixest}} for details.}
+\item{exact}{Logical scalar, default is \code{TRUE}. Whether the diagonals of the projection matrix should be calculated exactly. If \code{FALSE}, then it will be approximated using a JLA algorithm. See details. Unless you have a very large number of observations, it is recommended to keep the default value.}
 
-\item{p}{A numeric scalar. The number of draws should be used when approximating the hat matrix? Note that larger \code{p} are more accurate, but slower. This is only used when \code{exact = TRUE}. Default is 500.}
+\item{boot.size}{Integer scalar or \code{NULL}, default is 1000. This is only used when \code{exact == FALSE}. This determines the number of bootstrap samples used to estimate the projection matrix. If equal to \code{NULL}, it falls back to the default value of 1000.}
 
 \item{ssc}{An object returned by the function \code{\link{ssc}}. It specifies how to perform the small sample correction.}
 }
@@ -29,20 +36,19 @@ Computes the heteroskedasticity-robust VCOV of \code{fixest} objects.
 
 base = iris
 names(base) = c("y", "x1", "x2", "x3", "species")
-base$clu = rep(1:5, 30)
 
 est = feols(y ~ x1 | species, base)
 
 vcov_hetero(est, "hc1")
-vcov_hetero(est, "hc2", ssc = ssc(adj = FALSE))
-vcov_hetero(est, "hc3", ssc = ssc(adj = FALSE))
+vcov_hetero(est, "hc2", ssc = ssc(K.adj = FALSE))
+vcov_hetero(est, "hc3", ssc = ssc(K.adj = FALSE))
 
 # Using approximate hatvalues
 vcov_hetero(est, "hc3", exact = FALSE, p = 500)
 
 }
 \references{
-MacKinnon, J. G. (2012). "Thirty years of heteroscedasticity-robust inference." Recent Advances and Future Directions in Causality, Predic-tion, and Specification Analysis, pp. 437--461. https://doi.org/10.1007/978-1-4614-1653-1_17
+MacKinnon, J. G. (2012). "Thirty years of heteroscedasticity-robust inference." Recent Advances and Future Directions in Causality, Prediction, and Specification Analysis, pp. 437--461. https://doi.org/10.1007/978-1-4614-1653-1_17
 }
 \author{
 Laurent Berge and Kyle Butts

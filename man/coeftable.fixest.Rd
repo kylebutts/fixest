@@ -72,8 +72,8 @@ for each estimation and each VCOV will be reported.}
 \item{ssc}{An object of class \code{ssc.type} obtained with the function \code{\link{ssc}}. Represents
 how the degree of freedom correction should be done.You must use the function \code{\link{ssc}}
 for this argument. The arguments and defaults of the function \code{\link{ssc}} are:
-\code{adj = TRUE}, \code{fixef.K="nested"}, \code{cluster.adj = TRUE}, \code{cluster.df = "min"},
-\code{t.df = "min"}, \verb{fixef.force_exact=FALSE)}. See the help of the function \code{\link{ssc}} for details.}
+\code{K.adj = TRUE}, \code{K.fixef = "nonnested"}, \code{G.adj = TRUE}, \code{G.df = "min"},
+\code{t.df = "min"}, \verb{K.exact = FALSE)}. See the help of the function \code{\link{ssc}} for details.}
 
 \item{cluster}{Tells how to cluster the standard-errors (if clustering is requested). Can
 be either a list of vectors, a character vector of variable names, a formula or an
@@ -154,7 +154,6 @@ est = fepois(Euros ~ log(dist_km) | Origin^Product + Year, trade)
 # Coeftable/se/tstat/pvalue
 #
 
-# Default is clustering along Origin^Product
 coeftable(est)
 se(est)
 tstat(est)
@@ -168,7 +167,7 @@ se(est, cluster = ~Origin + Product)
 pvalue(est, cluster = ~Origin + Product)
 tstat(est, cluster = ~Origin + Product)
 
-# Or you can cluster only once:
+# Or you can cluster only once using summary:
 est_sum = summary(est, cluster = ~Origin + Product)
 coeftable(est_sum)
 se(est_sum)

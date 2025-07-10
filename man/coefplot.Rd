@@ -443,14 +443,12 @@ would end up with the following order: Wind, Temp:Wind, Temp, (Intercept).
 #
 
 # Estimation on Iris data with one fixed-effect (Species)
-est = feols(Petal.Length ~ Petal.Width + Sepal.Length +
-            Sepal.Width | Species, iris)
+# + we cluster the standard-errors
+est_clu = feols(Petal.Length ~ Petal.Width + Sepal.Length +
+            Sepal.Width | Species, iris, vcov = "cluster")
 
-# Estimation results with clustered standard-errors
-# (the default when fixed-effects are present)
-est_clu = summary(est)
 # Now with "regular" standard-errors
-est_std = summary(est, se = "iid")
+est_std = summary(est, vcov = "iid")
 
 # You can plot the two results at once
 coefplot(list(est_clu, est_std))
@@ -460,14 +458,14 @@ coefplot(list(est_clu, est_std))
 # to do it sequentially:
 
 # First graph with clustered standard-errors
-coefplot(est, x.shift = -.2)
+coefplot(est_clu, x.shift = -.2)
 
 # 'x.shift' was used to shift the coefficients on the left.
 
 # Second set of results: this time with
 #  standard-errors that are not clustered.
-coefplot(est, se = "iid", x.shift = .2,
-         add = TRUE, col = 2, ci.lty = 2, pch=15)
+coefplot(est_clu, vcov = "iid", x.shift = .2,
+         add = TRUE, col = 2, ci.lty = 2, pch = 15)
 
  # Note that we used 'se', an argument that will
  #  be passed to summary.fixest

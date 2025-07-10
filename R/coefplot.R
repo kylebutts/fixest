@@ -20,6 +20,19 @@
 #' i) an` estimation object (obtained for example from [`feols`]), 
 #' ii) a matrix of coefficients table, iii) a numeric vector of the point 
 #' estimates -- the latter requiring the extra arguments `sd` or `ci_low` and `ci_high`.
+#' #' @param vcov Versatile argument to specify the VCOV. 
+#' In general, it is either a character scalar equal to a VCOV type, either a formula of the form:
+#'  vcov_type ~ variables. The VCOV types implemented are: "iid", "hetero" (or "HC1"), 
+#' "cluster", "twoway", "NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley". 
+#' It also accepts object from vcov_cluster, vcov_NW, NW, vcov_DK, DK, vcov_conley and conley. 
+#' It also accepts covariance matrices computed externally. 
+#' Finally it accepts functions to compute the covariances. 
+#' See the vcov documentation in the vignette.
+#' You can pass several VCOVs (as above) if you nest them into a list. 
+#' If the number of VCOVs equals the number of models, eahc VCOV is mapped to the appropriate model.
+#' If there is one model and several VCOVs, or if the first element of the list is equal to
+#' `"each"` or `"times"`, then the estimations will be replicated and the results
+#' for each estimation and each VCOV will be reported.
 #' @param sd The standard errors of the estimates. It may be missing.
 #' @param ci_low If `sd` is not provided, the lower bound of the confidence interval. 
 #' For each estimate.
@@ -208,31 +221,30 @@
 #'
 #' # Estimation on Iris data with one fixed-effect (Species)
 #' # + we cluster the standard-errors
-#' est_clu = feols(Petal.Length ~ Petal.Width + Sepal.Length +
-#'             Sepal.Width | Species, iris, vcov = "cluster")
+#' est = feols(Petal.Length ~ Petal.Width + Sepal.Width | Species, 
+#'             iris, vcov = "cluster")
 #'
 #' # Now with "regular" standard-errors
 #' est_std = summary(est, vcov = "iid")
 #'
 #' # You can plot the two results at once
-#' coefplot(list(est_clu, est_std))
-#'
+#' coefplot(est, est_std)
+#' 
+#' # You could also use the argument vcov
+#' coefplot(est, vcov = list("cluster", "iid"))
 #'
 #' # Alternatively, you can use the argument x.shift
 #' # to do it sequentially:
 #'
 #' # First graph with clustered standard-errors
-#' coefplot(est_clu, x.shift = -.2)
+#' coefplot(est, x.shift = -.2)
 #'
 #' # 'x.shift' was used to shift the coefficients to the left.
 #'
 #' # Second set of results: this time with
 #' #  standard-errors that are not clustered.
-#' coefplot(est_clu, vcov = "iid", x.shift = .2,
+#' coefplot(est, vcov = "iid", x.shift = .2,
 #'          add = TRUE, col = 2, ci.lty = 2, pch = 15)
-#'
-#'  # Note that we used 'se', an argument that will
-#'  #  be passed to summary.fixest
 #'
 #' legend("topright", col = 1:2, pch = 20, lwd = 1, lty = 1:2,
 #'        legend = c("Clustered", "IID"), title = "Standard-Errors")
@@ -249,7 +261,7 @@
 #' base_inter = base_did
 #'
 #' # We interact the variable 'period' with the variable 'treat'
-#' est_did = feols(y ~ x1 + i(period, treat, 5) | id+period, base_inter)
+#' est_did = feols(y ~ x1 + i(period, treat, 5) | id + period, base_inter)
 #'
 #' # In the estimation, the variable treat is interacted
 #' #  with each value of period but 5, set as a reference
@@ -262,11 +274,6 @@
 #' # If you want to keep only the coefficients
 #' # created with i() (ie the interactions), use iplot
 #' iplot(est_did)
-#'
-#' # When estimations contain interactions, as before,
-#' #  the default behavior of coefplot changes,
-#' #  it now only plots interactions:
-#' coefplot(est_did)
 #'
 #' # We can see that the graph is different from before:
 #' #  - only interactions are shown,
@@ -291,7 +298,7 @@
 #'
 #' # To respect a plotting order, use a factor
 #' base_inter$month_factor = factor(base_inter$period_month, levels = all_months)
-#' est = feols(y ~ x1 + i(month_factor, treat, "oct") | id+period, base_inter)
+#' est = feols(y ~ x1 + i(month_factor, treat, "oct") | id + period, base_inter)
 #' iplot(est)
 #'
 #'
@@ -410,8 +417,75 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   info_models = flatten_list_of_models(all_dots, accept_non_fixest = TRUE)
   all_models = info_models$all_models
   
-  # we only keep the arg vcov
-  vcov = oldargs_to_vcov(NULL, cluster, vcov)
+  #
+  # multiple VOCVs
+  #
+  
+  # we only keep the arg `vcov`
+  if(!missnull(cluster)){
+    vcov = oldargs_to_vcov(NULL, cluster, vcov)
+  }
+  
+  if(is.list(vcov) && length(vcov) > 1){
+    # we multiply the models
+    
+    is_fixest = sapply(all_models, inherits, "fixest")
+    if(!all(is_fixest)){
+      stop_up("To use the `vcov` as a list, and hence have different VCOVs ",
+              "for different models, you provide only `fixest` estimations.",
+              "\nProblem: the {nth ? which(!is_fixest)} objects are not `fixest` models.")
+    }
+    
+    vcov_1 = vcov[[1]]
+    is_rep = identical(vcov_1, "times") || identical(vcov_1, "each")
+    
+    if(length(all_models) > 1 && !is_rep){
+      stop_up("If 'vcov' is a list, it must be of the same length as the number of models, ",
+              "or you should add the 'each' or 'times' keyword as the first ",
+              "element of the list.",
+              "\nProblem: there are {len ? all_models} models vs {len ? vcov} elements in `vcov`.")
+    }
+    
+    n_models = length(all_models)
+    all_vcov = vcov
+    
+    if(is_rep || n_models == 1){
+      
+      if(is_rep){
+        all_vcov[[1]] = NULL
+      }
+
+      n_vcov = length(all_vcov)
+      n_total = n_models * n_vcov
+
+      if(vcov_1 == "times"){
+        id_mod = rep(1:n_models, n_vcov)
+        id_vcov = rep(1:n_vcov, each = n_models)
+        
+      } else {
+        IS_EACH = TRUE
+        id_mod = rep(1:n_models, each = n_vcov)
+        id_vcov = rep(1:n_vcov, n_models)
+        
+      }
+
+      mega_models = vector("list", n_total)
+      for(i in 1:n_total){
+        mega_models[[i]] = summary(all_models[[id_mod[i]]], vcov = all_vcov[[id_vcov[i]]])
+      }
+      
+      all_models = mega_models
+      
+    } else {
+      
+      for(i in seq_along(vcov)){
+        all_models[[i]] = summary(all_models[[i]] , vcov = all_vcov[[i]])
+      }
+      
+    }
+    
+    vcov = NULL
+  }
 
   #
   # Setting the default values ####

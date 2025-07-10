@@ -32,6 +32,12 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 #>  [3,] . 1 . 1 . . . . . .
 ```
 
+- more notes and messages better fit the user screen
+
+- the functions `coefplot` and `iplot` now accept models passsed via `...`, aligning their design to the one of `etable`
+
+- the functions `coefplot` and `iplot` now accept the argument `vcov`
+
 ## New vignette and data set
 
 - add a new vignette on collinearity
@@ -56,17 +62,17 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
   
   Retro compatibility is ensured. Thanls to Kyle Butts and Grant McDermott for the brainstorm!
 
+- in the functions `coefplot` and `iplot`: the argument `object` is removed, now all models need to be passed in `...`. The dots do not accept arguments to summary methods any more. Retro-compatibility ensured.
+
 ## Other changes
 
 - in `vcov`: if the VCOV fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors.
-
-- more notes and messages better fit the user screen
 
 - default for the argument `collin.tol` increased from `1e-10` to `1e-9`.
 
 - requires stringmagic >= 1.2.0
 
-- add checks in IVs as regeads the number of instruments and endogenous variables
+- add checks in IVs as regards the number of instruments and endogenous variables
 
 - attribute renaming: attribute of the VCOV `dof.K` becomes `df.K` (to be consistent with to other attribute `df.t`)
 

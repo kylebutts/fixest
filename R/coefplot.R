@@ -17,7 +17,7 @@
 #' @inheritSection etable Arguments keep, drop and order
 #'
 #' @param ... Estimation results, which can be of the following form: 
-#' i) an estimation object (obtained for example from [`feols`], 
+#' i) an` estimation object (obtained for example from [`feols`]), 
 #' ii) a matrix of coefficients table, iii) a numeric vector of the point 
 #' estimates -- the latter requiring the extra arguments `sd` or `ci_low` and `ci_high`.
 #' @param sd The standard errors of the estimates. It may be missing.
@@ -40,8 +40,8 @@
 #' @param pt.cex The size of the coefficient estimates. Default is the other argument `cex`.
 #' @param col The color of the points and the confidence intervals. Default is 1 
 #' ("black"). Note that you can set the colors separately for each of them with `pt.col` and `ci.col`.
-#' @param pt.col The color of the coefficient estimates. Default is equal to the other argument `col`.
-#' @param ci.col The color of the confidence intervals. Default is equal to the other argument `col`.
+#' @param pt.col The color of the coefficient estimates. Default is equal to the argument `col`.
+#' @param ci.col The color of the confidence intervals. Default is equal to the argument `col`.
 #' @param lwd General line with. Default is 1.
 #' @param pt.lwd The line width of the coefficient estimates. Default is equal to 
 #' the other argument `lwd`.
@@ -346,7 +346,7 @@
 #'
 #'
 coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL, 
-                    vcov = NULL, 
+                    vcov = NULL, cluster = NULL,
                     x, x.shift = 0, horiz = FALSE,
                     dict = getFixest_dict(), keep, drop, order, ci.width = "1%",
                     ci_level = 0.95, add = FALSE, pt.pch = c(20, 17, 15, 21, 24, 22), 
@@ -362,7 +362,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
                     ylim.add, only.params = FALSE, sep, as.multiple = FALSE,
                     bg, group = "auto", group.par = list(lwd = 2, line = 3, tcl = 0.75),
                     main = "Effect on __depvar__", value.lab = "Estimate and __ci__ Conf. Int.",
-                    ylab = NULL, xlab = NULL, sub = NULL){
+                    ylab = NULL, xlab = NULL, sub = NULL, i.select = NULL, internal.only.i = NULL){
 
   # Set up the dictionary
   if(is.null(dict)){
@@ -384,8 +384,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   # iplot
   #
 
-  is_iplot = isTRUE(dots$internal.only.i)
-  i.select = dots$i.select
+  is_iplot = isTRUE(internal.only.i)
   if(is_iplot){
     check_arg(i.select, "integer scalar GE{1}")
   }
@@ -397,16 +396,22 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   
   # retro-compatibility
   if("object" %in% names(dots)){
-    object = dots$object
+    all_dots = dots$object
     dots_rest = dots[names(dots) != "object"]
-    if(!is.null(oldClass(object))){
-      object = append(list(object), dots_rest)
+    if(!is.null(oldClass(all_dots))){
+      all_dots = append(list(all_dots), dots_rest)
     } else {
-      object = append(object, dots_rest)
+      all_dots = append(all_dots, dots_rest)
     }
   } else {
-    object = dots
+    all_dots = dots
   }
+  
+  info_models = flatten_list_of_models(all_dots, accept_non_fixest = TRUE)
+  all_models = info_models$all_models
+  
+  # we only keep the arg vcov
+  vcov = oldargs_to_vcov(NULL, cluster, vcov)
 
   #
   # Setting the default values ####
@@ -481,10 +486,11 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   # Getting the parameters => function coefplot_prms
   #
 
-  info = coefplot_prms(object = object, ..., sd = sd, ci_low = ci_low, 
-                       ci_high = ci_high,
+  info = coefplot_prms(all_models = all_models, is_root = TRUE, vcov = vcov,
+                       sd = sd, ci_low = ci_low, ci_high = ci_high,
                        x = x, x.shift = x.shift, dict = dict, keep = keep, drop = drop,
                        order = order, ci_level = ci_level, df.t = df.t, ref = ref, 
+                       i.select = i.select, 
                        only.i = is_iplot, sep = sep, as.multiple = as.multiple)
 
   prms = info$prms
@@ -1593,20 +1599,13 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
 
 
-coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
+coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shift = 0, dict,
+                         i.select = NULL,
                          keep, drop, order, ci_level = 0.95, df.t = NULL, ref = "auto",
-                         only.i = TRUE, sep, as.multiple = FALSE){
+                         only.i = TRUE, sep, as.multiple = FALSE, is_root = TRUE){
 
   # get the default for:
   # dict, ci.level, ref
-
-  dots = list(...)
-  is_internal = isTRUE(dots$internal__)
-  if("i.select" %in% names(dots)){
-    i.select = dots$i.select
-    dots$i.select = NULL
-  }
-
 
   varlist = list(ci = paste0(ci_level * 100, "%"))
   dots_drop = c()
@@ -1619,7 +1618,7 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
   set_up(1 + is_iplot)
   
   AXIS_AS_NUM = FALSE
-  if(is_internal == FALSE && ((is.list(object) && class(object)[1] == "list") || "fixest_multi" %in% class(object))){
+  if(is_root){
     # This is a list of estimations
 
     #
@@ -1627,13 +1626,7 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
     #
 
     multiple_est = TRUE
-
-    mc = match.call()
-    mc$object = as.name("my__object__")
-    mc$only.params = TRUE
-    mc$internal__ = TRUE
-
-    nb_est = length(object)
+    nb_est = length(all_models)
 
     rerun = FALSE
     first = TRUE
@@ -1649,11 +1642,16 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
       suggest_ref_line = TRUE
       for(i in 1:nb_est){
         # cat("Eval =", i, "\n")
-        my__object__ = object[[i]]
-        prms = try(eval(mc), silent = TRUE)
+        prms = try(coefplot_prms(all_models[[i]], is_root = FALSE, vcov = vcov,
+                                 sd = sd, ci_low = ci_low, ci_high = ci_high, x = x, 
+                                 x.shift = x.shift, dict = dict, i.select = i.select,
+                                 keep = keep, drop = drop, order = order, 
+                                 ci_level = ci_level, df.t = df.t, ref = ref,
+                                 only.i = only.i, sep = sep, as.multiple = as.multiple), 
+                   silent = TRUE)
 
         if("try-error" %in% class(prms)){
-          stop_up("The {nth ? i} element of 'object' raises and error:\n", prms)
+          stop_up("The {nth ? i} model raises and error:\n", prms)
         }
 
         # Some meta variables
@@ -1739,38 +1737,13 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
     #
     # Single estimation ####
     #
+    
+    # this is a single estimation
+    object = all_models
 
+    if(inherits(object, "fixest")){
 
-    if(is.list(object)){
-
-      sum_exists = FALSE
-      for(c_name in class(object)){
-        if(exists(paste0("summary.", c_name), mode = "function")){
-          sum_exists = TRUE
-          break
-        }
-      }
-
-      if(!sum_exists){
-        # stop("There is no summary method for objects of class ", c_name, ". 'coefplot' applies summary to the object to extract the coeftable. Maybe add directly the coeftable in object instead?")
-        mat = coeftable(object)
-      } else {
-        fun_name = paste0("summary.", c_name)
-        args_name_sum = names(formals(fun_name))
-        args_sum = intersect(names(dots), args_name_sum)
-
-        dots_drop = args_sum
-
-        # we kick out the summary arguments from dots
-        dots[args_sum] = NULL
-
-        # We reconstruct a call to coeftable
-        mc_coeftable = match.call(expand.dots = TRUE)
-        mc_coeftable[[1]] = as.name("coeftable")
-        mc_coeftable[setdiff(names(mc_coeftable), c(args_sum, "object", ""))] = NULL
-
-        mat = eval(mc_coeftable, parent.frame())
-      }
+      mat = coeftable(object, vcov = vcov)
 
       sd = mat[, 2]
       estimate = mat[, 1]
@@ -1783,11 +1756,50 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
         varlist$depvar = depvar
       }
 
+    } else if(is.list(object) && !is.null(oldClass(object))){
+
+      sum_exists = FALSE
+      for(c_name in class(object)){
+        if(exists(paste0("summary.", c_name), mode = "function")){
+          sum_exists = TRUE
+          break
+        }
+      }
+      
+      # the dep var
+      fml = try(formula(object), silent = TRUE)
+      if(!inherits(fml, "try-error") && length(fml) == 3){
+        depvar = gsub(" ", "", as.character(fml)[[2]])
+        if(depvar %in% names(dict)) depvar = dict[depvar]
+        varlist$depvar = depvar
+      }
+
+      if(!sum_exists){
+        # stop("There is no summary method for objects of class ", c_name, ". 'coefplot' applies summary to the object to extract the coeftable. Maybe add directly the coeftable in object instead?")
+        mat = coeftable(object)
+        
+      } else {
+        obj_sum = summary(object)
+        mat = coeftable(obj_sum)
+        
+      }
+      
+      m_names = tolower(colnames(mat))
+      if(ncol(mat) == 4 || (grepl("estimate", m_names[1]) && 
+                               grepl("std\\.? error", m_names[1]))){
+        sd = mat[, 2]
+        estimate = mat[, 1]
+
+        names(estimate) = rownames(mat)
+
+      }
+
     } else if(is.matrix(object)){
       # object is a matrix containing the coefs and SEs
 
       m_names = tolower(colnames(object))
-      if(ncol(object) == 4 || (grepl("estimate", m_names[1]) && grepl("std\\.? error", m_names[1]))){
+      if(ncol(object) == 4 || (grepl("estimate", m_names[1]) && 
+                               grepl("std\\.? error", m_names[1]))){
         sd = object[, 2]
         estimate = object[, 1]
 
@@ -1798,7 +1810,7 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
       }
       
     } else if(length(object[1]) > 1 || !is.null(dim(object)) || !is.numeric(object)){
-      stop_up("Argument 'object' must be either: i) an estimation object, ii) a matrix of coefficients table, or iii) a numeric vector of the point estimates. Currently it is neither of the three.")
+      stop_up("Argument 'object' must be either: i) a `fixest` estimation, ii) a matrix of coefficients table, or iii) a numeric vector of the point estimates. Currently it is neither of the three.")
     } else {
       # it's a numeric vector
       estimate = object
@@ -2431,14 +2443,14 @@ gen_iplot = function(){
   # iplot
   #
 
-  qui_keep = !arg_name %in% c("object", "...")
+  qui_keep = !arg_name %in% c("object", "...", "i.select", "internal.only.i")
 
   iplot_args = paste0(arg_name[qui_keep], " = ", arg_default[qui_keep], collapse = ", ")
   iplot_args = gsub(" = ,", ",", iplot_args)
 
   coefplot_call = paste0(arg_name[qui_keep], " = ", arg_name[qui_keep], collapse = ", ")
 
-  iplot_fun = paste0("iplot = function(object, ..., i.select = 1, ", iplot_args, "){\n\n",
+  iplot_fun = paste0("iplot = function(..., i.select = 1, ", iplot_args, "){\n\n",
             "\tcoefplot(object = object, ..., i.select = i.select, ",
              coefplot_call, ", internal.only.i = TRUE)\n}")
 

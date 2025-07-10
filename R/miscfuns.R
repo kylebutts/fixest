@@ -5727,7 +5727,7 @@ fixest_CI_factor = function(x, level, vcov = NULL, df.t = NULL){
 }
 
 
-flatten_list_of_models = function(dots, dots_call = NULL){
+flatten_list_of_models = function(dots, dots_call = NULL, accept_non_fixest = FALSE){
   # dots = list(...) obtained in the upper function
   
   n_dots = length(dots)
@@ -5749,7 +5749,7 @@ flatten_list_of_models = function(dots, dots_call = NULL){
       
       if(build_model_names){
         if(any(class(dots_call[[i]]) %in% c("call", "name"))){
-          model_names[[k]] = deparse_long(dots_call[[i]])
+          model_names[[k]] = deparse(dots_call[[i]], nlines = 1)[1]
         } else {
           model_names[[k]] = as.character(dots_call[[i]])
         }
@@ -5821,6 +5821,19 @@ flatten_list_of_models = function(dots, dots_call = NULL){
           k = k + 1
         }
       }
+      
+    } else if(accept_non_fixest){
+      all_models[[k]] = di
+            
+      if(build_model_names){
+        if(any(class(dots_call[[i]]) %in% c("call", "name"))){
+          model_names[[k]] = deparse(dots_call[[i]], nlines = 1)[1]
+        } else {
+          model_names[[k]] = as.character(dots_call[[i]])
+        }
+      }
+
+      k = k + 1
     }
   }
   

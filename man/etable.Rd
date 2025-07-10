@@ -32,7 +32,7 @@ esttable(
   order = NULL,
   dict = TRUE,
   file = NULL,
-  replace = FALSE,
+  replace = TRUE,
   create_dirs = FALSE,
   convergence = NULL,
   signif.code = NULL,
@@ -74,7 +74,7 @@ esttex(
   digits = 4,
   digits.stats = 5,
   fitstat = NULL,
-  title = NULL,
+  caption = NULL,
   coefstat = "se",
   ci = 0.95,
   se.row = NULL,
@@ -84,7 +84,7 @@ esttex(
   order = NULL,
   dict = TRUE,
   file = NULL,
-  replace = FALSE,
+  replace = TRUE,
   create_dirs = FALSE,
   convergence = NULL,
   signif.code = NULL,
@@ -588,6 +588,8 @@ margin width represent the width of a single side margin (and hence will be doub
 when \code{markdown = TRUE}. The table in an image format is embedded in a \verb{<div>} container,
 and that container is of class \code{div.class}.}
 
+\item{caption}{(Tex only.) Character scalar. The caption of the Latex table.}
+
 \item{label}{(Tex only.) Character scalar. The label of the Latex table.}
 
 \item{float}{(Tex only.) Logical. By default, if the argument \code{caption} or \code{label} is provided,
@@ -682,8 +684,6 @@ or to \code{"images/etable/"} for earlier versions.}
 \item{tex}{Logical: whether the results should be a data.frame or a Latex table. By default,
 this argument is \code{TRUE} if the argument \code{file} (used for exportation) is not missing; it is
 equal to \code{FALSE} otherwise.}
-
-\item{caption}{(Tex only.) Character scalar. The caption of the Latex table.}
 
 \item{view.cache}{Logical, default is \code{FALSE}. Only used when \code{view = TRUE}.
 Whether the PNGs of the tables should be cached.}

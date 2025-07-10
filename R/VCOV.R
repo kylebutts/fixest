@@ -1140,7 +1140,7 @@ ssc = function(K.adj = TRUE, K.fixef = "nonnested", K.exact = FALSE,
 #' vcov_hetero(est, "hc3", ssc = ssc(K.adj = FALSE))
 #'
 #' # Using approximate hatvalues
-#' vcov_hetero(est, "hc3", exact = FALSE, p = 500)
+#' vcov_hetero(est, "hc3", exact = FALSE, boot.size = 500)
 #'
 vcov_hetero = function(x, type = "hc1", exact = TRUE, boot.size = NULL, 
                        ssc = NULL, vcov_fix = TRUE){

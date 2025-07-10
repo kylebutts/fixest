@@ -6,13 +6,14 @@
 \title{Plots confidence intervals and point estimates}
 \usage{
 coefplot(
-  object,
   ...,
   style = NULL,
   sd,
   ci_low,
   ci_high,
   df.t = NULL,
+  vcov = NULL,
+  cluster = NULL,
   x,
   x.shift = 0,
   horiz = FALSE,
@@ -63,11 +64,12 @@ coefplot(
   value.lab = "Estimate and __ci__ Conf. Int.",
   ylab = NULL,
   xlab = NULL,
-  sub = NULL
+  sub = NULL,
+  i.select = NULL,
+  internal.only.i = NULL
 )
 
 iplot(
-  object,
   ...,
   i.select = 1,
   style = NULL,
@@ -75,6 +77,8 @@ iplot(
   ci_low,
   ci_high,
   df.t = NULL,
+  vcov = NULL,
+  cluster = NULL,
   x,
   x.shift = 0,
   horiz = FALSE,
@@ -129,11 +133,6 @@ iplot(
 )
 }
 \arguments{
-\item{object}{Can be either: i) an estimation object (obtained for example from
-\code{\link{feols}}, ii) a list of estimation objects (several results will be plotted at
-once), iii) a matrix of coefficients table, iv) a numeric vector of the point
-estimates -- the latter requiring the extra arguments \code{sd} or \code{ci_low} and \code{ci_high}.}
-
 \item{...}{Other arguments to be passed to \code{summary}, if \code{object} is an estimation,
 and/or to the function \code{plot} or \code{lines} (if \code{add = TRUE}).}
 
@@ -154,6 +153,31 @@ For each estimate.}
 when computing the confidence intervals with the Student t. By default it
 tries to capture the DoF from the estimation. To use a Normal law to compute the
 confidence interval, use \code{df.t = Inf}.}
+
+\item{vcov}{Versatile argument to specify the VCOV.
+In general, it is either a character scalar equal to a VCOV type, either a formula of the form:
+vcov_type ~ variables. The VCOV types implemented are: "iid", "hetero" (or "HC1"),
+"cluster", "twoway", "NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley".
+It also accepts object from vcov_cluster, vcov_NW, NW, vcov_DK, DK, vcov_conley and conley.
+It also accepts covariance matrices computed externally.
+Finally it accepts functions to compute the covariances.
+See the vcov documentation in the vignette.
+You can pass several VCOVs (as above) if you nest them into a list.
+If the number of VCOVs equals the number of models, eahc VCOV is mapped to the appropriate model.
+If there is one model and several VCOVs, or if the first element of the list is equal to
+\code{"each"} or \code{"times"}, then the estimations will be replicated and the results
+for each estimation and each VCOV will be reported.}
+
+\item{cluster}{Tells how to cluster the standard-errors (if clustering is requested).
+Can be either a list of vectors, a character vector of variable names, a formula or
+an integer vector. Assume we want to perform 2-way clustering over \code{var1} and \code{var2}
+contained in the data.frame \code{base} used for the estimation. All the following
+\code{cluster} arguments are valid and do the same thing:
+\code{cluster = base[, c("var1", "var2")]}, \code{cluster = c("var1", "var2")}, \code{cluster = ~var1+var2}.
+If the two variables were used as fixed-effects in the estimation, you can leave it
+blank with \code{vcov = "twoway"} (assuming \code{var1} [resp. \code{var2}] was
+the 1st [resp. 2nd] fixed-effect). You can interact two variables using \code{^} with
+the following syntax: \code{cluster = ~var1^var2} or \code{cluster = "var1^var2"}.}
 
 \item{x}{The value of the x-axis. If missing, the names of the argument \code{estimate}
 are used.}
@@ -217,9 +241,9 @@ in 21 to 25). Defaults to NULL.}
 \item{col}{The color of the points and the confidence intervals. Default is 1
 ("black"). Note that you can set the colors separately for each of them with \code{pt.col} and \code{ci.col}.}
 
-\item{pt.col}{The color of the coefficient estimates. Default is equal to the other argument \code{col}.}
+\item{pt.col}{The color of the coefficient estimates. Default is equal to the argument \code{col}.}
 
-\item{ci.col}{The color of the confidence intervals. Default is equal to the other argument \code{col}.}
+\item{ci.col}{The color of the confidence intervals. Default is equal to the argument \code{col}.}
 
 \item{lwd}{General line with. Default is 1.}
 
@@ -444,31 +468,30 @@ would end up with the following order: Wind, Temp:Wind, Temp, (Intercept).
 
 # Estimation on Iris data with one fixed-effect (Species)
 # + we cluster the standard-errors
-est_clu = feols(Petal.Length ~ Petal.Width + Sepal.Length +
-            Sepal.Width | Species, iris, vcov = "cluster")
+est = feols(Petal.Length ~ Petal.Width + Sepal.Width | Species, 
+            iris, vcov = "cluster")
 
 # Now with "regular" standard-errors
 est_std = summary(est, vcov = "iid")
 
 # You can plot the two results at once
-coefplot(list(est_clu, est_std))
+coefplot(est, est_std)
 
+# You could also use the argument vcov
+coefplot(est, vcov = list("cluster", "iid"))
 
 # Alternatively, you can use the argument x.shift
 # to do it sequentially:
 
 # First graph with clustered standard-errors
-coefplot(est_clu, x.shift = -.2)
+coefplot(est, x.shift = -.2)
 
-# 'x.shift' was used to shift the coefficients on the left.
+# 'x.shift' was used to shift the coefficients to the left.
 
 # Second set of results: this time with
 #  standard-errors that are not clustered.
-coefplot(est_clu, vcov = "iid", x.shift = .2,
+coefplot(est, vcov = "iid", x.shift = .2,
          add = TRUE, col = 2, ci.lty = 2, pch = 15)
-
- # Note that we used 'se', an argument that will
- #  be passed to summary.fixest
 
 legend("topright", col = 1:2, pch = 20, lwd = 1, lty = 1:2,
        legend = c("Clustered", "IID"), title = "Standard-Errors")
@@ -485,7 +508,7 @@ data(base_did)
 base_inter = base_did
 
 # We interact the variable 'period' with the variable 'treat'
-est_did = feols(y ~ x1 + i(period, treat, 5) | id+period, base_inter)
+est_did = feols(y ~ x1 + i(period, treat, 5) | id + period, base_inter)
 
 # In the estimation, the variable treat is interacted
 #  with each value of period but 5, set as a reference
@@ -498,11 +521,6 @@ coefplot(est_did)
 # If you want to keep only the coefficients
 # created with i() (ie the interactions), use iplot
 iplot(est_did)
-
-# When estimations contain interactions, as before,
-#  the default behavior of coefplot changes,
-#  it now only plots interactions:
-coefplot(est_did)
 
 # We can see that the graph is different from before:
 #  - only interactions are shown,
@@ -527,7 +545,7 @@ iplot(est)
 
 # To respect a plotting order, use a factor
 base_inter$month_factor = factor(base_inter$period_month, levels = all_months)
-est = feols(y ~ x1 + i(month_factor, treat, "oct") | id+period, base_inter)
+est = feols(y ~ x1 + i(month_factor, treat, "oct") | id + period, base_inter)
 iplot(est)
 
 

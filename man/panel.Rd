@@ -4,7 +4,7 @@
 \alias{panel}
 \title{Constructs a \code{fixest} panel data base}
 \usage{
-panel(data, panel.id, time.step = NULL, duplicate.method = c("none", "first"))
+panel(data, panel.id, time.step = NULL, duplicate.method = "none")
 }
 \arguments{
 \item{data}{A data.frame.}

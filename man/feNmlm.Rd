@@ -26,6 +26,8 @@ feNmlm(
   se,
   ssc,
   panel.id,
+  panel.time.step = NULL,
+  panel.duplicate.method = "none",
   start = 0,
   jacobian.method = "simple",
   useHessian = TRUE,

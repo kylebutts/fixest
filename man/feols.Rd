@@ -20,6 +20,8 @@ feols(
   se,
   ssc,
   panel.id,
+  panel.time.step = NULL,
+  panel.duplicate.method = "none",
   fixef,
   fixef.rm = "none",
   fixef.tol = 1e-06,

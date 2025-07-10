@@ -44,7 +44,7 @@ vcov_hetero(est, "hc2", ssc = ssc(K.adj = FALSE))
 vcov_hetero(est, "hc3", ssc = ssc(K.adj = FALSE))
 
 # Using approximate hatvalues
-vcov_hetero(est, "hc3", exact = FALSE, p = 500)
+vcov_hetero(est, "hc3", exact = FALSE, boot.size = 500)
 
 }
 \references{

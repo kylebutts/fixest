@@ -11,7 +11,7 @@
   data,
   time.step = NULL,
   fill = NA,
-  duplicate.method = c("none", "first"),
+  duplicate.method = "none",
   ...
 )
 
@@ -21,7 +21,7 @@ lag_fml(
   data,
   time.step = NULL,
   fill = NA,
-  duplicate.method = c("none", "first"),
+  duplicate.method = "none",
   ...
 )
 }

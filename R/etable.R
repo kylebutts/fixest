@@ -53,9 +53,9 @@
 #' use: `fitstat=c('n', 'cor2', 'ar2', 'war2')`, or `fitstat=~n+cor2+ar2+war2` using a formula. You 
 #' can use the dot to refer to default values:` ~ . + ll` would add the log-likelihood to the 
 #' default fit statistics.
-#' @param title (Tex only.) Character scalar. The title of the Latex table.
-#' @param float (Tex only.) Logical. By default, if the argument `title` or `label` is provided, it 
-#' is set to `TRUE`. Otherwise, it is set to `FALSE`.
+#' @param caption (Tex only.) Character scalar. The caption of the Latex table.
+#' @param float (Tex only.) Logical. By default, if the argument `caption` or `label` is provided, 
+#' it is set to `TRUE`. Otherwise, it is set to `FALSE`.
 #' @param se.below Logical or `NULL` (default). Should the standard-errors be displayed below the 
 #' coefficients? If `NULL`, then this is `TRUE` for Latex and `FALSE` otherwise.
 #' @param se.row Logical scalar, default is `NULL`. Whether should be displayed the row with the 
@@ -477,12 +477,12 @@
 #' @section Escaping special Latex characters:
 #'
 #' By default on all instances (with the notable exception of the elements of [`style.tex`]) 
-#' special Latex characters are escaped. This means that `title="Exports in million $."` will be 
+#' special Latex characters are escaped. This means that `caption="Exports in million $."` will be 
 #' exported as `"Exports in million \\$."`: the dollar sign will be escaped. This is true for the 
 #' following characters: &, `$`, %, _, ^ and #.
 #'
 #' Note, importantly, that equations are NOT escaped. This means that 
-#' `title="Functional form $a_i \\times x^b$, variation in %."` will be displayed as: 
+#' `caption="Functional form $a_i \\times x^b$, variation in %."` will be displayed as: 
 #' `"Functional form $a_i \\times x^b$, variation in \\%."`: only the 
 #' last percentage will be escaped.
 #'
@@ -813,7 +813,7 @@
 etable = function(..., vcov = NULL, stage = 2, agg = NULL,
                   se = NULL, ssc = NULL, cluster = NULL, .vcov_args = NULL,
                   digits = 4, digits.stats = 5, tex,
-                  fitstat = NULL, title = NULL, coefstat = "se", ci = 0.95,
+                  fitstat = NULL, caption = NULL, coefstat = "se", ci = 0.95,
                   se.row = NULL, se.below = NULL,
                   keep = NULL, drop = NULL, order = NULL,
                   dict = TRUE, file = NULL, replace = TRUE, 
@@ -862,13 +862,13 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   # Float or not
   check_arg(float, "NULL logical scalar")
   if(missnull(float)){
-    if(!missing(title) || !missing(label)){
+    if(!missing(caption) || !missing(label)){
       float = TRUE
     } else {
       float = FALSE
     }
-  } else if(!float && (!missnull(title) || !missnull(label))) {
-    what = c("title", "label")[c(!missing(title), !missing(label))]
+  } else if(!float && (!missnull(caption) || !missnull(label))) {
+    what = c("caption", "label")[c(!missing(caption), !missing(label))]
     warning("Since float = FALSE, the argument", enumerate_items(what, "s.is"), " ignored.",
         immediate. = TRUE, call. = FALSE)
   }
@@ -930,6 +930,17 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
     }
     signif.code = dots$signifCode
     dots$signifCode = NULL
+  }
+  
+  if("title" %in% names(dots)){
+    if(is.null(getOption("fixest_etable_arg_title"))){
+      # I replace title with caption, 2025-07-09
+      # In 2026-07-09, uncomment the line below to send a warning
+      # warning("The argument 'signifCode' is deprecated. Please use 'signif.code' instead.")
+      options(fixest_etable_arg_title = TRUE)
+    }
+    caption = dots$title
+    dots$title = NULL
   }
 
   if(".vcov" %in% names(dots)){
@@ -1070,7 +1081,7 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
       .vcov_args = .vcov_args, digits = digits, digits.stats = digits.stats,
       se.row = se.row, se.below = se.below,
       signif.code = signif.code, coefstat = coefstat,
-      ci = ci, title = title, float = float, headers = headers,
+      ci = ci, caption = caption, float = float, headers = headers,
       keepFactors = keepFactors, tex = TEX, useSummary = useSummary,
       dots_call = dots_call, powerBelow = powerBelow, dict = dict,
       interaction.combine = interaction.combine, interaction.order = interaction.order,
@@ -1280,7 +1291,7 @@ gen_etable_aliases = function(){
   esttable_def = "esttable = function("
   coll = paste0(", \n", strrep(" ", nchar(esttable_def)))
 
-  qui_df = !arg_name %in% c("tex", "title", "label", "float", "style.tex",
+  qui_df = !arg_name %in% c("tex", "caption", "label", "float", "style.tex",
                             "notes", "placement", "postprocess.tex",
                             "meta", "meta.time", "meta.author", "meta.sys",
                             "meta.call", "meta.comment", "tpt", "arraystretch",
@@ -1332,7 +1343,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
                                  digits.stats = 5, fitstat_all, se.row = NULL, 
                                  se.below = NULL, dict,
                                  signif.code = c("***"=0.01, "**"=0.05, "*"=0.10),
-                                 coefstat = "se", ci = 0.95, label, headers, title,
+                                 coefstat = "se", ci = 0.95, label, headers, caption,
                                  float = FALSE, replace = TRUE, keepFactors = FALSE,
                                  tex = FALSE, useSummary, dots_call, powerBelow = -5,
                                  interaction.combine, interaction.order, i.equal,
@@ -1420,7 +1431,11 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   # Full control
   #
 
-  check_arg(title, "NULL character scalar")
+  check_arg(caption, "NULL character vector no na ")
+  if(length(caption) > 1){
+    caption = paste0(caption, collapse = "")
+  }
+  
   check_set_arg(coefstat, "match(se, tstat, confint)")
 
   check_set_arg(notes, "NULL character vector no na")
@@ -2920,14 +2935,14 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   }
 
   if(isTex){
-    if(missnull(title)){
-      title = "no title"
+    if(missnull(caption)){
+      caption = "no title"
     } else {
-      title = escape_latex(title, makecell = FALSE)
+      caption = escape_latex(caption, makecell = FALSE)
     }
   } else {
-    if(missnull(title)){
-      title = NULL
+    if(missnull(caption)){
+      caption = NULL
     }
   }
 
@@ -3127,7 +3142,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
              is_fe = is_fe, nb_fe = nb_fe, slope_flag_list = slope_flag_list,
              slope_names = slope_names, useSummary = useSummary, model_names = model_names,
              family_list = family_list, fitstat_list = fitstat_list, headers = headers,
-             isHeaders = isHeaders, title = title, convergence = convergence, family = family,
+             isHeaders = isHeaders, caption = caption, convergence = convergence, family = family,
              keep = keep, drop = drop, order = order, file = file, label = label, 
              se.below = se.below,
              signif.code = signif.code, fixef_sizes = fixef_sizes, 
@@ -3168,7 +3183,7 @@ etable_internal_latex = function(info){
   fitstat_list = info$fitstat_list
   headers = info$headers
   isHeaders = info$isHeaders
-  title = info$title
+  caption = info$caption
   label = info$label
   keep = info$keep
   drop = info$drop
@@ -3239,7 +3254,7 @@ etable_internal_latex = function(info){
   #
 
   # Starting the table
-  myTitle = title
+  myTitle = caption
   if(!is.null(label)){
     myTitle = paste0("\\label{", label, "} ", myTitle)
   }
@@ -4086,7 +4101,7 @@ etable_internal_df = function(info){
   slope_flag_list = info$slope_flag_list
   family_list = info$family_list
   fitstat_list = info$fitstat_list
-  title = info$title
+  caption = info$caption
   label = info$label
   keep = info$keep
   drop = info$drop

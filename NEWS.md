@@ -32,7 +32,19 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 #>  [3,] . 1 . 1 . . . . . .
 ```
 
-## Non breaking changes
+## New vignette and data set
+
+- add a new vignette on collinearity
+
+- new data set `base_pub`, based on publication data from the Microsoft Academic Graph, used to illustrate the new vignette
+
+## Breaking changes
+
+- **the new default VCOV is `iid` for all estimations**. To change the default to the way it was, place `setFixest_vcov(all = "cluster", no_FE = "iid")` in your `.Rprofile`.
+ 
+- the function `dof`, deprecated, and replaced with the function `ssc` since 2021, is removed
+
+- in `etable`, the argument `replace = TRUE` by default (it was `FALSE`)
 
 - the arguments of the function `ssc` are renamed:
   - adj => K.adj
@@ -42,23 +54,9 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
   - cluster.df => G.df
   Retro compatibility is ensured. Thanls to Kyle Butts and Grant McDermott for the brainstorm!
 
-## Breaking changes
+## Other changes
 
-- **the new default VCOV is `iid` for all estimations**. To change the default to the way it was, place `setFixest_vcov(all = "cluster", no_FE = "iid")` in your `.Rprofile`.
-
-- in `vcov`, the argument `vcov_fix` now defaults to `FALSE`. If the VCOV fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors. **No retro compatibility ensured.**
- 
-- the function `dof`, deprecated, and replaced with the function `ssc` since 2021, is removed
-
-- in `etable`, the argument `replace = TRUE` by default (it was `FALSE`)
-
-## New vignette and data set
-
-- add a new vignette on collinearity
-
-- new data set `base_pub`, based on publication data from the Microsoft Academic Graph, used to illustrate the new vignette
-
-## Minor changes
+- in `vcov`: if the VCOV fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors.
 
 - more notes and messages better fit the user screen
 
@@ -81,6 +79,10 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 - when `markdown = TRUE`, the images are directly inserted in the `<img>` container as URI, avoiding any issue with paths
 
 - the caching of table images is now automatically enabled
+
+- argument `title` becomes `caption`, retro-compatibility is ensured
+
+- argument `caption` (formerly `title`) now accepts character vectors, which become concatenated
 
 ## Bugs
 

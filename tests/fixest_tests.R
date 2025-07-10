@@ -553,6 +553,43 @@ est_panel = feols(y ~ x1 | fe, base_panel, panel.id = ~id+period)
 test(attr(vcov(est_pdat, attr = TRUE), "type"),
      attr(vcov(est_panel, attr = TRUE), "type"))
 
+#
+# testing irregularities
+# 
+
+base_panel = data.frame(
+  id = rep(letters[1:3], each = 4),
+  time = c(1, 2, 3, 3, 
+           1, 2, 4, 6, 
+           2, 4, 6, 8)
+)
+base_panel$x = rnorm(nrow(base_panel))
+base_panel$y = base_panel$x * 0.5 + rnorm(nrow(base_panel))
+
+est_panel_irr = feols(y ~ l(x), base_panel, panel.id = "id,time", 
+                      panel.duplicate.method = "first")
+
+x_lag = model.matrix(est_panel_irr)[, 2]
+test(x_lag, base_panel$x[c(1, 2, 2, 5)])
+
+est_panel_irr_cons = feols(y ~ l(x), base_panel, panel.id = "id,time", 
+                           panel.time.step = "cons",
+                           panel.duplicate.method = "first")
+
+x_lag = model.matrix(est_panel_irr_cons)[, 2]
+test(x_lag, base_panel$x[c(NULL, 1, 2, 2, 
+                           NULL, 5, NULL, 7,
+                           NULL, NULL, 10, 11)])
+
+est_panel_irr_with = feols(y ~ l(x), base_panel, panel.id = "id,time", 
+                           panel.time.step = "within",
+                           panel.duplicate.method = "first")
+
+x_lag = model.matrix(est_panel_irr_with)[, 2]
+test(x_lag, base_panel$x[c(NULL, 1, 2, 3, 
+                           NULL, 5, 6, 7,
+                           NULL, 9, 10, 11)])
+
 ####
 #### ... subset ####
 ####

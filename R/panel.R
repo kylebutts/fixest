@@ -19,8 +19,14 @@ panel_setup = function(data, panel.id, time.step = NULL, duplicate.method = "non
   # Function to setup the panel.
   # Used in lag.formula, panel, and fixest_env (with argument panel.id and panel.args)
   # DATA_MISSING: arg used in lag.formula
-
-  set_up(1)
+  
+  if(from_fixest){
+    # => handle bug != arg names dreamerr
+    set_up(0)
+  } else {
+    set_up(1)
+  }
+  
   check_set_arg(duplicate.method, "match(none, first)")
 
   check_arg(panel.id, "character vector len(,2) no na | formula", 
@@ -75,7 +81,7 @@ panel_setup = function(data, panel.id, time.step = NULL, duplicate.method = "non
     id = id[!is_na]
     time = time[!is_na]
   }
-
+  
   # time.step
   if(is.null(time.step)){
 
@@ -180,7 +186,8 @@ panel_setup = function(data, panel.id, time.step = NULL, duplicate.method = "non
     if(any(all_steps %% time.step != 0)){
       obs_pblm = which(all_steps %% time.step != 0)
 
-      stop_up("If 'time.step' is a number, then it must be an exact divisor of all the difference between two consecutive time periods. This is currently not the case: ", time.step, " is not a divisor of ", all_steps[obs_pblm][1], " (the difference btw the time periods ", time_unik[obs_pblm[1] + 1], " and ", time_unik[obs_pblm[1]], ").")
+      stop_up("If 'time.step' is a number, then it must be an exact divisor of all the difference between two consecutive time periods. This is currently not the case: ", time.step, " is not a divisor of ", all_steps[obs_pblm][1], " (the difference btw the time periods ", time_unik[obs_pblm[1] + 1], " and ", time_unik[obs_pblm[1]], ").",
+              "\nAlternatively, it can be equal to 'unitary', 'consecutive' or 'within.consecutive'")
     }
 
     # we rescale time_unik // checks done beforehand
@@ -603,7 +610,7 @@ d__expand = function(x, k = 1, fill){
 #'
 #'
 lag.formula = function(x, k = 1, data, time.step = NULL, fill = NA,
-                       duplicate.method = c("none", "first"), ...){
+                       duplicate.method = "none", ...){
   # Arguments:
   # time.step: default: "consecutive", other option: "unitary" (where you find the most common step and use it -- if the data is numeric), other option: a number, of course the time must be numeric
 
@@ -617,7 +624,7 @@ lag.formula = function(x, k = 1, data, time.step = NULL, fill = NA,
   validate_dots(suggest_args = c("k", "data", "time.step", "fill"))
 
   # Controls
-  check_set_arg(duplicate.method, "match")
+  check_set_arg(duplicate.method, "match(none, first)")
   check_arg(data, "data.frame | matrix")
   check_arg(k, "integer scalar")
 
@@ -789,7 +796,7 @@ lag_fml = lag.formula
 #' }
 #'
 #'
-panel = function(data, panel.id, time.step = NULL, duplicate.method = c("none", "first")){
+panel = function(data, panel.id, time.step = NULL, duplicate.method = "none"){
 
   if(missing(data)){
     stop("You must provide the argument 'data'.")
@@ -1257,13 +1264,19 @@ set_panel_meta_info = function(object, newdata){
           # This was NOT a standard panel creation
           stop("The estimation contained lags/leads and the original data was a 'fixest_panel' while the new data is not. Please set the new data as a panel first with the function panel(). NOTA: the original call to panel was:\n", deparse_long(object$panel.info))
         } else {
-          panel__meta__info = panel_setup(newdata, object$panel.id, from_fixest = TRUE)
+          panel__meta__info = panel_setup(newdata, object$panel.id, 
+                                          time.step = object$panel.time.step,
+                                          duplicate.method = object$panel.duplicate.method,
+                                          from_fixest = TRUE)
         }
       } else {
         panel__meta__info = attr(newdata, "panel_info")
       }
     } else {
-      panel__meta__info = panel_setup(newdata, object$panel.id, from_fixest = TRUE)
+      panel__meta__info = panel_setup(newdata, object$panel.id, 
+                                      time.step = object$panel.time.step,
+                                      duplicate.method = object$panel.duplicate.method,
+                                      from_fixest = TRUE)
     }
   }
 

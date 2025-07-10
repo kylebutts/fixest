@@ -38,6 +38,8 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - the functions `coefplot` and `iplot` now accept the argument `vcov`. The argument `vcov` can be a list of valid `vcov` values, in which case it will be recycled across the models.
 
+- all estimations gain the two arguments: `panel.time.step` and `panel.duplicate.method` to handle non standard lags
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

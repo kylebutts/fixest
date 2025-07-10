@@ -27,6 +27,8 @@ coefplot(
   pt.pch = c(20, 17, 15, 21, 24, 22),
   pt.bg = NULL,
   cex = 1,
+  ylim = NULL,
+  xlim = NULL,
   pt.cex = cex,
   col = 1:8,
   pt.col = col,
@@ -92,6 +94,8 @@ iplot(
   pt.pch = c(20, 17, 15, 21, 24, 22),
   pt.bg = NULL,
   cex = 1,
+  ylim = NULL,
+  xlim = NULL,
   pt.cex = cex,
   col = 1:8,
   pt.col = col,
@@ -235,6 +239,14 @@ graph. Note that if it is the case, then the argument \code{x} MUST be numeric.}
 in 21 to 25). Defaults to NULL.}
 
 \item{cex}{Numeric, default is 1. Expansion factor for the points}
+
+\item{ylim}{Numeric vector of length 2 which gives the limits of the plotting region for
+the y-axis. The default is \code{NULL}, which means that it is automatically defined.
+Use the argument \code{ylim.add} to simply increase or decrese the default limits.}
+
+\item{xlim}{Numeric vector of length 2 which gives the limits of the plotting region for
+the x-axis. The default is \code{NULL}, which means that it is automatically defined.
+Use the argument \code{xlim.add} to simply increase or decrese the default limits.}
 
 \item{pt.cex}{The size of the coefficient estimates. Default is the other argument \code{cex}.}
 

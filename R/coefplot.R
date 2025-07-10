@@ -48,6 +48,12 @@
 #' @param ci_level Scalar between 0 and 1: the level of the CI. By default it is equal to 0.95.
 #' @param add Default is `FALSE`, if the intervals are to be added to an existing 
 #' graph. Note that if it is the case, then the argument `x` MUST be numeric.
+#' @param xlim Numeric vector of length 2 which gives the limits of the plotting region for
+#' the x-axis. The default is `NULL`, which means that it is automatically defined.
+#' Use the argument `xlim.add` to simply increase or decrese the default limits.
+#' @param ylim Numeric vector of length 2 which gives the limits of the plotting region for
+#' the y-axis. The default is `NULL`, which means that it is automatically defined.
+#' Use the argument `ylim.add` to simply increase or decrese the default limits.
 #' @param pt.pch The patch of the coefficient estimates. Default is 1 (circle).
 #' @param cex Numeric, default is 1. Expansion factor for the points
 #' @param pt.cex The size of the coefficient estimates. Default is the other argument `cex`.
@@ -359,7 +365,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
                     x, x.shift = 0, horiz = FALSE,
                     dict = getFixest_dict(), keep, drop, order, ci.width = "1%",
                     ci_level = 0.95, add = FALSE, pt.pch = c(20, 17, 15, 21, 24, 22), 
-                    pt.bg = NULL, cex = 1,
+                    pt.bg = NULL, cex = 1, ylim = NULL, xlim = NULL,
                     pt.cex = cex, col = 1:8, pt.col = col, ci.col = col, lwd = 1, pt.lwd = lwd,
                     ci.lwd = lwd, ci.lty = 1, grid = TRUE, grid.par = list(lty = 3, col = "gray"),
                     zero = TRUE, zero.par = list(col = "black", lwd = 1), pt.join = FALSE,
@@ -377,7 +383,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   if(is.null(dict)){
     dict = c()
   } else if(any(grepl("^&", names(dict)))){
-    # Speficic markuo to identify coefplot aliases
+    # Speficic markup to identify coefplot aliases
     dict_amp = dict[grepl("^&", names(dict))]
     names(dict_amp) = gsub("^&", "", names(dict_amp))
     dict[names(dict_amp)] = dict_amp
@@ -386,7 +392,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   check_set_arg(lab.fit, "match(auto, simple, multi, tilted)")
 
   dots = list(...)
-
+  
   ylab_add_ci = missing(ci_low)
 
   #
@@ -605,6 +611,8 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   #
   # Title ####
   #
+  
+  check_arg(xlim, ylim, "NULL numeric vector len(2)")
 
   # xlab / main / ylab / sub
 
@@ -1031,12 +1039,14 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   all_plot_args = unique(c(names(par()), names(formals(plot.default))))
   pblm = setdiff(names(dots), all_plot_args)
   if(length(pblm) > 0){
-    # warning("The following argument", ifsingle(pblm, " is not a", "s are not"), " plotting argument", ifsingle(pblm, " and is", "s and are"), " therefore ignored: ", enumerate_items(pblm), ".")
     dots[pblm] = NULL
   }
 
   # preparation of the do.call
   dots$col = col
+  
+  dots$xlim = xlim
+  dots$ylim = ylim
 
   if(horiz){
     listDefault(dots, "xlim", my_ylim)
@@ -1691,7 +1701,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
   NO_NAMES = FALSE
   is_iplot = only.i
   
-  set_up(1 + is_iplot)
+  set_up(1 + is_iplot + !is_root)
   
   AXIS_AS_NUM = FALSE
   if(is_root){
@@ -1727,6 +1737,9 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
                    silent = TRUE)
 
         if("try-error" %in% class(prms)){
+          if(grepl("^[^\n]+coefplot", prms)){
+            prms = stringmagic::string_clean(prms, "^[^\n]+\n")
+          }
           stop_up("The {nth ? i} model raises and error:\n", prms)
         }
 
@@ -1895,11 +1908,25 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
     n = length(estimate)
 
     if(missing(sd)){
-      if(missing(ci_low) || missing(ci_high)) stop_up("If 'sd' is not provided, you must provide the arguments 'ci_low' and 'ci_high'.")
+      if(missing(ci_low) || missing(ci_high)){
+        dots = get("dots", parent.frame(2))
+        nm_pblm = setdiff(names(dots), c("object", ""))
+        msg = ""
+        if(length(nm_pblm) > 0){
+          msg = sma("\nNOTA: the argument{$s, enum.bq, are ? nm_pblm} not valid argument{$s}.")
+        }
+        
+        stop_up("When passing a vector of coefficients, the values for ",
+                "`sd` or `ci_low` and `ci_high` must be explicitly provided.\n",
+                "Problem: `sd`, `ci_low` and `ci_high` are missing.",
+                msg)
+      }
 
       varlist$ci = NULL
     } else {
-      if(!missing(ci_low) || !missing(ci_high)) warning("Since 'sd' is provided, arguments 'ci_low' or 'ci_high' are ignored.")
+      if(!missing(ci_low) || !missing(ci_high)){
+        warning("Since 'sd' is provided, arguments 'ci_low' or 'ci_high' are ignored.")
+      }
 
       # We compute the CI
       check_arg(df.t, "NULL | numeric scalar GE{1}")

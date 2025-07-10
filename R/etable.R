@@ -957,7 +957,8 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   if(.up == 2){
     # it's pain in the necky
     sysOrigin = sys.parent()
-    mc = match.call(definition = sys.function(sysOrigin), call = sys.call(sysOrigin), expand.dots = FALSE)
+    mc = match.call(definition = sys.function(sysOrigin), call = sys.call(sysOrigin), 
+                    expand.dots = FALSE)
     dots_call = mc[["..."]]
   } else {
     mc = match.call(expand.dots = FALSE)
@@ -1842,82 +1843,17 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   n_dots = length(dots)
 
   if(n_dots == 0) stop_up("Not any estimation as argument.")
-
-  all_models = list()
-  model_names = list()
-  auto_headers = list()
-  model_id = NULL
-  k = 1
-  for(i in 1:n_dots){
-    di = dots[[i]]
-
-    if("fixest" %in% class(di)){
-      all_models[[k]] = di
-      if(any(class(dots_call[[i]]) %in% c("call", "name"))){
-        model_names[[k]] = deparse_long(dots_call[[i]])
-      } else {
-        model_names[[k]] = as.character(dots_call[[i]])
-      }
-
-      k = k + 1
-    } else if(any(c("list", "fixest_list", "fixest_multi") %in% class(di))){
-      # we get into this list to get the fixest objects
-      types = sapply(di, function(x) class(x)[1])
-      qui = which(types %in% c("fixest", "fixest_multi"))
-      is_multi = inherits(di, "fixest_multi")
-
-      for(m in qui){
-        mod = di[[m]]
-
-        # handling names
-        if(is_multi){
-          if(any(class(dots_call[[i]]) %in% c("call", "name"))){
-            mod_name = deparse_long(dots_call[[i]])
-          } else {
-            mod_name = as.character(dots_call[[i]])
-          }
-          mod_name = paste0(mod_name, ".", m)
-        } else {
-          if(n_dots > 1){
-            if(is.null(names(di)[m]) || names(di)[m] == ""){
-              mod_name  = paste0(dots_call[[i]], "[[", m, "]]")
-            } else {
-              mod_name = paste0(dots_call[[i]], "$", names(di)[m])
-            }
-          } else {
-            mod_name = as.character(names(di)[m])
-          }
-        }
-
-        if(inherits(mod, "fixest_multi")){
-
-          for(j in seq_along(mod)){
-            all_models[[k]] = mod[[j]]
-            model_names[[k]] = paste0(mod_name, ".", j)
-
-            k = k + 1
-          }
-
-        } else {
-          # regular fixest or from fixest_list
-          all_models[[k]] = mod
-          model_names[[k]] = mod_name
-
-          id = di[[m]]$model_id
-          if(!is.null(id)){
-            model_id[k] = id
-          }
-
-          k = k + 1
-        }
-      }
-    }
-  }
+  
+  info_models = flatten_list_of_models(dots, dots_call)
+  all_models = info_models$all_models
+  model_names = info_models$model_names
+  model_id = info_models$model_id
 
   if(length(all_models) == 0) stop_up("Not any 'fixest' model as argument!")
 
   n_models = length(all_models)
 
+  auto_headers = list()
   if(AUTO_HEADERS){
 
     # SAMPLE (ie split)

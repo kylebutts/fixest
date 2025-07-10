@@ -5727,6 +5727,107 @@ fixest_CI_factor = function(x, level, vcov = NULL, df.t = NULL){
 }
 
 
+flatten_list_of_models = function(dots, dots_call = NULL){
+  # dots = list(...) obtained in the upper function
+  
+  n_dots = length(dots)
+  if(n_dots == 0){
+    return(list(all_models = list(), model_names = list(), model_id = NULL))
+  }
+  
+  build_model_names = !is.null(dots_call)
+  
+  all_models = list()
+  model_names = list()
+  model_id = NULL
+  k = 1
+  for(i in 1:n_dots){
+    di = dots[[i]]
+    
+    if(inherits(di, "fixest")){
+      all_models[[k]] = di
+      
+      if(build_model_names){
+        if(any(class(dots_call[[i]]) %in% c("call", "name"))){
+          model_names[[k]] = deparse_long(dots_call[[i]])
+        } else {
+          model_names[[k]] = as.character(dots_call[[i]])
+        }
+      }
+
+      k = k + 1
+    } else if(inherits(di, c("list", "fixest_list", "fixest_multi"))){
+      # we get into this list to get the fixest objects
+      types = sapply(di, function(x) class(x)[1])
+      qui = which(types %in% c("fixest", "fixest_multi"))
+      is_multi = inherits(di, "fixest_multi")
+
+      for(m in qui){
+        mod = di[[m]]
+
+        # handling names
+        if(build_model_names){
+          if(is_multi){
+            if(any(class(dots_call[[i]]) %in% c("call", "name"))){
+              mod_name = deparse_long(dots_call[[i]])
+            } else {
+              mod_name = as.character(dots_call[[i]])
+            }
+            mod_name = paste0(mod_name, ".", m)
+          } else {
+            if(n_dots > 1){
+              if(is.null(names(di)[m]) || names(di)[m] == ""){
+                
+                if(length(dots_call[[i]]) == 1){
+                  mod_name = paste0(dots_call[[i]], "[[", m, "]]")
+                } else {
+                  mod_name = paste0("arg", i, "[[", m, "]]")
+                }
+                
+              } else {
+                mod_name = names(di)[m]
+              }
+            } else {
+              mod_name = as.character(names(di)[m])
+            }
+          }
+        }
+
+        if(inherits(mod, "fixest_multi")){
+
+          for(j in seq_along(mod)){
+            all_models[[k]] = mod[[j]]
+            
+            if(build_model_names){
+              model_names[[k]] = paste0(mod_name, ".", j)
+            }
+
+            k = k + 1
+          }
+
+        } else {
+          # regular fixest or from fixest_list
+          all_models[[k]] = mod
+          
+          if(build_model_names){
+            model_names[[k]] = mod_name
+          }
+
+          id = di[[m]]$model_id
+          if(!is.null(id)){
+            model_id[k] = id
+          }
+
+          k = k + 1
+        }
+      }
+    }
+  }
+  
+  list(all_models = all_models, model_names = model_names, model_id = model_id)
+}
+
+
 #### --------------- ####
 #### Small Utilities ####
 ####

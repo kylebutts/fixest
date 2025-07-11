@@ -1660,11 +1660,15 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
       xwy = xwy[-rm_pos]
     }
     
+    res$rm_variable = lhs_names
   }
-  
 
   if(skip_fixef){
     # Variables were already demeaned
+    
+    if(rm_depvar){
+      X_demean = X_demean[, -rm_pos, drop = FALSE]
+    }
 
   } else if(!isFixef){
     # No Fixed-effects
@@ -1839,7 +1843,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     res$multicol = est$multicol
     res$collin.min_norm = est$collin.min_norm
     if(fromGLM) res$is_excluded = est$is_excluded
-
+    
     if(demeaned){
       res$y_demeaned = y_demean
       res$X_demeaned = X_demean
@@ -1911,7 +1915,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
 
   n = length(y)
   res$nparams = res$nparams - collin.adj - rm_depvar
-  df_k = res$nparams - rm_depvar
+  df_k = res$nparams
   res$nobs = n
 
   if(isWeight) res$weights = weights
@@ -1978,9 +1982,9 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     if(mem.clean){
       gc()
     }
-
+    
     res$sigma2 = cpp_ssq(res$residuals, weights) / (length(y) - df_k)
-
+    
     res$cov.iid = est$xwx_inv * res$sigma2
 
     rownames(res$cov.iid) = colnames(res$cov.iid) = names(coef)
@@ -3064,14 +3068,14 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
       beta = wols$coefficients
     }
 
-    names(beta) = colnames(X)
+    names(beta) = RHS_names
     return(beta)
   }
 
   # Collinearity message
   collin.adj = 0
   if(wols$multicol){
-    var_collinear = colnames(X)[wols$is_excluded]
+    var_collinear = RHS_names[wols$is_excluded]
     if(notes){
       msg = sma("The variable{$s, enum.q, has?var_collinear} been ",
                 "removed because of collinearity (see $collin.var).", 
@@ -3086,7 +3090,7 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
     res$collin.var = var_collinear
 
     # full set of coeffficients with NAs
-    collin.coef = setNames(rep(NA, ncol(X)), colnames(X))
+    collin.coef = setNames(rep(NA, RHS_names), RHS_names)
     collin.coef[!wols$is_excluded] = wols$coefficients
     res$collin.coef = collin.coef
 
@@ -3220,7 +3224,7 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
   n = length(y)
   res$nobs = n
 
-  df_k = res$nparams
+  df_k = res$nparams - rm_depvar
 
   # r2s
   if(!cpp_isConstant(res$fitted.values)){

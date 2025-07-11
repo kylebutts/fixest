@@ -271,13 +271,90 @@ test(feols(Euros ~ log(dist_km) | Destination + Origin + Product,
 
 
 ####
+#### ... depvar removal ####
+####
+
+chunk("depvar removal")
+
+# we remove the depvar when it is in the RHS
+base = setNames(iris, c("y", "x1", "x2", "x3", "species"))
+
+fml_equiv = c(
+  "y" = "1",
+  "y + x1" = "x1",
+  "x1 + y + x2 + I(x1)" = "x1 + x2 + I(x1)"
+)
+
+all_funs = list(feols, feglm, femlm)
+
+id_fml = 3
+id_fun = 1
+
+for(id_fun in seq_along(all_funs)){
+  mema("|", .end = "")
+  for(id_fml in seq_along(fml_equiv)){
+    mema(".", .end = "")
+    rhs_0 = names(fml_equiv)[id_fml]
+    rhs_1 = fml_equiv[id_fml]
+    
+    # simple estimation
+    est_0 = feols(y ~ .[rhs_0], base)
+    est_1 = feols(y ~ .[rhs_1], base)
+    test(coef(est_0), coef(est_1))
+    test(se(est_0), se(est_1))
+    
+    # multiple samples
+    est_0 = feols(y ~ .[rhs_0], base, split = "species")
+    est_1 = feols(y ~ .[rhs_1], base, split = "species")
+    test(coef(est_0[[1]]), coef(est_1[[1]]))
+    test(se(est_0[[1]]), se(est_1[[1]]))
+    
+    # multiple lhs
+    est_0 = feols(c(y, x3) ~ .[rhs_0] + x3, base)
+    est_1a = feols(y ~ .[rhs_1] + x3, base)
+    est_1b = feols(x3 ~ .[rhs_0], base)
+    test(coef(est_0[[1]]), coef(est_1a))
+    test(coef(est_0[[2]]), coef(est_1b))
+    test(se(est_0[[1]]), se(est_1a))
+    test(se(est_0[[2]]), se(est_1b))
+    
+    # multiple rhs + fixef
+    est_0 = feols(y ~ csw(.[rhs_0], x3) | sw0(species), base)
+    est_1 = feols(y ~ csw(.[rhs_1], x3) | sw0(species), base)
+    for(id_mult in n_models(est_0)){
+      test(coef(est_0[[id_mult]]), coef(est_1[[id_mult]]))
+      test(se(est_0[[id_mult]]), se(est_1[[id_mult]]))
+    }
+    
+    # in IVs
+    if(id_fun == 1){
+      base$inst = rnorm(nrow(base))
+      base$endo = rnorm(nrow(base))
+      est_0 = feols(y ~ csw(.[rhs_0], x3) | sw0(species) | endo ~ inst, base)
+      est_1 = feols(y ~ csw(.[rhs_1], x3) | sw0(species) | endo ~ inst, base)
+      for(id_mult in n_models(est_0)){
+        test(coef(est_0[[id_mult]]), coef(est_1[[id_mult]]))
+      }
+    }
+    
+  }
+}
+
+
+# model.matrix
+est = feols(y ~ x1 + y, base)
+test(ncol(model.matrix(est)), 2)
+
+
+
+
+####
 #### ... Fit methods ####
 ####
 
 chunk("Fit methods")
 
-base = iris
-names(base) = c("y", "x1", "x2", "x3", "species")
+base = setNames(iris, c("y", "x1", "x2", "x3", "species"))
 base$y_int = as.integer(base$y)
 base$y_log = sample(c(TRUE, FALSE), 150, TRUE)
 

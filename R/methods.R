@@ -3614,6 +3614,11 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
       fml = fml, fake_intercept = fake_intercept,
       subset = subset),
       "In 'model.matrix', the RHS could not be evaluated: ")
+    
+    if(!is.null(object$rm_variable)){
+      qui = which(colnames(linear.mat) %in% object$rm_variable)
+      linear.mat = linear.mat[, -qui, drop = FALSE]
+    }
 
     if(collin.rm){
       qui = which(colnames(linear.mat) %in% object$collin.var)

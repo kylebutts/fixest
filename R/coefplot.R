@@ -1767,7 +1767,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
           nm_pblm = setdiff(names(dots), c("object", ""))
           msg = ""
           if(length(nm_pblm) > 0){
-            msg = sma("NOTA: the argument{$s, enum.bq, are ? nm_pblm} not valid argument{$s}.")
+            msg = sma("NOTA: the argument{$s, enum.bq, are ? nm_pblm} not {$(a ;)}valid argument{$s}.")
           }
           
           stop_up("The {nth ? i} model raises and error:\n", prms, msg)

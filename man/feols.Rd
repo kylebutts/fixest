@@ -525,11 +525,17 @@ unique to the \emph{left-hand-side} of \code{fixest} estimations (the default be
 operator is to aggregate with sums, see \code{\link{xpd}}).
 
 Second, you can use a regular expression to grep the left-hand-sides on the fly. When the
-\code{..("regex")} feature is used naked on the LHS, the variables grepped are inserted into
+\code{..("regex")} (re \code{regex("regex")}) feature is used naked on the LHS,
+the variables grepped are inserted into
 \code{c()}. For example \verb{..("Pe") ~ Sepal.Length, iris} is equivalent to
 \verb{c(Petal.Length, Petal.Width) ~ Sepal.Length, iris}. Beware that this is a
 special feature unique to the \emph{left-hand-side} of \code{fixest} estimations
 (the default behavior of \code{..("regex")} is to aggregate with sums, see \code{\link{xpd}}).
+
+Note that if the dependent variable is also on the right-hand-side, it is automatically
+removed from the set of explanatory variable.
+For example, feols(y ~ y + x, base) works as feols(y ~ x, base).
+This is particulary useful to batch multiple estimations with multiple left hand sides.
 }
 
 \section{Argument sliding}{

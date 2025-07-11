@@ -216,12 +216,18 @@
 #' operator is to aggregate with sums, see [`xpd`]).
 #'
 #' Second, you can use a regular expression to grep the left-hand-sides on the fly. When the 
-#' `..("regex")` feature is used naked on the LHS, the variables grepped are inserted into 
+#' `..("regex")` (re `regex("regex")`) feature is used naked on the LHS, 
+#' the variables grepped are inserted into 
 #' `c()`. For example `..("Pe") ~ Sepal.Length, iris` is equivalent to 
 #' `c(Petal.Length, Petal.Width) ~ Sepal.Length, iris`. Beware that this is a 
 #' special feature unique to the *left-hand-side* of `fixest` estimations 
 #' (the default behavior of `..("regex")` is to aggregate with sums, see [`xpd`]).
 #'
+#' Note that if the dependent variable is also on the right-hand-side, it is automatically 
+#' removed from the set of explanatory variable. 
+#' For example, feols(y ~ y + x, base) works as feols(y ~ x, base). 
+#' This is particulary useful to batch multiple estimations with multiple left hand sides.
+#' 
 #' @section Argument sliding:
 #'
 #' When the data set has been set up globally using 

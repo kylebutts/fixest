@@ -32,6 +32,30 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 #>  [3,] . 1 . 1 . . . . . .
 ```
 
+- variables on the left-hand-side that are present on the right-hand-sides, are automatically removed from the estimation
+```R
+# we regress `Ozone` and `Temp` on all other variables but `Day`:
+feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
+#> NOTE: 42 observations removed because of NA values (RHS: 42).
+#>       |-> this msg only concerns the variables common to all estimations
+#>                                x.1                x.2
+#> Dependent Var.:              Ozone               Temp
+#>                                                      
+#> Constant           -58.05* (22.97)   55.93*** (4.405)
+#> Solar.R           0.0496* (0.0235)    0.0114 (0.0070)
+#> Wind            -3.317*** (0.6458)   -0.1925 (0.2126)
+#> Temp             1.871*** (0.2736)                   
+#> Month              -2.992. (1.516)  2.047*** (0.4108)
+#> Ozone                              0.1636*** (0.0239)
+#> _______________ __________________ __________________
+#> S.E. type                      IID                IID
+#> Observations                   111                111
+#> R2                         0.61986            0.59476
+#> Adj. R2                    0.60552            0.57947
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
 - more notes and messages better fit the user screen
 
 - the functions `coefplot` and `iplot` now accept models passsed via `...`, aligning their design to the one of `etable`

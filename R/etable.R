@@ -1755,25 +1755,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   yesNo = style$yesNo
 
   # default values for dict
-  dict_global = getFixest_dict()
-  if(missing(dict) || isTRUE(dict)) {
-    dict = dict_global
-  } else if(isFALSE(dict)) {
-    dict = NULL
-  } else {
-    # dict changes the values set in the global dict
-
-    if(dict[1] == "reset"){
-      dict_global = c()
-      dict = dict[-1]
-    }
-
-    if(length(dict) > 0){
-      dict_global[names(dict)] = dict
-    }
-
-    dict = dict_global
-  }
+  dict = setup_dict(dict)
 
   # headers => must be a list
   # We get the automatic headers, if split is used

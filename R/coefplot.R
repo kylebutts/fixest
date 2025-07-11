@@ -368,8 +368,8 @@
 coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL, 
                     vcov = NULL, cluster = NULL,
                     x, x.shift = 0, horiz = FALSE,
-                    dict = getFixest_dict(), keep, drop, order, ci.width = "1%",
-                    ci_level = 0.95, add = FALSE, 
+                    dict = NULL, keep, drop, order, ci.width = "1%",
+                    ci_level = 0.95, add = FALSE, plot_prms = list(),
                     pch = c(20, 17, 15, 21, 24, 22), col = 1:8, cex = 1, lty = 1, lwd = 1,
                     ylim = NULL, xlim = NULL,
                     pt.pch = pch, 
@@ -388,9 +388,8 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
                     ylab = NULL, xlab = NULL, sub = NULL, i.select = NULL, do_iplot = NULL){
   
   # Set up the dictionary
-  if(is.null(dict)){
-    dict = c()
-  } else if(any(grepl("^&", names(dict)))){
+  dict = setup_dict(dict, check = TRUE)
+  if(!is.null(dict) && any(grepl("^&", names(dict)))){
     # Speficic markup to identify coefplot aliases
     dict_amp = dict[grepl("^&", names(dict))]
     names(dict_amp) = gsub("^&", "", names(dict_amp))
@@ -589,7 +588,6 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   x_labels = info$labels
   x_labels_raw = info$x_labels_raw
   varlist = info$varlist
-  dots_drop = info$dots_drop
   my_xlim = info$xlim
   suggest_ref_line = info$suggest_ref_line
   multiple_est = info$multiple_est
@@ -598,7 +596,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
     return(list(prms = prms, is_iplot = is_iplot, at = x_at, labels = x_labels))
   }
 
-  dots = dots[!names(dots) %in% dots_drop]
+  check_arg(plot_prms, "named list")
 
   ci_low = prms$ci_low
   ci_high = prms$ci_high
@@ -647,10 +645,10 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   xlab = expr_builder(xlab)
   sub = expr_builder(sub)
 
-  dots$main = ""
-  dots$ylab = ""
-  dots$xlab = ""
-  dots$sub = ""
+  plot_prms$main = ""
+  plot_prms$ylab = ""
+  plot_prms$xlab = ""
+  plot_prms$sub = ""
 
   #
   # group = auto + Height ####
@@ -818,49 +816,53 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   #
 
   # xlim
+  if(!missnull(xlim)){
+    check_arg(xlim, "numeric vector len(2) no na")
+    my_xlim = xlim
+  }
+  
   if(!missnull(xlim.add)){
-    if("xlim" %in% names(dots)){
-      mema("Since argument 'xlim' is provided, argument 'xlim.add' is ignored.")
-    } else {
-      if((!is.numeric(xlim.add) || !length(xlim.add) %in% 1:2)){
-        stop("Argument 'xlim.add' must be a numeric vector of length 1 or 2. It represents an extension factor of xlim, in percentage. (Eg: xlim.add = c(0, 0.5) extends xlim of 50% on the right.) If of lentgh 1, positive values represent the right, and negative values the left (Eg: xlim.add = -0.5 is equivalent to xlim.add = c(0.5, 0)).")
-      }
-
-      if(length(xlim.add) == 1){
-        if(xlim.add > 0) {
-          xlim.add = c(0, xlim.add)
-        } else {
-          xlim.add = c(xlim.add, 0)
-        }
-      }
-
-      x_width = diff(my_xlim)
-      my_xlim = my_xlim + xlim.add * x_width
+    
+    if((!is.numeric(xlim.add) || !length(xlim.add) %in% 1:2)){
+      stop("Argument 'xlim.add' must be a numeric vector of length 1 or 2. It represents an extension factor of xlim, in percentage. (Eg: xlim.add = c(0, 0.5) extends xlim of 50% on the right.) If of lentgh 1, positive values represent the right, and negative values the left (Eg: xlim.add = -0.5 is equivalent to xlim.add = c(0.5, 0)).")
     }
+
+    if(length(xlim.add) == 1){
+      if(xlim.add > 0) {
+        xlim.add = c(0, xlim.add)
+      } else {
+        xlim.add = c(xlim.add, 0)
+      }
+    }
+
+    x_width = diff(my_xlim)
+    my_xlim = my_xlim + xlim.add * x_width
   }
 
   # ylim
   my_ylim = range(c(ci_low, ci_high))
+  if(!missnull(ylim)){
+    check_arg(ylim, "numeric vector len(2) no na")
+    my_ylim = ylim
+  }
 
   if(!missnull(ylim.add)){
-    if("ylim" %in% names(dots)){
-      mema("Since argument 'ylim' is provided, argument 'ylim.add' is ignored.")
-    } else {
-      if((!length(ylim.add) %in% 1:2 || !is.numeric(ylim.add))){
-        stop("Argument 'ylim.add' must be a numeric vector of length 1 or 2. It represents an extension factor of ylim, in percentage. (Eg: ylim.add = c(0, 0.5) extends ylim of 50% on the top.) If of lentgh 1, positive values represent the top, and negative values the bottom (Eg: ylim.add = -0.5 is equivalent to ylim.add = c(0.5, 0)).")
-      }
-
-      if(length(ylim.add) == 1){
-        if(ylim.add > 0) {
-          ylim.add = c(0, ylim.add)
-        } else {
-          ylim.add = c(ylim.add, 0)
-        }
-      }
-
-      y_width = diff(my_ylim)
-      my_ylim = my_ylim + ylim.add * y_width
+    
+    if((!length(ylim.add) %in% 1:2 || !is.numeric(ylim.add))){
+      stop("Argument 'ylim.add' must be a numeric vector of length 1 or 2. It represents an extension factor of ylim, in percentage. (Eg: ylim.add = c(0, 0.5) extends ylim of 50% on the top.) If of lentgh 1, positive values represent the top, and negative values the bottom (Eg: ylim.add = -0.5 is equivalent to ylim.add = c(0.5, 0)).")
     }
+
+    if(length(ylim.add) == 1){
+      if(ylim.add > 0) {
+        ylim.add = c(0, ylim.add)
+      } else {
+        ylim.add = c(ylim.add, 0)
+      }
+    }
+
+    y_width = diff(my_ylim)
+    my_ylim = my_ylim + ylim.add * y_width
+    
   }
 
 
@@ -1045,28 +1047,25 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
 
   all_plot_args = unique(c(names(par()), names(formals(plot.default))))
-  pblm = setdiff(names(dots), all_plot_args)
+  pblm = setdiff(names(plot_prms), all_plot_args)
   if(length(pblm) > 0){
-    dots[pblm] = NULL
+    plot_prms[pblm] = NULL
   }
 
   # preparation of the do.call
-  dots$col = col
-  
-  dots$xlim = xlim
-  dots$ylim = ylim
+  plot_prms$col = col
 
   if(horiz){
-    listDefault(dots, "xlim", my_ylim)
-    listDefault(dots, "ylim", my_xlim)
+    plot_prms$xlim = my_ylim
+    plot_prms$ylim = my_xlim
   } else {
-    listDefault(dots, "xlim", my_xlim)
-    listDefault(dots, "ylim", my_ylim)
+    plot_prms$xlim = my_xlim
+    plot_prms$ylim = my_ylim
   }
 
-  dots$x = prms$x
-  dots$y = prms$y
-  dots$type = "p"
+  plot_prms$x = prms$x
+  plot_prms$y = prms$y
+  plot_prms$type = "p"
 
   #
   # Plot Call ####
@@ -1074,10 +1073,10 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
   if(!add){
 
-    dots$axes = FALSE
+    plot_prms$axes = FALSE
 
     # Nude graph
-    first.par = dots
+    first.par = plot_prms
     first.par$type = "n"
     do.call("plot", first.par)
 
@@ -1526,8 +1525,8 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
   if(!add){
     # now the points or lines
-    if(dots$type != "n"){
-      point.par = dots[c("x", "y", "type", "cex", "col", "pch", "lty", "lwd")]
+    if(plot_prms$type != "n"){
+      point.par = plot_prms[c("x", "y", "type", "cex", "col", "pch", "lty", "lwd")]
       point.par$pch = par_fit(pt.pch, prms$id)
       point.par$cex = par_fit(pt.cex, prms$id)
       point.par$col = par_fit(pt.col, prms$id)
@@ -1537,12 +1536,12 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
       do.call("points", point.par)
     }
   } else {
-    dots$pch = par_fit(pt.pch, prms$id)
-    dots$cex = par_fit(pt.cex, prms$id)
-    dots$col = par_fit(pt.col, prms$id)
-    dots$lwd = par_fit(pt.lwd, prms$id)
+    plot_prms$pch = par_fit(pt.pch, prms$id)
+    plot_prms$cex = par_fit(pt.cex, prms$id)
+    plot_prms$col = par_fit(pt.col, prms$id)
+    plot_prms$lwd = par_fit(pt.lwd, prms$id)
     if(!is.null(pt.bg)) point.par$bg = par_fit(pt.bg, prms$id)
-    do.call("points", dots)
+    do.call("points", plot_prms)
   }
 
   #

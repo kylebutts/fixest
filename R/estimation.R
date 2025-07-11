@@ -1897,7 +1897,6 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     res$collin.var = var_collinear
 
     # full set of coefficients with NAs
-    browser()
     collin.coef = setNames(rep(NA, length(RHS_names)), RHS_names)
     collin.coef[!est$is_excluded] = res$coefficients
     res$collin.coef = collin.coef
@@ -2846,14 +2845,6 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
     
     RHS_names = RHS_names[-rm_pos]
     X = X[, -rm_pos, drop = FALSE]
-    
-    if(!is.null(xwx)){
-      xwx = xwx[-rm_pos, -rm_pos, drop = FALSE]
-    }
-    
-    if(!is.null(xwy)){
-      xwy = xwy[-rm_pos]
-    }
     
   }
 

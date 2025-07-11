@@ -1116,6 +1116,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
 
             my_fml = .xpd(lhs = lhs_names[i_lhs], rhs = multi_rhs_fml_full[[jj]])
             current_env = reshape_env(my_env, lhs = my_lhs[[ii]], rhs = my_X, fml_linear = my_fml)
+            assign("lhs_names", lhs_names[i_lhs], my_env)
 
             if(do_iv){
               if(isLinear_current){
@@ -1639,6 +1640,28 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
   } else {
     res = get("res", env)
   }
+  
+  #
+  # removing the depvar from the expl vars
+  RHS_names = colnames(X)
+  lhs_names = get("lhs_names", env)
+  rm_depvar = lhs_names %in% RHS_names && ncol(X) > 1
+  if(rm_depvar){
+    rm_pos = which(RHS_names == lhs_names)
+    
+    RHS_names = RHS_names[-rm_pos]
+    X = X[, -rm_pos, drop = FALSE]
+    
+    if(!is.null(xwx)){
+      xwx = xwx[-rm_pos, -rm_pos, drop = FALSE]
+    }
+    
+    if(!is.null(xwy)){
+      xwy = xwy[-rm_pos]
+    }
+    
+  }
+  
 
   if(skip_fixef){
     # Variables were already demeaned
@@ -1648,6 +1671,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     y_demean = y
     X_demean = X
     res$means = 0
+    
   } else {
     time_demean = proc.time()
 
@@ -1769,7 +1793,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
                   xwx, xwy, only.coef = only.coef)
 
     if(only.coef){
-      names(est) = colnames(X)
+      names(est) = RHS_names
       return(est)
     }
 
@@ -1779,7 +1803,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
 
     # Corner case: not any relevant variable
     if(!is.null(est$all_removed)){
-      all_vars = colnames(X)
+      all_vars = RHS_names
 
       if(isFixef){
         msg = sma("{$(The only variable;All variables)}, {enum.q.3 ? all_vars}, {$are} collinear with the fixed effects. Without doubt, your model is misspecified.")
@@ -1808,7 +1832,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
 
     # Formatting the result
     coef = est$coefficients
-    names(coef) = colnames(X)[!est$is_excluded]
+    names(coef) = RHS_names[!est$is_excluded]
     res$coefficients = coef
     # Additional stuff
     res$residuals = est$residuals
@@ -1819,7 +1843,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     if(demeaned){
       res$y_demeaned = y_demean
       res$X_demeaned = X_demean
-      colnames(res$X_demeaned) = colnames(X)
+      colnames(res$X_demeaned) = RHS_names
     }
 
   } else {
@@ -1858,7 +1882,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
   # Collinearity message
   collin.adj = 0
   if(res$multicol){
-    var_collinear = colnames(X)[est$is_excluded]
+    var_collinear = RHS_names[est$is_excluded]
     if(notes){
       msg = sma("The variable{$s, enum.q, has ? var_collinear} been removed because ",
                 "of collinearity (see $collin.var).", .last = "ws")
@@ -1873,7 +1897,8 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     res$collin.var = var_collinear
 
     # full set of coefficients with NAs
-    collin.coef = setNames(rep(NA, ncol(X)), colnames(X))
+    browser()
+    collin.coef = setNames(rep(NA, length(RHS_names)), RHS_names)
     collin.coef[!est$is_excluded] = res$coefficients
     res$collin.coef = collin.coef
 
@@ -1886,8 +1911,8 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
   }
 
   n = length(y)
-  res$nparams = res$nparams - collin.adj
-  df_k = res$nparams
+  res$nparams = res$nparams - collin.adj - rm_depvar
+  df_k = res$nparams - rm_depvar
   res$nobs = n
 
   if(isWeight) res$weights = weights
@@ -2809,6 +2834,27 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
 
   if((init.type == "coef" && verbose >= 1) || verbose >= 4) {
     cat("Deviance at initializat.  = ", numberFormatNormal(devold), "\n", sep = "")
+  }
+  
+  #
+  # removing the depvar from the expl vars
+  RHS_names = colnames(X)
+  lhs_names = get("lhs_names", env)
+  rm_depvar = lhs_names %in% RHS_names && ncol(X) > 1
+  if(rm_depvar){
+    rm_pos = which(RHS_names == lhs_names)
+    
+    RHS_names = RHS_names[-rm_pos]
+    X = X[, -rm_pos, drop = FALSE]
+    
+    if(!is.null(xwx)){
+      xwx = xwx[-rm_pos, -rm_pos, drop = FALSE]
+    }
+    
+    if(!is.null(xwy)){
+      xwy = xwy[-rm_pos]
+    }
+    
   }
 
   #
@@ -4849,6 +4895,8 @@ multi_LHS_RHS = function(env, fun){
         my_env = reshape_env(env, lhs = lhs[[i]], rhs = my_rhs, 
                              fml_linear = my_fml, check_lhs = TRUE)
       }
+      
+      assign("lhs_names", lhs_names[i], my_env)
 
       my_res = fun(env = my_env)
 

@@ -72,7 +72,7 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 ## Other changes
 
-- in `vcov`: if the VCOV fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors.
+- in `vcov`: if the VCOV fails to be positive semi-definite (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors.
 
 - default for the argument `collin.tol` increased from `1e-10` to `1e-9`.
 

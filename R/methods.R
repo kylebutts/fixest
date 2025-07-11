@@ -612,7 +612,8 @@ summary.fixest = function(object, vcov = NULL, cluster = NULL, ssc = NULL,
                                            vcov = vcov, ssc = ssc, lean = lean,
                                            forceCovariance = forceCovariance,
                                            vcov_fix = vcov_fix,
-                                           n = n, nthreads = nthreads, iv = TRUE)
+                                           n = n, nthreads = nthreads, iv = TRUE, 
+                                           ...)
 
           stage_names[length(stage_names) + 1] = paste0("First stage: ", 
                                                         names(object$iv_first_stage)[i])
@@ -622,7 +623,7 @@ summary.fixest = function(object, vcov = NULL, cluster = NULL, ssc = NULL,
         # We keep the information on clustering => matters for wald tests of 1st stage
         my_res = summary(object, vcov = vcov, ssc = ssc, lean = lean,
                          forceCovariance = forceCovariance, vcov_fix = vcov_fix,
-                         n = n, nthreads = nthreads, iv = TRUE)
+                         n = n, nthreads = nthreads, iv = TRUE, ...)
 
         res[[length(res) + 1]] = my_res
         stage_names[length(stage_names) + 1] = "Second stage"

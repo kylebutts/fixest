@@ -214,7 +214,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 
   dots = list(...)
 
-  # START :: SECTION used only internally in fixest_env
+  # === START :: SECTION used only internally in fixest_env
   only_varnames = isTRUE(dots$only_varnames)
   data_names = dots$data_names
   if(only_varnames){
@@ -223,7 +223,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
     # => idem for fixef_vars
     object = list(panel.id = dots$panel.id, fixef_vars = dots$fixef_vars)
   }
-  #   END
+  # === END
 
 
   if(isTRUE(object$NA_model)){
@@ -876,8 +876,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
   # After discussing, we decided that since this test is relatively cheap, we will do it every time. 
   # We will warn even if `vcov_fix == FALSE`.
   eigenvalues = eigen(vcov_mat, symmetric = TRUE, only.values = TRUE)$values
-  
-  if (any(eigenvalues < 1e-10)) {
+  if (any(eigenvalues < 1e-12)) {
     # We 'fix' it
     if (vcov_fix) {
       all_attr = attributes(vcov_mat)
@@ -889,11 +888,13 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
         # we should never have a complex VCOV, but just in case...
         warning("The VCOV matrix could not be fixed since its eigenvalues were complex. The complex standard-errors are reported for information purposes.", call. = FALSE)
         vcov_mat = as.complex(vcov_mat)
-      } else {
-        warning("The VCOV matrix is not positive semi-definite. It was 'fixed' (a la Cameron, Gelbach & Miller 2011), but take care with interpreting the results. See `?vcov` for more details.", call. = FALSE)
+      } else if(!isFALSE(dots$warn)){
+        warning("The VCOV matrix is not positive semi-definite and was 'fixed' (see ?vcov).", 
+                call. = FALSE)
       } 
-    } else {
-      warning("The VCOV matrix is not positive semi-definite. Take care with interpreting the results and consider correcting this via the `vcov_fix` argument.  See `?vcov` for more details.", call. = FALSE)
+    } else if(!isFALSE(dots$warn)){
+      warning("The VCOV matrix is not positive semi-definite and was 'fixed' (see ?vcov).", 
+              call. = FALSE)
     }
   }
 

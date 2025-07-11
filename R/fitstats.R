@@ -662,7 +662,7 @@ fitstat = function(x, type, vcov = NULL, cluster = NULL, ssc = NULL,
 
   # To update
   if(!isTRUE(x$summary)){
-    x = summary(x, vcov = vcov, cluster = cluster, ssc = ssc)
+    x = summary(x, vcov = vcov, cluster = cluster, ssc = ssc, warn = FALSE)
   }
 
   IS_ETABLE = isTRUE(dots$etable)
@@ -969,9 +969,11 @@ fitstat = function(x, type, vcov = NULL, cluster = NULL, ssc = NULL,
                 # We compute the VCOV like for the second stage
                 flags = x$summary_flags
                 if(is.null(flags) || !is.null(dots$se) || !is.null(dots$cluster)){
-                  my_x_first = summary(my_x_first, vcov = vcov, cluster = cluster, ssc = ssc)
+                  my_x_first = summary(my_x_first, vcov = vcov, cluster = cluster, 
+                                       ssc = ssc, warn = FALSE)
                 } else {
-                  my_x_first = summary(my_x_first, vcov = flags$vcov, ssc = flags$ssc)
+                  my_x_first = summary(my_x_first, vcov = flags$vcov, ssc = flags$ssc, 
+                                       warn = FALSE)
                 }
               }
 

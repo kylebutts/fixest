@@ -42,6 +42,8 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - in `coefplot`: the argument `dict` now updates the entries in the global dictionnary (instead of replacing them)
 
+- improve the display of the numbers in `fitstat`
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

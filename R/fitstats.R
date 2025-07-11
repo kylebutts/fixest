@@ -94,8 +94,9 @@ print.fixest_fitstat = function(x, na.rm = FALSE, ...){
 
   if(any(is_stat)){
     stat_all = sapply(x[is_stat], function(z) z$stat)
-    stat_all = paste0("stat = ", 
-                      sfill(sfill(numberFormatNormal(stat_all), anchor = "."), right = TRUE))
+    digits_signif = sma("{s5, '.+\\.'clean ? stat_all}")
+    n_round = min(max(nchar(digits_signif), 1), 5)
+    stat_all = sma("stat = {round.", n_round, ", align.right ? stat_all}")
     for(i in seq_along(stat_all)){
       j = which(is_stat)[i]
       x[[j]]$stat = stat_all[i]

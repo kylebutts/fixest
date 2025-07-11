@@ -40,6 +40,8 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - all estimations gain the two arguments: `panel.time.step` and `panel.duplicate.method` to handle non standard lags
 
+- in `coefplot`: the argument `dict` now updates the entries in the global dictionnary (instead of replacing them)
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

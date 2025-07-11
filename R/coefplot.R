@@ -387,14 +387,6 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
                     main = "Effect on __depvar__", value.lab = "Estimate and __ci__ Conf. Int.",
                     ylab = NULL, xlab = NULL, sub = NULL, i.select = NULL, do_iplot = NULL){
   
-  # Set up the dictionary
-  dict = setup_dict(dict, check = TRUE)
-  if(!is.null(dict) && any(grepl("^&", names(dict)))){
-    # Speficic markup to identify coefplot aliases
-    dict_amp = dict[grepl("^&", names(dict))]
-    names(dict_amp) = gsub("^&", "", names(dict_amp))
-    dict[names(dict_amp)] = dict_amp
-  }
 
   check_set_arg(lab.fit, "match(auto, simple, multi, tilted)")
 
@@ -569,6 +561,15 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
         assign(arg, my_arg)
       }
     }
+  }
+  
+  # Set up the dictionary
+  dict = setup_dict(dict, check = TRUE)
+  if(!is.null(dict) && any(grepl("^&", names(dict)))){
+    # Speficic markup to identify coefplot aliases
+    dict_amp = dict[grepl("^&", names(dict))]
+    names(dict_amp) = gsub("^&", "", names(dict_amp))
+    dict[names(dict_amp)] = dict_amp
   }
 
   #

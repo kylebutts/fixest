@@ -5848,7 +5848,7 @@ setup_dict = function(dict, check = FALSE){
   
   dict_global = getFixest_dict()
   
-  if(missing(dict) || isTRUE(dict)) {
+  if(missnull(dict) || isTRUE(dict)) {
     dict = dict_global
     
   } else if(isFALSE(dict)) {

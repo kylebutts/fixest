@@ -86,6 +86,7 @@ if(is.factor(data.frame(x = "bonjour")$x)){
   setFixest_coefplot("all", reset = TRUE)
   setFixest_ssc()
   setFixest_etable()
+  setFixest_vcov(no_FE = "iid", one_FE = "iid", two_FE = "iid", panel = "iid")
 
   # nthreads
   if(is_r_check()){

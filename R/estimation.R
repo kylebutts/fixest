@@ -1489,7 +1489,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
       current_env = reshape_env(env, rhs = UX)
       res_second_stage = feols(env = current_env, xwx = UXtUX, xwy = UXty,
                                resid_1st_stage = resid_s1, iv_call = TRUE, notes = FALSE)
-
+      
       # For the F-stats
       if(is_X){
         fit_no_endo = ols_fit(y, X, w = weights, correct_0w = FALSE,
@@ -1938,7 +1938,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     resid_new = cpp_iv_resid(res$residuals, res$coefficients, 
                              dots$resid_1st_stage, is_int, nthreads)
     res$iv_residuals = res$residuals
-    res$residuals = resid_new
+    res$iv_corrected_residuals = resid_new
   }
 
   #

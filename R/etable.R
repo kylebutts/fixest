@@ -1279,6 +1279,15 @@ gen_etable_aliases = function(){
   # Now the two have been merged into etable
   # I like it much better
   # I wanted to deprecate them, but maintainance with that function is very easy
+  
+  # NOTA: I do this to avoid a discrepancy btw the current dev version 
+  # and the package being installed
+  file = "./R/etable.R"
+  if(!file.exists(file)) return()
+  env = new.env()
+  source(file, local = env)
+  if(!exists("etable", envir = env)) return()
+  etable = get("etable", env)
 
   etable_args = formals(etable)
 

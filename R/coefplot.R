@@ -2562,7 +2562,16 @@ gen_iplot = function(){
   # iplot has the same arguments as coefplot
   # we make all changes in coefplot
   # I automatically generate the iplot function, matching all coefplot arguments
-
+  
+  # NOTA: I do this to avoid a discrepancy btw the current dev version 
+  # and the package being installed
+  file = "./R/coefplot.R"
+  if(!file.exists(file)) return()
+  env = new.env()
+  source(file, local = env)
+  if(!exists("coefplot", envir = env)) return()
+  coefplot = get("coefplot", env)
+  
   coefplot_args = formals(coefplot)
 
   arg_name = names(coefplot_args)

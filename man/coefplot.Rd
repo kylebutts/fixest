@@ -87,7 +87,7 @@ iplot(
   x,
   x.shift = 0,
   horiz = FALSE,
-  dict = getFixest_dict(),
+  dict = NULL,
   keep,
   drop,
   order,

@@ -17,7 +17,7 @@
 #' @inheritSection etable Arguments keep, drop and order
 #'
 #' @param ... Estimation results, which can be of the following form: 
-#' i) an` estimation object (obtained for example from [`feols`]), 
+#' i) an estimation object (obtained for example from [`feols`]), 
 #' ii) a matrix of coefficients table, iii) a numeric vector of the point 
 #' estimates -- the latter requiring the extra arguments `sd` or `ci_low` and `ci_high`.
 #' #' @param vcov Versatile argument to specify the VCOV. 
@@ -1180,33 +1180,37 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
     box()
 
     if(horiz){
-      axis(1)
+      axis(1, lwd = 0, lwd.ticks = 1)
 
       if(AXIS_AS_NUM){
-        axis(2, las = 1)
+        axis(2, las = 1, lwd = 0, lwd.ticks = 1)
+        
       } else {
         if(any(grepl("^&", x_labels))){
           # means we call expression()
           # drawback => expressions can overlap
           qui = grepl("^&", x_labels)
           if(any(!qui)){
-            axis(2, at = x_at[!qui], labels = x_labels[!qui], las = 1, cex = lab.cex)
+            axis(2, at = x_at[!qui], labels = x_labels[!qui], las = 1, cex = lab.cex, 
+                 lwd = 0, lwd.ticks = 1)
           }
 
           for(i in which(qui)){
-            axis(2, at = x_at[i], labels = expr_builder(x_labels[i]), las = 1, cex = lab.cex)
+            axis(2, at = x_at[i], labels = expr_builder(x_labels[i]), las = 1, cex = lab.cex, 
+                 lwd = 0, lwd.ticks = 1)
           }
 
         } else {
           # easy case: only character
-          axis(2, at = x_at, labels = x_labels, las = 1, cex = lab.cex)
+          axis(2, at = x_at, labels = x_labels, las = 1, cex = lab.cex, 
+               lwd = 0, lwd.ticks = 1)
         }
       }
     } else {
-      axis(2)
+      axis(2, lwd = 0, lwd.ticks = 1)
 
       if(AXIS_AS_NUM){
-        axis(1)
+        axis(1, lwd = 0, lwd.ticks = 1)
       } else {
         if(lab.fit == "simple"){
           if(any(grepl("^&", x_labels))){
@@ -1214,20 +1218,24 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
             # drawback => expressions can overlap
             qui = grepl("^&", x_labels)
             if(any(!qui)){
-              axis(1, at = x_at[!qui], labels = x_labels[!qui], cex.axis = lab.cex)
+              axis(1, at = x_at[!qui], labels = x_labels[!qui], cex.axis = lab.cex,
+                   lwd = 0, lwd.ticks = 1)
             }
 
             for(i in which(qui)){
-              axis(1, at = x_at[i], labels = expr_builder(x_labels[i]), cex.axis = lab.cex)
+              axis(1, at = x_at[i], labels = expr_builder(x_labels[i]), cex.axis = lab.cex,
+                   lwd = 0, lwd.ticks = 1)
             }
 
           } else {
             # easy case: only character
-            axis(1, at = x_at, labels = x_labels, cex.axis = lab.cex)
+            axis(1, at = x_at, labels = x_labels, cex.axis = lab.cex,
+                 lwd = 0, lwd.ticks = 1)
           }
         } else if(lab.fit == "multi"){
 
-          axis(1, at = x_at, labels = NA, tcl=-0.25)
+          axis(1, at = x_at, labels = NA, tcl = -0.25,
+               lwd = 0, lwd.ticks = 1)
 
           for(my_line in unique(lab.info$line)){
             qui_line = my_line == lab.info$line
@@ -1237,16 +1245,19 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
             if(any(grepl("^&", x_labels_current))){
               qui = grepl("^&", x_labels_current)
               if(any(!qui)){
-                axis(1, at = x_at_current[!qui], labels = x_labels_current[!qui], cex.axis = lab.cex, line = my_line, lwd = 0)
+                axis(1, at = x_at_current[!qui], labels = x_labels_current[!qui], 
+                     cex.axis = lab.cex, line = my_line, lwd = 0)
               }
 
               for(i in which(qui)){
-                axis(1, at = x_at_current[i], labels = expr_builder(x_labels_current[i]), cex.axis = lab.cex, line = my_line, lwd = 0)
+                axis(1, at = x_at_current[i], labels = expr_builder(x_labels_current[i]), 
+                     cex.axis = lab.cex, line = my_line, lwd = 0)
               }
 
             } else {
               # easy case: only character
-              axis(1, at = x_at_current, labels = x_labels_current, cex.axis = lab.cex, line = my_line, lwd = 0)
+              axis(1, at = x_at_current, labels = x_labels_current, cex.axis = lab.cex, 
+                   line = my_line, lwd = 0)
             }
           }
         } else if(lab.fit == "tilted"){
@@ -1256,16 +1267,19 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
           if(any(grepl("^&", x_labels))){
             qui = grepl("^&", x_labels)
             if(any(!qui)){
-              xaxis_biased(1, at = x_at[!qui], labels = x_labels[!qui], cex = lab.cex, angle = lab.info$angle, line.min = LINE_MIN_TILTED)
+              xaxis_biased(1, at = x_at[!qui], labels = x_labels[!qui], cex = lab.cex, 
+                           angle = lab.info$angle, line.min = LINE_MIN_TILTED)
             }
 
             for(i in which(qui)){
-              xaxis_biased(1, at = x_at[i], labels = expr_builder(x_labels[i]), cex = lab.cex, angle = lab.info$angle, line.min = LINE_MIN_TILTED)
+              xaxis_biased(1, at = x_at[i], labels = expr_builder(x_labels[i]), 
+                           cex = lab.cex, angle = lab.info$angle, line.min = LINE_MIN_TILTED)
             }
 
           } else {
             # easy case: only character
-            xaxis_biased(1, at = x_at, labels = x_labels, cex = lab.cex, angle = lab.info$angle, line.min = LINE_MIN_TILTED)
+            xaxis_biased(1, at = x_at, labels = x_labels, cex = lab.cex, 
+                         angle = lab.info$angle, line.min = LINE_MIN_TILTED)
           }
         }
       }

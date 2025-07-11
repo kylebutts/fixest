@@ -197,6 +197,8 @@
 #' may feel weird in case there are many `i()` variables.
 #' @param do_iplot Logical, default is `FALSE`. For internal use only. 
 #' If `TRUE`, then `iplot` is run instead of `coefplot`.
+#' @param plot_prms A named list. It may contain additionnal parameters to be passed
+#' to the plot.
 #'
 #' @seealso
 #' See [`setFixest_coefplot`] to set the default values of `coefplot`, and the estimation 

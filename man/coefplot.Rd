@@ -239,6 +239,9 @@ does not contain \dQuote{Intercept} goes first).  See details.}
 \item{add}{Default is \code{FALSE}, if the intervals are to be added to an existing
 graph. Note that if it is the case, then the argument \code{x} MUST be numeric.}
 
+\item{plot_prms}{A named list. It may contain additionnal parameters to be passed
+to the plot.}
+
 \item{pch}{The patch of the coefficient estimates. Default is 1 (circle).
 This is an alias to tha argument \code{pt.pch}.}
 

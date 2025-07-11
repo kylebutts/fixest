@@ -59,6 +59,8 @@ then the degrees of freedom of the Student t distribution is equal to the number
 observations minus the number of estimated variables. You can also pass a number to
 manually specify the DoF of the t-distribution.}
 
+\item{...}{Only used internally (to catch deprecated parameters).}
+
 \item{ssc.type}{An object of class \code{ssc.type} obtained with the function \code{\link{ssc}}.}
 }
 \value{

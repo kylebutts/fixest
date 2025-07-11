@@ -22,7 +22,15 @@ vcov_hetero(
 
 \item{boot.size}{Integer scalar or \code{NULL}, default is 1000. This is only used when \code{exact == FALSE}. This determines the number of bootstrap samples used to estimate the projection matrix. If equal to \code{NULL}, it falls back to the default value of 1000.}
 
-\item{ssc}{An object returned by the function \code{\link{ssc}}. It specifies how to perform the small sample correction.}
+\item{ssc}{An object returned by the function \code{\link{ssc}}. It specifies how to perform the small
+sample correction.}
+
+\item{vcov_fix}{Logical scalar, default is \code{FALSE}. If the VCOV ends up not being
+positive definite, whether to "fix" it using an eigenvalue decomposition
+(a la Cameron, Gelbach & Miller 2011).
+Since the VCOV should be PSD asymptotically, this might be a sign of a problem
+with using the asymptotic approximation (e.g. too few units in clusters).
+If a problem is detected, the function will print a message to inform you.}
 }
 \value{
 If the first argument is a \code{fixest} object, then a VCOV is returned (i.e. a symmetric matrix).

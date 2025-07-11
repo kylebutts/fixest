@@ -183,6 +183,16 @@ for this argument. The arguments and defaults of the function \code{\link{ssc}} 
 separated by a comma (e.g. \code{panel.id='id,time'}). Note that you can combine variables
 with \code{^} only inside formulas (see the dedicated section in \code{\link{feols}}).}
 
+\item{panel.time.step}{The method to compute the lags, default is \code{NULL} (which means
+automatically set). Can be equal to: \code{"unitary"}, \code{"consecutive"}, \code{"within.consecutive"},
+or to a number. If \code{"unitary"}, then the largest common divisor between consecutive
+time periods is used (typically if the time variable represents years, it will be 1).
+This method can apply only to integer (or convertible to integer) variables.
+If \code{"consecutive"}, then the time variable can be of any type: two successive
+time periods represent a lag of 1. If \code{"witihn.consecutive"} then \strong{within a given id},
+two successive time periods represent a lag of 1. Finally, if the time variable is numeric,
+you can provide your own numeric time step.}
+
 \item{panel.duplicate.method}{If several observations have the same id and time values,
 then the notion of lag is not defined for them. If \code{duplicate.method = "none"} (default)
 and duplicate values are found, this leads to an error. You can use
@@ -257,16 +267,7 @@ the estimation is saved within the returned object. Hence later calls to predict
 vcov(), etc..., will be consistent even if the original data has been modified
 in the meantime.
 This is especially useful for estimations within loops, where the data changes
-at each iteration, such that postprocessing can be done outside the loop without issue.
-#' @param panel.time.step The method to compute the lags, default is \code{NULL} (which means
-automatically set). Can be equal to: \code{"unitary"}, \code{"consecutive"}, \code{"within.consecutive"},
-or to a number. If \code{"unitary"}, then the largest common divisor between consecutive
-time periods is used (typically if the time variable represents years, it will be 1).
-This method can apply only to integer (or convertible to integer) variables.
-If \code{"consecutive"}, then the time variable can be of any type: two successive
-time periods represent a lag of 1. If \code{"witihn.consecutive"} then \strong{within a given id},
-two successive time periods represent a lag of 1. Finally, if the time variable is numeric,
-you can provide your own numeric time step.}
+at each iteration, such that postprocessing can be done outside the loop without issue.}
 
 \item{combine.quick}{Logical. When you combine different variables to transform them
 into a single fixed-effects you can do e.g. \code{y ~ x | paste(var1, var2)}.

@@ -974,6 +974,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 #' then the degrees of freedom of the Student t distribution is equal to the number of 
 #' observations minus the number of estimated variables. You can also pass a number to 
 #' manually specify the DoF of the t-distribution.
+#' @param ... Only used internally (to catch deprecated parameters).
 #'
 #' @details
 #'
@@ -1111,11 +1112,13 @@ ssc = function(K.adj = TRUE, K.fixef = "nonnested", K.exact = FALSE,
 #'
 #' Computes the heteroskedasticity-robust VCOV of `fixest` objects.
 #' 
+#' @inheritParams vcov.fixest
 #' @inheritParams hatvalues.fixest
 #'
 #' @param x A `fixest` object.
 #' @param type A string scalar. Either "HC1"/"HC2"/"HC3"
-#' @param ssc An object returned by the function [`ssc`]. It specifies how to perform the small sample correction.
+#' @param ssc An object returned by the function [`ssc`]. It specifies how to perform the small 
+#' sample correction.
 #'
 #' @return
 #' If the first argument is a `fixest` object, then a VCOV is returned (i.e. a symmetric matrix).

@@ -3761,7 +3761,7 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #' in the meantime. 
 #' This is especially useful for estimations within loops, where the data changes 
 #' at each iteration, such that postprocessing can be done outside the loop without issue.
-#' #' @param panel.time.step The method to compute the lags, default is `NULL` (which means 
+#' @param panel.time.step The method to compute the lags, default is `NULL` (which means 
 #' automatically set). Can be equal to: `"unitary"`, `"consecutive"`, `"within.consecutive"`, 
 #' or to a number. If `"unitary"`, then the largest common divisor between consecutive 
 #' time periods is used (typically if the time variable represents years, it will be 1). 

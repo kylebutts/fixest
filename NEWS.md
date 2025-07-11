@@ -118,6 +118,8 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - fix bug regarding panels in estimations, the format `panel.id = "id,time"` did not work. Now fixed. 
 
+- fig bug preventing the use of the argument `vcov` in `fitstat` for the Wald statistics
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

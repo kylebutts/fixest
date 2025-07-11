@@ -4146,14 +4146,41 @@ feNmlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"
 
   # warnings => to avoid accumulation, but should appear even if the user stops the algorithm
   on.exit(warn_fixef_iter(env, stack_multi = IN_MULTI))
+  
+  
+  #
+  # removing the depvar from the expl vars
+  RHS_names = get("linear.params", env)
+  lhs_names = get("lhs_names", env)
+  rm_depvar = lhs_names %in% RHS_names && length(RHS_names) > 1
+  if(rm_depvar){
+    rm_pos = which(RHS_names == lhs_names)
+    
+    RHS_names = RHS_names[-rm_pos]
+    assign("linear.params", RHS_names, env)
+    
+    params = get("params", env)
+    params = setdiff(params, lhs_names)
+    assign("params", params, env)
+    
+    X = get("linear.mat", env)
+    X = X[, -rm_pos, drop = FALSE]
+    assign("linear.mat", X, env)
+    
+    res$nparams = res$nparams - 1
+    
+    start = start[-rm_pos]
+    
+  }
+  
 
   #
   # Maximizing the likelihood
   #
 
-  opt = try(stats::nlminb(start=start, objective=femlm_ll, env=env, lower=lower, 
-                          upper=upper, gradient=gradient, hessian=hessian, 
-                          control=opt.control), silent = TRUE)
+  opt = try(stats::nlminb(start = start, objective = femlm_ll, env = env, lower = lower, 
+                          upper = upper, gradient = gradient, hessian = hessian, 
+                          control = opt.control), silent = TRUE)
 
   if("try-error" %in% class(opt)){
     # We return the coefficients (can be interesting for debugging)

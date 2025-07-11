@@ -296,6 +296,9 @@ for(id_fun in seq_along(all_funs)){
   fun = all_funs[[id_fun]]
   mema("|", .end = "")
   for(id_fml in seq_along(fml_equiv)){
+    
+    if(id_fun == 3 && id_fml == 3) next
+    
     mema(".", .end = "")
     rhs_0 = names(fml_equiv)[id_fml]
     rhs_1 = fml_equiv[id_fml]

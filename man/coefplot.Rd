@@ -24,19 +24,21 @@ coefplot(
   ci.width = "1\%",
   ci_level = 0.95,
   add = FALSE,
-  pt.pch = c(20, 17, 15, 21, 24, 22),
-  pt.bg = NULL,
+  pch = c(20, 17, 15, 21, 24, 22),
+  col = 1:8,
   cex = 1,
+  lty = 1,
+  lwd = 1,
   ylim = NULL,
   xlim = NULL,
+  pt.pch = pch,
+  pt.bg = NULL,
   pt.cex = cex,
-  col = 1:8,
   pt.col = col,
   ci.col = col,
-  lwd = 1,
   pt.lwd = lwd,
   ci.lwd = lwd,
-  ci.lty = 1,
+  ci.lty = lty,
   grid = TRUE,
   grid.par = list(lty = 3, col = "gray"),
   zero = TRUE,
@@ -72,6 +74,7 @@ coefplot(
 )
 
 iplot(
+  object,
   ...,
   i.select = 1,
   style = NULL,
@@ -79,8 +82,6 @@ iplot(
   ci_low,
   ci_high,
   df.t = NULL,
-  vcov = NULL,
-  cluster = NULL,
   x,
   x.shift = 0,
   horiz = FALSE,
@@ -94,8 +95,6 @@ iplot(
   pt.pch = c(20, 17, 15, 21, 24, 22),
   pt.bg = NULL,
   cex = 1,
-  ylim = NULL,
-  xlim = NULL,
   pt.cex = cex,
   col = 1:8,
   pt.col = col,
@@ -233,12 +232,19 @@ does not contain \dQuote{Intercept} goes first).  See details.}
 \item{add}{Default is \code{FALSE}, if the intervals are to be added to an existing
 graph. Note that if it is the case, then the argument \code{x} MUST be numeric.}
 
-\item{pt.pch}{The patch of the coefficient estimates. Default is 1 (circle).}
+\item{pch}{The patch of the coefficient estimates. Default is 1 (circle).
+This is an alias to tha argument \code{pt.pch}.}
 
-\item{pt.bg}{The background color of the point estimate (when the \code{pt.pch} is
-in 21 to 25). Defaults to NULL.}
+\item{col}{The color of the points and the confidence intervals. Default is 1
+("black"). Note that you can set the colors separately for each of them
+with \code{pt.col} and \code{ci.col}.}
 
 \item{cex}{Numeric, default is 1. Expansion factor for the points}
+
+\item{lty}{The line type of the confidence intervals. Default is 1.
+This is an alias to the argument \code{ci.lty}.}
+
+\item{lwd}{General line with. Default is 1.}
 
 \item{ylim}{Numeric vector of length 2 which gives the limits of the plotting region for
 the y-axis. The default is \code{NULL}, which means that it is automatically defined.
@@ -248,16 +254,16 @@ Use the argument \code{ylim.add} to simply increase or decrese the default limit
 the x-axis. The default is \code{NULL}, which means that it is automatically defined.
 Use the argument \code{xlim.add} to simply increase or decrese the default limits.}
 
-\item{pt.cex}{The size of the coefficient estimates. Default is the other argument \code{cex}.}
+\item{pt.pch}{The patch of the coefficient estimates. Default is 1 (circle).}
 
-\item{col}{The color of the points and the confidence intervals. Default is 1
-("black"). Note that you can set the colors separately for each of them with \code{pt.col} and \code{ci.col}.}
+\item{pt.bg}{The background color of the point estimate (when the \code{pt.pch} is
+in 21 to 25). Defaults to NULL.}
+
+\item{pt.cex}{The size of the coefficient estimates. Default is the other argument \code{cex}.}
 
 \item{pt.col}{The color of the coefficient estimates. Default is equal to the argument \code{col}.}
 
 \item{ci.col}{The color of the confidence intervals. Default is equal to the argument \code{col}.}
-
-\item{lwd}{General line with. Default is 1.}
 
 \item{pt.lwd}{The line width of the coefficient estimates. Default is equal to
 the other argument \code{lwd}.}
@@ -302,7 +308,7 @@ with a color. If \code{TRUE}, then you can set the graphical parameters with the
 Only used if \code{ci.fill=TRUE}. By default it is equal to \code{list(col = "lightgray", alpha = 0.5)}.
 Note that \code{alpha} is a special parameter that adds transparency to the color (ranges from 0 to 1).}
 
-\item{ref}{Used to add points equal to 0 (typically to visualize reference points).
+\item{ref}{Used to add points at \code{y = 0} (typically to visualize reference points).
 Either: i) "auto" (default), ii) a character vector of length 1, iii) a list
 of length 1, iv) a named integer vector of length 1, or v) a numeric vector.
 By default, in \code{iplot}, if the argument \code{ref} has been used in the estimation,

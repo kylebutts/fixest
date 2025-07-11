@@ -3761,6 +3761,20 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #' in the meantime. 
 #' This is especially useful for estimations within loops, where the data changes 
 #' at each iteration, such that postprocessing can be done outside the loop without issue.
+#' #' @param panel.time.step The method to compute the lags, default is `NULL` (which means 
+#' automatically set). Can be equal to: `"unitary"`, `"consecutive"`, `"within.consecutive"`, 
+#' or to a number. If `"unitary"`, then the largest common divisor between consecutive 
+#' time periods is used (typically if the time variable represents years, it will be 1). 
+#' This method can apply only to integer (or convertible to integer) variables. 
+#' If `"consecutive"`, then the time variable can be of any type: two successive 
+#' time periods represent a lag of 1. If `"witihn.consecutive"` then **within a given id**, 
+#' two successive time periods represent a lag of 1. Finally, if the time variable is numeric, 
+#' you can provide your own numeric time step.
+#' @param panel.duplicate.method If several observations have the same id and time values, 
+#' then the notion of lag is not defined for them. If `duplicate.method = "none"` (default) 
+#' and duplicate values are found, this leads to an error. You can use 
+#' `duplicate.method = "first"` so that the first occurrence of identical id/time 
+#' observations will be used as lag.
 #' @param ... Not currently used.
 #'
 #' @details

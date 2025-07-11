@@ -19,6 +19,7 @@ esttable(
   se = NULL,
   ssc = NULL,
   cluster = NULL,
+  .vcov = NULL,
   .vcov_args = NULL,
   digits = 4,
   digits.stats = 5,
@@ -32,8 +33,7 @@ esttable(
   order = NULL,
   dict = TRUE,
   file = NULL,
-  replace = TRUE,
-  create_dirs = FALSE,
+  replace = FALSE,
   convergence = NULL,
   signif.code = NULL,
   headers = list("auto"),
@@ -70,11 +70,12 @@ esttex(
   se = NULL,
   ssc = NULL,
   cluster = NULL,
+  .vcov = NULL,
   .vcov_args = NULL,
   digits = 4,
   digits.stats = 5,
   fitstat = NULL,
-  caption = NULL,
+  title = NULL,
   coefstat = "se",
   ci = 0.95,
   se.row = NULL,
@@ -84,8 +85,7 @@ esttex(
   order = NULL,
   dict = TRUE,
   file = NULL,
-  replace = TRUE,
-  create_dirs = FALSE,
+  replace = FALSE,
   convergence = NULL,
   signif.code = NULL,
   label = NULL,
@@ -310,6 +310,16 @@ blank with \code{vcov = "twoway"} (assuming \code{var1} [resp. \code{var2}] was
 the 1st [resp. 2nd] fixed-effect). You can interact two variables using \code{^} with
 the following syntax: \code{cluster = ~var1^var2} or \code{cluster = "var1^var2"}.}
 
+\item{.vcov}{Versatile argument to specify the VCOV. In general, it is either a character
+scalar equal to a VCOV type, either a formula of the form: \code{vcov_type ~ variables}. The
+VCOV types implemented are: "iid", "hetero" (or "HC1"), "cluster", "twoway",
+"NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley". It also accepts
+object from \code{\link{vcov_cluster}}, \code{\link[=vcov_hac]{vcov_NW}}, \code{\link[=vcov_hac]{NW}},
+\code{\link[=vcov_hac]{vcov_DK}}, \code{\link[=vcov_hac]{DK}}, \code{\link{vcov_conley}} and
+\code{\link[=vcov_conley]{conley}}. It also accepts covariance matrices computed externally.
+Finally it accepts functions to compute the covariances. See the \code{vcov} documentation
+in the \href{https://lrberge.github.io/fixest/articles/fixest_walkthrough.html#the-vcov-argument-1}{vignette}.}
+
 \item{.vcov_args}{A list containing arguments to be passed to the function \code{vcov}.}
 
 \item{digits}{Integer or character scalar. Default is 4 and represents the number of significant
@@ -390,12 +400,6 @@ export a regular \code{data.frame}, use argument \code{tex = FALSE}.}
 
 \item{replace}{Logical, default is \code{FALSE}. Only used if option \code{file} is used. Should the
 exported table be written in a new file that replaces any existing file?}
-
-\item{create_dirs}{Logical, default is \code{FALSE}. Only used if when some file needs to be
-created (e;g. when \code{file} or \code{export} is used). By default, i.e. when \code{FALSE},
-if the parent directory does not exist, the containing folders are created
-up to the grand parent.
-If \code{TRUE}, all containing folders are recursively created.}
 
 \item{convergence}{Logical, default is missing. Should the convergence state of the algorithm be
 displayed? By default, convergence information is displayed if at least one model did not
@@ -588,8 +592,6 @@ margin width represent the width of a single side margin (and hence will be doub
 when \code{markdown = TRUE}. The table in an image format is embedded in a \verb{<div>} container,
 and that container is of class \code{div.class}.}
 
-\item{caption}{(Tex only.) Character scalar. The caption of the Latex table.}
-
 \item{label}{(Tex only.) Character scalar. The label of the Latex table.}
 
 \item{float}{(Tex only.) Logical. By default, if the argument \code{caption} or \code{label} is provided,
@@ -684,6 +686,14 @@ or to \code{"images/etable/"} for earlier versions.}
 \item{tex}{Logical: whether the results should be a data.frame or a Latex table. By default,
 this argument is \code{TRUE} if the argument \code{file} (used for exportation) is not missing; it is
 equal to \code{FALSE} otherwise.}
+
+\item{caption}{(Tex only.) Character scalar. The caption of the Latex table.}
+
+\item{create_dirs}{Logical, default is \code{FALSE}. Only used if when some file needs to be
+created (e;g. when \code{file} or \code{export} is used). By default, i.e. when \code{FALSE},
+if the parent directory does not exist, the containing folders are created
+up to the grand parent.
+If \code{TRUE}, all containing folders are recursively created.}
 
 \item{view.cache}{Logical, default is \code{FALSE}. Only used when \code{view = TRUE}.
 Whether the PNGs of the tables should be cached.}

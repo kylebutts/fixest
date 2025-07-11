@@ -54,14 +54,19 @@
 #' @param ylim Numeric vector of length 2 which gives the limits of the plotting region for
 #' the y-axis. The default is `NULL`, which means that it is automatically defined.
 #' Use the argument `ylim.add` to simply increase or decrese the default limits.
+#' @param pch The patch of the coefficient estimates. Default is 1 (circle). 
+#' This is an alias to tha argument `pt.pch`.
 #' @param pt.pch The patch of the coefficient estimates. Default is 1 (circle).
 #' @param cex Numeric, default is 1. Expansion factor for the points
 #' @param pt.cex The size of the coefficient estimates. Default is the other argument `cex`.
 #' @param col The color of the points and the confidence intervals. Default is 1 
-#' ("black"). Note that you can set the colors separately for each of them with `pt.col` and `ci.col`.
+#' ("black"). Note that you can set the colors separately for each of them 
+#' with `pt.col` and `ci.col`.
 #' @param pt.col The color of the coefficient estimates. Default is equal to the argument `col`.
 #' @param ci.col The color of the confidence intervals. Default is equal to the argument `col`.
 #' @param lwd General line with. Default is 1.
+#' @param lty The line type of the confidence intervals. Default is 1. 
+#' This is an alias to the argument `ci.lty`.
 #' @param pt.lwd The line width of the coefficient estimates. Default is equal to 
 #' the other argument `lwd`.
 #' @param ci.lwd The line width of the confidence intervals. Default is equal to 
@@ -88,7 +93,7 @@
 #' @param pt.join.par List. Parameters of the line joining the coefficients. The 
 #' default values are: `col = pt.col` and `lwd = lwd`. You can add any graphical 
 #' parameter that will be passed to [`lines`]. Eg: `pt.join.par = list(lty = 2)`.
-#' @param ref Used to add points equal to 0 (typically to visualize reference points). 
+#' @param ref Used to add points at `y = 0` (typically to visualize reference points). 
 #' Either: i) "auto" (default), ii) a character vector of length 1, iii) a list 
 #' of length 1, iv) a named integer vector of length 1, or v) a numeric vector. 
 #' By default, in `iplot`, if the argument `ref` has been used in the estimation, 
@@ -364,10 +369,13 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
                     vcov = NULL, cluster = NULL,
                     x, x.shift = 0, horiz = FALSE,
                     dict = getFixest_dict(), keep, drop, order, ci.width = "1%",
-                    ci_level = 0.95, add = FALSE, pt.pch = c(20, 17, 15, 21, 24, 22), 
-                    pt.bg = NULL, cex = 1, ylim = NULL, xlim = NULL,
-                    pt.cex = cex, col = 1:8, pt.col = col, ci.col = col, lwd = 1, pt.lwd = lwd,
-                    ci.lwd = lwd, ci.lty = 1, grid = TRUE, grid.par = list(lty = 3, col = "gray"),
+                    ci_level = 0.95, add = FALSE, 
+                    pch = c(20, 17, 15, 21, 24, 22), col = 1:8, cex = 1, lty = 1, lwd = 1,
+                    ylim = NULL, xlim = NULL,
+                    pt.pch = pch, 
+                    pt.bg = NULL, pt.cex = cex, pt.col = col, ci.col = col, pt.lwd = lwd,
+                    ci.lwd = lwd, ci.lty = lty, grid = TRUE, 
+                    grid.par = list(lty = 3, col = "gray"),
                     zero = TRUE, zero.par = list(col = "black", lwd = 1), pt.join = FALSE,
                     pt.join.par = list(col = pt.col, lwd = lwd), ci.join = FALSE,
                     ci.join.par = list(lwd = lwd, col = col, lty = 2), ci.fill = FALSE,
@@ -378,7 +386,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
                     bg, group = "auto", group.par = list(lwd = 2, line = 3, tcl = 0.75),
                     main = "Effect on __depvar__", value.lab = "Estimate and __ci__ Conf. Int.",
                     ylab = NULL, xlab = NULL, sub = NULL, i.select = NULL, do_iplot = NULL){
-
+  
   # Set up the dictionary
   if(is.null(dict)){
     dict = c()

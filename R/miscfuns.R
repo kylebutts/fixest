@@ -6111,9 +6111,9 @@ keep_apply = function(x, keep = NULL, logical = FALSE){
     }
 
     if(grepl("^!", var2keep)){
-      qui_keep = qui_keep | !grepl(substr(var2keep, 2, nchar(var2keep)), vect2check)
+      qui_keep = qui_keep | !grepl(substr(var2keep, 2, nchar(var2keep)), vect2check, perl = TRUE)
     } else {
-      qui_keep = qui_keep | grepl(var2keep, vect2check)
+      qui_keep = qui_keep | grepl(var2keep, vect2check, perl = TRUE)
     }
   }
 
@@ -6147,9 +6147,9 @@ drop_apply = function(x, drop = NULL){
     }
 
     if(grepl("^!", var2drop)){
-      res = res[grepl(substr(var2drop, 2, nchar(var2drop)), vect2check)]
+      res = res[grepl(substr(var2drop, 2, nchar(var2drop)), vect2check, perl = TRUE)]
     } else {
-      res = res[!grepl(var2drop, vect2check)]
+      res = res[!grepl(var2drop, vect2check, perl = TRUE)]
     }
   }
 
@@ -6181,10 +6181,10 @@ order_apply = function(x, order = NULL){
     }
 
     if(grepl("^!", var2order)){
-      who = !grepl(substr(var2order, 2, nchar(var2order)), vect2check)
+      who = !grepl(substr(var2order, 2, nchar(var2order)), vect2check, perl = TRUE)
       res = c(res[who], res[!who])
     } else {
-      who = grepl(var2order, vect2check)
+      who = grepl(var2order, vect2check, perl = TRUE)
       res = c(res[who], res[!who])
     }
   }

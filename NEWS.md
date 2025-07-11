@@ -44,6 +44,8 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - improve the display of the numbers in `fitstat`
 
+- use perl regular expressions (instead of standard RE) in all instances of the arguments `keep`, `drop`, `order`
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

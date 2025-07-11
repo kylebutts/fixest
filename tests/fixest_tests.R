@@ -288,9 +288,12 @@ fml_equiv = c(
 all_funs = list(feols, feglm, femlm)
 
 id_fml = 3
-id_fun = 1
+id_fun = 2
+
+fun = all_funs[[id_fun]]
 
 for(id_fun in seq_along(all_funs)){
+  fun = all_funs[[id_fun]]
   mema("|", .end = "")
   for(id_fml in seq_along(fml_equiv)){
     mema(".", .end = "")
@@ -298,29 +301,29 @@ for(id_fun in seq_along(all_funs)){
     rhs_1 = fml_equiv[id_fml]
     
     # simple estimation
-    est_0 = feols(y ~ .[rhs_0], base)
-    est_1 = feols(y ~ .[rhs_1], base)
+    est_0 = fun(y ~ .[rhs_0], base)
+    est_1 = fun(y ~ .[rhs_1], base)
     test(coef(est_0), coef(est_1))
     test(se(est_0), se(est_1))
     
     # multiple samples
-    est_0 = feols(y ~ .[rhs_0], base, split = "species")
-    est_1 = feols(y ~ .[rhs_1], base, split = "species")
+    est_0 = fun(y ~ .[rhs_0], base, split = "species")
+    est_1 = fun(y ~ .[rhs_1], base, split = "species")
     test(coef(est_0[[1]]), coef(est_1[[1]]))
     test(se(est_0[[1]]), se(est_1[[1]]))
     
     # multiple lhs
-    est_0 = feols(c(y, x3) ~ .[rhs_0] + x3, base)
-    est_1a = feols(y ~ .[rhs_1] + x3, base)
-    est_1b = feols(x3 ~ .[rhs_0], base)
+    est_0 = fun(c(y, x3) ~ .[rhs_0] + x3, base)
+    est_1a = fun(y ~ .[rhs_1] + x3, base)
+    est_1b = fun(x3 ~ .[rhs_0], base)
     test(coef(est_0[[1]]), coef(est_1a))
     test(coef(est_0[[2]]), coef(est_1b))
     test(se(est_0[[1]]), se(est_1a))
     test(se(est_0[[2]]), se(est_1b))
     
     # multiple rhs + fixef
-    est_0 = feols(y ~ csw(.[rhs_0], x3) | sw0(species), base)
-    est_1 = feols(y ~ csw(.[rhs_1], x3) | sw0(species), base)
+    est_0 = fun(y ~ csw(.[rhs_0], x3) | sw0(species), base)
+    est_1 = fun(y ~ csw(.[rhs_1], x3) | sw0(species), base)
     for(id_mult in n_models(est_0)){
       test(coef(est_0[[id_mult]]), coef(est_1[[id_mult]]))
       test(se(est_0[[id_mult]]), se(est_1[[id_mult]]))

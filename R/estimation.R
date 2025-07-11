@@ -2850,6 +2850,8 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
     RHS_names = RHS_names[-rm_pos]
     X = X[, -rm_pos, drop = FALSE]
     
+    res$nparams = res$nparams - 1
+    
   }
 
   #
@@ -2970,7 +2972,7 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
       while(!is.finite(dev) || dev_evol > 0 || !valideta(eta_new) || !validmu(mu)){
 
         if(iter == 1 && (is.finite(dev) && valideta(eta_new) && validmu(mu)) && iter_sh >= 2){
-# BEWARE FIRST ITERATION:
+          # BEWARE FIRST ITERATION:
           # at first iteration, the deviance can be higher than the init, and SH may not help
           # we need to make sure we get out of SH before it's messed up
           break
@@ -3090,7 +3092,7 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
     res$collin.var = var_collinear
 
     # full set of coeffficients with NAs
-    collin.coef = setNames(rep(NA, RHS_names), RHS_names)
+    collin.coef = setNames(rep(NA, length(RHS_names)), RHS_names)
     collin.coef[!wols$is_excluded] = wols$coefficients
     res$collin.coef = collin.coef
 
@@ -3224,7 +3226,7 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
   n = length(y)
   res$nobs = n
 
-  df_k = res$nparams - rm_depvar
+  df_k = res$nparams
 
   # r2s
   if(!cpp_isConstant(res$fitted.values)){

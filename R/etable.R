@@ -149,9 +149,9 @@
 #' becomes `Species: Setosa`.
 #' @param depvar Logical, default is `TRUE`. Whether a first line containing the dependent 
 #' variables should be shown.
-#' @param coefstat One of `"se"` (default), `"tstat"` or `"confint"`. The statistic to report for 
-#' each coefficient: the standard-error, the t-statistics or the confidence interval. You can 
-#' adjust the confidence interval with the argument `ci`.
+#' @param coefstat One of `"se"` (default), `"tstat"`, `"pvalue"`, or `"confint"`. The statistic to report for 
+#' each coefficient: the standard-error, the t-statistics, the p-value, 
+#' or the confidence interval. You can adjust the confidence interval with the argument `ci`.
 #' @param ci Level of the confidence interval, defaults to `0.95`. Only used if 
 #' `coefstat = confint`.
 #' @param style.tex An object created by the function [`style.tex`]. It represents the style of the 
@@ -1409,7 +1409,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   #
 
   check_arg(title, "NULL character scalar")
-  check_set_arg(coefstat, "match(se, tstat, confint)")
+  check_set_arg(coefstat, "match(se, tstat, confint, pvalue)")
 
   check_set_arg(notes, "NULL character vector no na")
   if(length(notes) > 0) notes = notes[nchar(notes) > 0]
@@ -2751,6 +2751,9 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
     } else if(coefstat == "tstat"){
       se_value = fun_format(a[, 3])
 
+    } else if(coefstat == "pvalue"){
+      se_value = fun_format(a[, 4])
+
     } else if(coefstat == "confint"){
       se_value = apply(confint(x, level = ci), 1, function(z) paste0("[", fun_format(z[1]), "; ", fun_format(z[2]), "]"))
 
@@ -3707,6 +3710,8 @@ etable_internal_latex = function(info){
           coefstat_sentence = " standard-errors in parentheses"
         } else if(coefstat == "tstat"){
           coefstat_sentence = " co-variance matrix, t-stats in parentheses"
+        } else if(coefstat == "pvalue"){
+          coefstat_sentence = " co-variance matrix, p-values in parentheses"
         } else {
           coefstat_sentence = paste0(" co-variance matrix, ", round(ci*100), 
                                      "\\% confidence intervals in brackets")
@@ -4613,7 +4618,7 @@ etable_internal_df = function(info){
 
 #' @rdname etable
 setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
-                            coefstat = c("se", "tstat", "confint"),
+                            coefstat = c("se", "tstat", "confint", "pvalue"),
                             ci = 0.95, se.below = TRUE, keep, drop, order, dict,
                             float,
                             fixef_sizes = FALSE, fixef_sizes.simplify = TRUE,

@@ -2,27 +2,18 @@
 % Please edit documentation in R/VCOV.R
 \name{ssc}
 \alias{ssc}
-\alias{dof}
 \alias{setFixest_ssc}
 \alias{getFixest_ssc}
 \title{Governs the small sample correction in \code{fixest} VCOVs}
 \usage{
 ssc(
-  adj = TRUE,
-  fixef.K = "nested",
-  cluster.adj = TRUE,
-  cluster.df = "min",
+  K.adj = TRUE,
+  K.fixef = "nonnested",
+  K.exact = FALSE,
+  G.adj = TRUE,
+  G.df = "min",
   t.df = "min",
-  fixef.force_exact = FALSE
-)
-
-dof(
-  adj = TRUE,
-  fixef.K = "nested",
-  cluster.adj = TRUE,
-  cluster.df = "min",
-  t.df = "min",
-  fixef.force_exact = FALSE
+  ...
 )
 
 setFixest_ssc(ssc.type = ssc())
@@ -30,27 +21,34 @@ setFixest_ssc(ssc.type = ssc())
 getFixest_ssc()
 }
 \arguments{
-\item{adj}{Logical scalar, defaults to \code{TRUE}. Whether to apply a small sample adjustment of
+\item{K.adj}{Logical scalar, defaults to \code{TRUE}. Whether to apply a small sample adjustment of
 the form \code{(n - 1) / (n - K)}, with \code{K} the number of estimated parameters. If \code{FALSE}, then
 no adjustment is made.}
 
-\item{fixef.K}{Character scalar equal to \code{"nested"} (default), \code{"none"} or \code{"full"}. In
+\item{K.fixef}{Character scalar equal to \code{"nonnested"} (default), \code{"none"} or \code{"full"}. In
 the small sample adjustment, how to account for the fixed-effects parameters. If \code{"none"},
 the fixed-effects parameters are discarded, meaning the number of parameters (\code{K}) is only
 equal to the number of variables. If \code{"full"}, then the number of parameters is equal to
-the number of variables plus the number of fixed-effects. Finally, if \code{"nested"}, then
+the number of variables plus the number of fixed-effects. Finally, if \code{"nonnested"}, then
 the number of parameters is equal to the number of variables plus the number of
 fixed-effects that \emph{are not} nested in the clusters used to cluster the standard-errors.}
 
-\item{cluster.adj}{Logical scalar, default is \code{TRUE}. How to make the small sample correction
+\item{K.exact}{Logical, default is \code{FALSE}. If there are 2 or more fixed-effects,
+these fixed-effects they can be irregular, meaning they can provide the same information.
+If so, the "real" number of parameters should be lower than the total number of
+fixed-effects. If \code{K.exact = TRUE}, then \code{\link{fixef.fixest}} is first run to
+determine the exact number of parameters among the fixed-effects. Mostly, panels of
+the type individual-firm require \code{K.exact = TRUE} (but it adds computational costs).}
+
+\item{G.adj}{Logical scalar, default is \code{TRUE}. How to make the small sample correction
 when clustering the standard-errors? If \code{TRUE} a \code{G/(G-1)} correction is performed with \code{G}
 the number of cluster values.}
 
-\item{cluster.df}{Either "conventional" or "min" (default). Only relevant when the
+\item{G.df}{Either "conventional" or "min" (default). Only relevant when the
 variance-covariance matrix is two-way clustered (or higher). It governs how the small
 sample adjustment for the clusters is to be performed. [Sorry for the jargon that follows.]
 By default a unique adjustment is made, of the form G_min/(G_min-1) with G_min the
-smallest G_i. If \code{cluster.df="conventional"} then the i-th "sandwich" matrix is adjusted
+smallest G_i. If \code{G.df="conventional"} then the i-th "sandwich" matrix is adjusted
 with G_i/(G_i-1) with G_i the number of unique clusters.}
 
 \item{t.df}{Either "conventional", "min" (default) or an integer scalar. Only relevant when
@@ -61,12 +59,7 @@ then the degrees of freedom of the Student t distribution is equal to the number
 observations minus the number of estimated variables. You can also pass a number to
 manually specify the DoF of the t-distribution.}
 
-\item{fixef.force_exact}{Logical, default is \code{FALSE}. If there are 2 or more fixed-effects,
-these fixed-effects they can be irregular, meaning they can provide the same information.
-If so, the "real" number of parameters should be lower than the total number of
-fixed-effects. If \code{fixef.force_exact = TRUE}, then \code{\link{fixef.fixest}} is first run to
-determine the exact number of parameters among the fixed-effects. Mostly, panels of
-the type individual-firm require \code{fixef.force_exact = TRUE} (but it adds computational costs).}
+\item{...}{Only used internally (to catch deprecated parameters).}
 
 \item{ssc.type}{An object of class \code{ssc.type} obtained with the function \code{\link{ssc}}.}
 }
@@ -81,11 +74,6 @@ The following vignette: \href{https://lrberge.github.io/fixest/articles/standard
 describes in details how the standard-errors are computed in \code{fixest} and how you can
 replicate standard-errors from other software.
 }
-\section{Functions}{
-\itemize{
-\item \code{dof()}: This function is deprecated and will be removed at some point (in 6 months from August 2021). Exactly the same as \code{ssc}.
-
-}}
 \examples{
 
 #
@@ -102,16 +90,16 @@ vcov(res) / vcov(res_lm)
 
 # GLM
 # By default, there is no small sample adjustment in glm, as opposed to feglm.
-# To get the same SEs, we need to use ssc(adj = FALSE)
+# To get the same SEs, we need to use ssc(K.adj = FALSE)
 
 res_pois = fepois(round(Petal.Length) ~ Petal.Width + Species, iris)
 res_glm = glm(round(Petal.Length) ~ Petal.Width + Species, iris, family = poisson())
-vcov(res_pois, ssc = ssc(adj = FALSE)) / vcov(res_glm)
+vcov(res_pois, ssc = ssc(K.adj = FALSE)) / vcov(res_glm)
 
 # Same example with the Gamma
 res_gamma = feglm(round(Petal.Length) ~ Petal.Width + Species, iris, family = Gamma())
 res_glm_gamma = glm(round(Petal.Length) ~ Petal.Width + Species, iris, family = Gamma())
-vcov(res_gamma, ssc = ssc(adj = FALSE)) / vcov(res_glm_gamma)
+vcov(res_gamma, ssc = ssc(K.adj = FALSE)) / vcov(res_glm_gamma)
 
 #
 # Fixed-effects corrections
@@ -132,28 +120,28 @@ est = feols(y ~ x | fe1 + fe2, base)
 # Clustered standard-errors: by fe1
 #
 
-# Default: fixef.K = "nested"
+# Default: K.fixef = "nonnested"
 #  => adjustment K = 1 + 5 (i.e. x + fe2)
 summary(est)
-attributes(vcov(est, attr = TRUE))[c("ssc", "dof.K")]
+attributes(vcov(est, attr = TRUE))[c("ssc", "df.K")]
 
 
-# fixef.K = FALSE
+# K.fixef = FALSE
 #  => adjustment K = 1 (i.e. only x)
-summary(est, ssc = ssc(fixef.K = "none"))
-attr(vcov(est, ssc = ssc(fixef.K = "none"), attr = TRUE), "dof.K")
+summary(est, ssc = ssc(K.fixef = "none"))
+attr(vcov(est, ssc = ssc(K.fixef = "none"), attr = TRUE), "df.K")
 
 
-# fixef.K = TRUE
+# K.fixef = TRUE
 #  => adjustment K = 1 + 3 + 5 - 1 (i.e. x + fe1 + fe2 - 1 restriction)
-summary(est, ssc = ssc(fixef.K = "full"))
-attr(vcov(est, ssc = ssc(fixef.K = "full"), attr = TRUE), "dof.K")
+summary(est, ssc = ssc(K.fixef = "full"))
+attr(vcov(est, ssc = ssc(K.fixef = "full"), attr = TRUE), "df.K")
 
 
-# fixef.K = TRUE & fixef.force_exact = TRUE
+# K.fixef = TRUE & K.exact = TRUE
 #  => adjustment K = 1 + 3 + 5 - 2 (i.e. x + fe1 + fe2 - 2 restrictions)
-summary(est, ssc = ssc(fixef.K = "full", fixef.force_exact = TRUE))
-attr(vcov(est, ssc = ssc(fixef.K = "full", fixef.force_exact = TRUE), attr = TRUE), "dof.K")
+summary(est, ssc = ssc(K.fixef = "full", K.exact = TRUE))
+attr(vcov(est, ssc = ssc(K.fixef = "full", K.exact = TRUE), attr = TRUE), "df.K")
 
 # There are two restrictions:
 attr(fixef(est), "references")
@@ -163,7 +151,7 @@ attr(fixef(est), "references")
 #
 
 # eg no small sample adjustment:
-setFixest_ssc(ssc(adj = FALSE))
+setFixest_ssc(ssc(K.adj = FALSE))
 
 # Factory default
 setFixest_ssc()

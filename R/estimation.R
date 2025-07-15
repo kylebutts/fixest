@@ -216,12 +216,18 @@
 #' operator is to aggregate with sums, see [`xpd`]).
 #'
 #' Second, you can use a regular expression to grep the left-hand-sides on the fly. When the 
-#' `..("regex")` feature is used naked on the LHS, the variables grepped are inserted into 
+#' `..("regex")` (re `regex("regex")`) feature is used naked on the LHS, 
+#' the variables grepped are inserted into 
 #' `c()`. For example `..("Pe") ~ Sepal.Length, iris` is equivalent to 
 #' `c(Petal.Length, Petal.Width) ~ Sepal.Length, iris`. Beware that this is a 
 #' special feature unique to the *left-hand-side* of `fixest` estimations 
 #' (the default behavior of `..("regex")` is to aggregate with sums, see [`xpd`]).
 #'
+#' Note that if the dependent variable is also on the right-hand-side, it is automatically 
+#' removed from the set of explanatory variable. 
+#' For example, feols(y ~ y + x, base) works as feols(y ~ x, base). 
+#' This is particulary useful to batch multiple estimations with multiple left hand sides.
+#' 
 #' @section Argument sliding:
 #'
 #' When the data set has been set up globally using 
@@ -499,7 +505,9 @@
 #'
 feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.keep, 
                  split.drop, cluster, se,
-                 ssc, panel.id, fixef, fixef.rm = "none", fixef.tol = 1e-6,
+                 ssc, panel.id, panel.time.step = NULL, 
+                 panel.duplicate.method = "none", 
+                 fixef, fixef.rm = "none", fixef.tol = 1e-6,
                  fixef.iter = 10000, fixef.algo = NULL,
                  collin.tol = 1e-9, nthreads = getFixest_nthreads(),
                  lean = FALSE, verbose = 0, warn = TRUE, notes = getFixest_notes(),
@@ -549,7 +557,9 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
                 subset = subset, split = split, fsplit = fsplit,
                 split.keep = split.keep, split.drop = split.drop,
                 vcov = vcov, cluster = cluster, se = se, ssc = ssc,
-                panel.id = panel.id, fixef = fixef, fixef.rm = fixef.rm,
+                panel.id = panel.id, panel.time.step = panel.time.step, 
+                panel.duplicate.method = panel.duplicate.method, 
+                fixef = fixef, fixef.rm = fixef.rm,
                 fixef.tol = fixef.tol, fixef.iter = fixef.iter, 
                 fixef.algo = fixef.algo, collin.tol = collin.tol,
                 nthreads = nthreads, lean = lean, verbose = verbose, warn = warn,
@@ -1112,6 +1122,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
 
             my_fml = .xpd(lhs = lhs_names[i_lhs], rhs = multi_rhs_fml_full[[jj]])
             current_env = reshape_env(my_env, lhs = my_lhs[[ii]], rhs = my_X, fml_linear = my_fml)
+            assign("lhs_names", lhs_names[i_lhs], my_env)
 
             if(do_iv){
               if(isLinear_current){
@@ -1478,7 +1489,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
       current_env = reshape_env(env, rhs = UX)
       res_second_stage = feols(env = current_env, xwx = UXtUX, xwy = UXty,
                                resid_1st_stage = resid_s1, iv_call = TRUE, notes = FALSE)
-
+      
       # For the F-stats
       if(is_X){
         fit_no_endo = ols_fit(y, X, w = weights, correct_0w = FALSE,
@@ -1635,15 +1646,42 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
   } else {
     res = get("res", env)
   }
+  
+  #
+  # removing the depvar from the expl vars
+  RHS_names = colnames(X)
+  lhs_names = get("lhs_names", env)
+  rm_depvar = lhs_names %in% RHS_names && ncol(X) > 1
+  if(rm_depvar){
+    rm_pos = which(RHS_names == lhs_names)
+    
+    RHS_names = RHS_names[-rm_pos]
+    X = X[, -rm_pos, drop = FALSE]
+    
+    if(!is.null(xwx)){
+      xwx = xwx[-rm_pos, -rm_pos, drop = FALSE]
+    }
+    
+    if(!is.null(xwy)){
+      xwy = xwy[-rm_pos]
+    }
+    
+    res$rm_variable = lhs_names
+  }
 
   if(skip_fixef){
     # Variables were already demeaned
+    
+    if(rm_depvar){
+      X_demean = X_demean[, -rm_pos, drop = FALSE]
+    }
 
   } else if(!isFixef){
     # No Fixed-effects
     y_demean = y
     X_demean = X
     res$means = 0
+    
   } else {
     time_demean = proc.time()
 
@@ -1765,7 +1803,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
                   xwx, xwy, only.coef = only.coef)
 
     if(only.coef){
-      names(est) = colnames(X)
+      names(est) = RHS_names
       return(est)
     }
 
@@ -1775,7 +1813,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
 
     # Corner case: not any relevant variable
     if(!is.null(est$all_removed)){
-      all_vars = colnames(X)
+      all_vars = RHS_names
 
       if(isFixef){
         msg = sma("{$(The only variable;All variables)}, {enum.q.3 ? all_vars}, {$are} collinear with the fixed effects. Without doubt, your model is misspecified.")
@@ -1804,18 +1842,18 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
 
     # Formatting the result
     coef = est$coefficients
-    names(coef) = colnames(X)[!est$is_excluded]
+    names(coef) = RHS_names[!est$is_excluded]
     res$coefficients = coef
     # Additional stuff
     res$residuals = est$residuals
     res$multicol = est$multicol
     res$collin.min_norm = est$collin.min_norm
     if(fromGLM) res$is_excluded = est$is_excluded
-
+    
     if(demeaned){
       res$y_demeaned = y_demean
       res$X_demeaned = X_demean
-      colnames(res$X_demeaned) = colnames(X)
+      colnames(res$X_demeaned) = RHS_names
     }
 
   } else {
@@ -1854,7 +1892,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
   # Collinearity message
   collin.adj = 0
   if(res$multicol){
-    var_collinear = colnames(X)[est$is_excluded]
+    var_collinear = RHS_names[est$is_excluded]
     if(notes){
       msg = sma("The variable{$s, enum.q, has ? var_collinear} been removed because ",
                 "of collinearity (see $collin.var).", .last = "ws")
@@ -1869,7 +1907,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     res$collin.var = var_collinear
 
     # full set of coefficients with NAs
-    collin.coef = setNames(rep(NA, ncol(X)), colnames(X))
+    collin.coef = setNames(rep(NA, length(RHS_names)), RHS_names)
     collin.coef[!est$is_excluded] = res$coefficients
     res$collin.coef = collin.coef
 
@@ -1882,7 +1920,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
   }
 
   n = length(y)
-  res$nparams = res$nparams - collin.adj
+  res$nparams = res$nparams - collin.adj - rm_depvar
   df_k = res$nparams
   res$nobs = n
 
@@ -1900,7 +1938,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     resid_new = cpp_iv_resid(res$residuals, res$coefficients, 
                              dots$resid_1st_stage, is_int, nthreads)
     res$iv_residuals = res$residuals
-    res$residuals = resid_new
+    res$iv_corrected_residuals = resid_new
   }
 
   #
@@ -1950,9 +1988,9 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     if(mem.clean){
       gc()
     }
-
+    
     res$sigma2 = cpp_ssq(res$residuals, weights) / (length(y) - df_k)
-
+    
     res$cov.iid = est$xwx_inv * res$sigma2
 
     rownames(res$cov.iid) = colnames(res$cov.iid) = names(coef)
@@ -2418,7 +2456,9 @@ feols.fit = function(y, X, fixef_df, vcov, offset, split, fsplit, split.keep, sp
 #'
 #'
 feglm = function(fml, data, family = "gaussian", vcov, offset, weights, subset, split,
-                 fsplit, split.keep, split.drop, cluster, se, ssc, panel.id, start = NULL,
+                 fsplit, split.keep, split.drop, cluster, se, ssc, panel.id, 
+                 panel.time.step = NULL, panel.duplicate.method = "none",
+                 start = NULL,
                  etastart = NULL, mustart = NULL, fixef, fixef.rm = "perfect",
                  fixef.tol = 1e-6, fixef.iter = 10000, fixef.algo = NULL, 
                  collin.tol = 1e-9,
@@ -2441,7 +2481,9 @@ feglm = function(fml, data, family = "gaussian", vcov, offset, weights, subset, 
                          split.keep = split.keep, split.drop = split.drop,
                          vcov = vcov,
                          cluster = cluster, se = se, ssc = ssc,
-                         panel.id = panel.id, linear.start = start,
+                         panel.id = panel.id, panel.time.step = panel.time.step,
+                         panel.duplicate.method = panel.duplicate.method, 
+                         linear.start = start,
                          etastart=etastart, mustart = mustart, fixef = fixef,
                          fixef.rm = fixef.rm, fixef.tol = fixef.tol,
                          fixef.iter = fixef.iter, fixef.algo = fixef.algo,
@@ -2802,6 +2844,21 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
   if((init.type == "coef" && verbose >= 1) || verbose >= 4) {
     cat("Deviance at initializat.  = ", numberFormatNormal(devold), "\n", sep = "")
   }
+  
+  #
+  # removing the depvar from the expl vars
+  RHS_names = colnames(X)
+  lhs_names = get("lhs_names", env)
+  rm_depvar = lhs_names %in% RHS_names && ncol(X) > 1
+  if(rm_depvar){
+    rm_pos = which(RHS_names == lhs_names)
+    
+    RHS_names = RHS_names[-rm_pos]
+    X = X[, -rm_pos, drop = FALSE]
+    
+    res$nparams = res$nparams - 1
+    
+  }
 
   #
   # The main loop
@@ -2921,7 +2978,7 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
       while(!is.finite(dev) || dev_evol > 0 || !valideta(eta_new) || !validmu(mu)){
 
         if(iter == 1 && (is.finite(dev) && valideta(eta_new) && validmu(mu)) && iter_sh >= 2){
-# BEWARE FIRST ITERATION:
+          # BEWARE FIRST ITERATION:
           # at first iteration, the deviance can be higher than the init, and SH may not help
           # we need to make sure we get out of SH before it's messed up
           break
@@ -3019,14 +3076,14 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
       beta = wols$coefficients
     }
 
-    names(beta) = colnames(X)
+    names(beta) = RHS_names
     return(beta)
   }
 
   # Collinearity message
   collin.adj = 0
   if(wols$multicol){
-    var_collinear = colnames(X)[wols$is_excluded]
+    var_collinear = RHS_names[wols$is_excluded]
     if(notes){
       msg = sma("The variable{$s, enum.q, has?var_collinear} been ",
                 "removed because of collinearity (see $collin.var).", 
@@ -3041,7 +3098,7 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
     res$collin.var = var_collinear
 
     # full set of coeffficients with NAs
-    collin.coef = setNames(rep(NA, ncol(X)), colnames(X))
+    collin.coef = setNames(rep(NA, length(RHS_names)), RHS_names)
     collin.coef[!wols$is_excluded] = wols$coefficients
     res$collin.coef = collin.coef
 
@@ -3443,7 +3500,9 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
 femlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"), vcov,
                  start = 0, fixef, fixef.rm = "perfect", offset, subset,
                  split, fsplit, split.keep, split.drop,
-                 cluster, se, ssc, panel.id, fixef.tol = 1e-5, fixef.iter = 10000,
+                 cluster, se, ssc, panel.id, panel.time.step = NULL, 
+                 panel.duplicate.method = "none", 
+                 fixef.tol = 1e-5, fixef.iter = 10000,
                  nthreads = getFixest_nthreads(), lean = FALSE, verbose = 0, warn = TRUE,
                  notes = getFixest_notes(), theta.init, combine.quick, mem.clean = FALSE,
                  only.env = FALSE, only.coef = FALSE, data.save = FALSE, env, ...){
@@ -3458,11 +3517,14 @@ femlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian")
                    split = split, fsplit = fsplit,
                    split.keep = split.keep, split.drop = split.drop,
                    vcov = vcov, cluster = cluster,
-                   se = se, ssc = ssc, panel.id = panel.id, start = start,
+                   se = se, ssc = ssc, panel.id = panel.id, 
+                   panel.time.step = panel.time.step,
+                   panel.duplicate.method = panel.duplicate.method, start = start,
                    fixef.tol=fixef.tol, fixef.iter = fixef.iter, nthreads = nthreads,
                    lean = lean, verbose = verbose, warn = warn, notes = notes,
                    theta.init = theta.init, combine.quick = combine.quick,
-                   mem.clean = mem.clean, origin = "femlm", mc_origin_bis = match.call(),
+                   mem.clean = mem.clean, 
+                   origin_bis = "femlm", mc_origin_bis = match.call(),
                    call_env_bis = call_env_bis, only.env = only.env, 
                    only.coef = only.coef, data.save = data.save,
                    env = env, ...), silent = TRUE)
@@ -3477,7 +3539,8 @@ femlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian")
 #' @rdname femlm
 fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "perfect",
                     offset, subset, split, fsplit, split.keep, split.drop,
-                    cluster, se, ssc, panel.id,
+                    cluster, se, ssc, panel.id, panel.time.step = NULL, 
+                    panel.duplicate.method = "none",
                     fixef.tol = 1e-5, fixef.iter = 10000, nthreads = getFixest_nthreads(),
                     lean = FALSE, verbose = 0, warn = TRUE, notes = getFixest_notes(),
                     combine.quick, mem.clean = FALSE, 
@@ -3492,17 +3555,18 @@ fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "p
   set_defaults("fixest_estimation")
   call_env_bis = new.env(parent = parent.frame())
 
-  res = try(feNmlm(fml = fml, data=data, family = "negbin", theta.init = theta.init,
+  res = try(feNmlm(fml = fml, data = data, family = "negbin", theta.init = theta.init,
                    start = start, fixef = fixef, fixef.rm = fixef.rm, offset = offset,
                    subset = subset, split = split, fsplit = fsplit,
                    split.keep = split.keep, split.drop = split.drop,
                    vcov = vcov, cluster = cluster,
-                   se = se, ssc = ssc, panel.id = panel.id, fixef.tol = fixef.tol,
+                   se = se, ssc = ssc, panel.id = panel.id, panel.time.step = panel.time.step,
+                   panel.duplicate.method = panel.duplicate.method, fixef.tol = fixef.tol,
                    fixef.iter = fixef.iter, nthreads = nthreads, lean = lean,
                    verbose = verbose, warn = warn, notes = notes, combine.quick = combine.quick,
                    mem.clean = mem.clean, only.env = only.env, 
                    only.coef = only.coef, data.save = data.save,
-                   origin = "fenegbin", mc_origin_bis = match.call(),
+                   origin_bis = "fenegbin", mc_origin_bis = match.call(),
                    call_env_bis = call_env_bis, env = env, ...), silent = TRUE)
 
   if("try-error" %in% class(res)){
@@ -3515,7 +3579,8 @@ fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "p
 #' @rdname feglm
 fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit, 
                   split.keep, split.drop,
-                  cluster, se, ssc, panel.id, start = NULL, etastart = NULL,
+                  cluster, se, ssc, panel.id, panel.time.step = NULL, 
+                  panel.duplicate.method = "none", start = NULL, etastart = NULL,
                   mustart = NULL, fixef, fixef.rm = "perfect", fixef.tol = 1e-6,
                   fixef.iter = 10000, fixef.algo = NULL,
                   collin.tol = 1e-9, glm.iter = 25, glm.tol = 1e-8,
@@ -3536,7 +3601,9 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
   res = try(feglm(fml = fml, data = data, family = "poisson", offset = offset,
                   weights = weights, subset = subset, split = split, fsplit = fsplit,
                   split.keep = split.keep, split.drop = split.drop,
-                  vcov = vcov, cluster = cluster, se = se, ssc = ssc, panel.id = panel.id,
+                  vcov = vcov, cluster = cluster, se = se, ssc = ssc, panel.id = panel.id, 
+                  panel.time.step = panel.time.step,
+                  panel.duplicate.method = panel.duplicate.method,
                   start = start, etastart = etastart, mustart = mustart, fixef = fixef,
                   fixef.rm = fixef.rm, fixef.tol = fixef.tol, fixef.iter = fixef.iter,
                   fixef.algo = fixef.algo,
@@ -3544,7 +3611,7 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
                   nthreads = nthreads, lean = lean, warn = warn, notes = notes,
                   verbose = verbose, combine.quick = combine.quick, mem.clean = mem.clean,
                   only.env = only.env, only.coef = only.coef, data.save = data.save,
-                  origin = "fepois", mc_origin_bis = match.call(),
+                  origin_bis = "fepois", mc_origin_bis = match.call(),
                   call_env_bis = call_env_bis, env = env, ...), silent = TRUE)
 
   if("try-error" %in% class(res)){
@@ -3743,6 +3810,20 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #' in the meantime. 
 #' This is especially useful for estimations within loops, where the data changes 
 #' at each iteration, such that postprocessing can be done outside the loop without issue.
+#' @param panel.time.step The method to compute the lags, default is `NULL` (which means 
+#' automatically set). Can be equal to: `"unitary"`, `"consecutive"`, `"within.consecutive"`, 
+#' or to a number. If `"unitary"`, then the largest common divisor between consecutive 
+#' time periods is used (typically if the time variable represents years, it will be 1). 
+#' This method can apply only to integer (or convertible to integer) variables. 
+#' If `"consecutive"`, then the time variable can be of any type: two successive 
+#' time periods represent a lag of 1. If `"witihn.consecutive"` then **within a given id**, 
+#' two successive time periods represent a lag of 1. Finally, if the time variable is numeric, 
+#' you can provide your own numeric time step.
+#' @param panel.duplicate.method If several observations have the same id and time values, 
+#' then the notion of lag is not defined for them. If `duplicate.method = "none"` (default) 
+#' and duplicate values are found, this leads to an error. You can use 
+#' `duplicate.method = "first"` so that the first occurrence of identical id/time 
+#' observations will be used as lag.
 #' @param ... Not currently used.
 #'
 #' @details
@@ -3901,11 +3982,12 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #' points(x, fitted(est2_NL), col = 4, pch = 2)
 #'
 #'
-feNmlm = function(fml, data, family=c("poisson", "negbin", "logit", "gaussian"), NL.fml, vcov,
+feNmlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"), NL.fml, vcov,
                   fixef, fixef.rm = "perfect", NL.start, lower, upper, NL.start.init,
                   offset, subset, split, fsplit, split.keep, split.drop,
-                  cluster, se, ssc, panel.id,
-                  start = 0, jacobian.method="simple", useHessian = TRUE,
+                  cluster, se, ssc, panel.id, panel.time.step = NULL, 
+                  panel.duplicate.method = "none",
+                  start = 0, jacobian.method = "simple", useHessian = TRUE,
                   hessian.args = NULL, opt.control = list(), nthreads = getFixest_nthreads(),
                   lean = FALSE, verbose = 0, theta.init, fixef.tol = 1e-5, fixef.iter = 10000,
                   deriv.tol = 1e-4, deriv.iter = 1000, warn = TRUE, notes = getFixest_notes(),
@@ -3925,14 +4007,16 @@ feNmlm = function(fml, data, family=c("poisson", "negbin", "logit", "gaussian"),
                          offset = offset, subset = subset, split = split, fsplit = fsplit,
                          split.keep = split.keep, split.drop = split.drop,
                          vcov = vcov, cluster = cluster, se = se, ssc = ssc,
-                         panel.id = panel.id, linear.start = start, 
+                         panel.id = panel.id, panel.time.step = panel.time.step,
+                         panel.duplicate.method = panel.duplicate.method,
+                         linear.start = start, 
                          jacobian.method = jacobian.method,
                          useHessian = useHessian, opt.control = opt.control, nthreads = nthreads,
                          lean = lean, verbose = verbose, theta.init = theta.init,
                          fixef.tol = fixef.tol, fixef.iter = fixef.iter, deriv.iter = deriv.iter,
                          warn = warn, notes = notes, combine.quick = combine.quick,
                          mem.clean = mem.clean, only.coef = only.coef, data.save = data.save,
-                         mc_origin = match.call(),
+                         origin = "feNmlm", mc_origin = match.call(),
                          call_env = call_env, computeModel0 = TRUE, ...), silent = TRUE)
 
   } else if((r <- !is.environment(env)) || !isTRUE(env$fixest_env)) {
@@ -4068,14 +4152,41 @@ feNmlm = function(fml, data, family=c("poisson", "negbin", "logit", "gaussian"),
 
   # warnings => to avoid accumulation, but should appear even if the user stops the algorithm
   on.exit(warn_fixef_iter(env, stack_multi = IN_MULTI))
+  
+  
+  #
+  # removing the depvar from the expl vars
+  RHS_names = get("linear.params", env)
+  lhs_names = get("lhs_names", env)
+  rm_depvar = lhs_names %in% RHS_names && length(RHS_names) > 1
+  if(rm_depvar){
+    rm_pos = which(RHS_names == lhs_names)
+    
+    RHS_names = RHS_names[-rm_pos]
+    assign("linear.params", RHS_names, env)
+    
+    params = get("params", env)
+    params = setdiff(params, lhs_names)
+    assign("params", params, env)
+    
+    X = get("linear.mat", env)
+    X = X[, -rm_pos, drop = FALSE]
+    assign("linear.mat", X, env)
+    
+    res$nparams = res$nparams - 1
+    
+    start = start[-rm_pos]
+    
+  }
+  
 
   #
   # Maximizing the likelihood
   #
 
-  opt = try(stats::nlminb(start=start, objective=femlm_ll, env=env, lower=lower, 
-                          upper=upper, gradient=gradient, hessian=hessian, 
-                          control=opt.control), silent = TRUE)
+  opt = try(stats::nlminb(start = start, objective = femlm_ll, env = env, lower = lower, 
+                          upper = upper, gradient = gradient, hessian = hessian, 
+                          control = opt.control), silent = TRUE)
 
   if("try-error" %in% class(opt)){
     # We return the coefficients (can be interesting for debugging)
@@ -4663,8 +4774,8 @@ format_error_msg = function(x, origin){
 
   x = gsub("\n+$", "", x)
 
-  if(grepl("^Error (in|:|: in) (fe|fixest|fun|fml_split)[^\n]+\n", x)){
-    res = gsub("^Error (in|:|: in) (fe|fixest|fun|fml_split)[^\n]+\n *(.+)", "\\3", x)
+  if(grepl("^Error (in|:|: in) (fe|fixest|fun|fml_split|panel)[^\n]+\n", x)){
+    res = gsub("^Error (in|:|: in) (fe|fixest|fun|fml_split|panel)[^\n]+\n *(.+)", "\\3", x)
   } else if(grepl("[Oo]bject '.+' not found", x) || grepl("memory|cannot allocate", x)) {
     res = x
   } else {
@@ -4814,6 +4925,8 @@ multi_LHS_RHS = function(env, fun){
         my_env = reshape_env(env, lhs = lhs[[i]], rhs = my_rhs, 
                              fml_linear = my_fml, check_lhs = TRUE)
       }
+      
+      assign("lhs_names", lhs_names[i], my_env)
 
       my_res = fun(env = my_env)
 

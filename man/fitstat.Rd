@@ -7,6 +7,9 @@
 fitstat(
   x,
   type,
+  vcov = NULL,
+  cluster = NULL,
+  ssc = NULL,
   simplify = FALSE,
   verbose = TRUE,
   show_types = FALSE,
@@ -22,6 +25,33 @@ The classic ones are: n, rmse, r2, pr2, f, wald, ivf, ivwald. You have the full 
 the details section or use \code{show_types = TRUE}. Further, you can register your own types
 with \code{\link{fitstat_register}}.}
 
+\item{vcov}{Versatile argument to specify the VCOV. In general, it is either a character
+scalar equal to a VCOV type, either a formula of the form: \code{vcov_type ~ variables}. The
+VCOV types implemented are: "iid", "hetero" (or "HC1"), "cluster", "twoway",
+"NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley". It also accepts
+object from \code{\link{vcov_cluster}}, \code{\link[=vcov_hac]{vcov_NW}}, \code{\link[=vcov_hac]{NW}},
+\code{\link[=vcov_hac]{vcov_DK}}, \code{\link[=vcov_hac]{DK}}, \code{\link{vcov_conley}} and
+\code{\link[=vcov_conley]{conley}}. It also accepts covariance matrices computed externally.
+Finally it accepts functions to compute the covariances. See the \code{vcov} documentation
+in the \href{https://lrberge.github.io/fixest/articles/fixest_walkthrough.html#the-vcov-argument-1}{vignette}.}
+
+\item{cluster}{Tells how to cluster the standard-errors (if clustering is requested).
+Can be either a list of vectors, a character vector of variable names, a formula or
+an integer vector. Assume we want to perform 2-way clustering over \code{var1} and \code{var2}
+contained in the data.frame \code{base} used for the estimation. All the following
+\code{cluster} arguments are valid and do the same thing:
+\code{cluster = base[, c("var1", "var2")]}, \code{cluster = c("var1", "var2")}, \code{cluster = ~var1+var2}.
+If the two variables were used as fixed-effects in the estimation, you can leave it
+blank with \code{vcov = "twoway"} (assuming \code{var1} [resp. \code{var2}] was
+the 1st [resp. 2nd] fixed-effect). You can interact two variables using \code{^} with
+the following syntax: \code{cluster = ~var1^var2} or \code{cluster = "var1^var2"}.}
+
+\item{ssc}{An object of class \code{ssc.type} obtained with the function \code{\link{ssc}}. Represents
+how the degree of freedom correction should be done.You must use the function \code{\link{ssc}}
+for this argument. The arguments and defaults of the function \code{\link{ssc}} are:
+\code{K.adj = TRUE}, \code{K.fixef = "nonnested"}, \code{G.adj = TRUE}, \code{G.df = "min"},
+\code{t.df = "min"}, \verb{K.exact = FALSE)}. See the help of the function \code{\link{ssc}} for details.}
+
 \item{simplify}{Logical, default is \code{FALSE}. By default a list is returned whose names are
 the selected types. If \code{simplify = TRUE} and only one type is selected, then the element
 is directly returned (ie will not be nested in a list).}
@@ -36,9 +66,7 @@ is returned instead.}
 Only used if the argument \code{type} is a formula and some values in the formula have to be
 extended with the dot square bracket operator. Mostly for internal use.}
 
-\item{...}{Other elements to be passed to other methods and may be used to compute
-the statistics (for example you can pass on arguments to compute the VCOV when using
-\code{type = "g"} or \code{type = "wald"}.).}
+\item{...}{For internal use.}
 }
 \value{
 By default an object of class \code{fixest_fitstat} is returned. Using \code{verbose = FALSE}

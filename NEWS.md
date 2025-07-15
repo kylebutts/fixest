@@ -3,7 +3,7 @@
 
 ## New Features
 
-- add the ability to create sparse model matrices from regression objects and formula in a memory-efficient way.
+- new function: `sparse_model_matrix` which creates sparse model matrices from regression objects in a memory-efficient way
 
 ```R
 est = feols(mpg ~ drat | cyl, mtcars)
@@ -32,42 +32,99 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 #>  [3,] . 1 . 1 . . . . . .
 ```
 
-## Non breaking changes
+- variables on the left-hand-side that are present on the right-hand-sides, are automatically removed from the estimation
+```R
+# we regress `Ozone` and `Temp` on all other variables but `Day`:
+feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
+#> NOTE: 42 observations removed because of NA values (RHS: 42).
+#>       |-> this msg only concerns the variables common to all estimations
+#>                                x.1                x.2
+#> Dependent Var.:              Ozone               Temp
+#>                                                      
+#> Constant           -58.05* (22.97)   55.93*** (4.405)
+#> Solar.R           0.0496* (0.0235)    0.0114 (0.0070)
+#> Wind            -3.317*** (0.6458)   -0.1925 (0.2126)
+#> Temp             1.871*** (0.2736)                   
+#> Month              -2.992. (1.516)  2.047*** (0.4108)
+#> Ozone                              0.1636*** (0.0239)
+#> _______________ __________________ __________________
+#> S.E. type                      IID                IID
+#> Observations                   111                111
+#> R2                         0.61986            0.59476
+#> Adj. R2                    0.60552            0.57947
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
 
-- the arguments of the function `ssc` are renamed:
-  - adj => K.adj
-  - fixef.K => K.fixef
-  - fixef.force_exact => K.exact
-  - cluster.adj => G.adj
-  - cluster.df => G.df
-  Retro compatibility is ensured. Thanls to Kyle Butts and Grant McDermott for the brainstorm!
+- more notes and messages better fit the user screen
 
-- attribute renaming: attribute of the VCOV `dof.K` becomes `df.K` (to be consistent with to other attribute `df.t`)
+- the functions `coefplot` and `iplot` now accept models passsed via `...`, aligning their design to the one of `etable`
 
+- the functions `coefplot` and `iplot` now accept the argument `vcov`. The argument `vcov` can be a list of valid `vcov` values, in which case it will be recycled across the models.
 
-## Breaking changes
+- all estimations gain the two arguments: `panel.time.step` and `panel.duplicate.method` to handle non standard lags
 
-- **the new default VCOV is `iid` for all estimations**. To change the default to the way it was, place `setFixest_vcov(all = "cluster", no_FE = "iid")` in your `.Rprofile`.
+- in `coefplot`: the argument `dict` now updates the entries in the global dictionnary (instead of replacing them)
 
-- in `vcov`, the argument `vcov_fix` now defaults to `FALSE`. If the VCOV fails to be PSD (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors. **No retro compatibility ensured.**
- 
-- the function `dof`, deprecated, and replaced with the function `ssc` since 2021, is removed
+- improve the display of the numbers in `fitstat`
+
+- use perl regular expressions (instead of standard RE) in all instances of the arguments `keep`, `drop`, `order`
 
 ## New vignette and data set
 
 - add a new vignette on collinearity
 
-- new data set `base_pub`, base on publication data from the Microsoft Academic Graph, used to illustrate the new vignette
+- new data set `base_pub`, based on publication data from the Microsoft Academic Graph, used to illustrate the new vignette
 
-## Minor changes
+## Breaking changes
 
-- more notes and messages better fit the user screen
+- **the new default VCOV is `iid` for all estimations**. To change the default to the way it was, place `setFixest_vcov(all = "cluster", no_FE = "iid")` in your `.Rprofile`.
+ 
+- the function `dof` is removed (it was deprecated and replaced with the function `ssc` since 2021)
+
+- in `etable`, the argument `replace = TRUE` by default (it was `FALSE`)
+
+- the arguments of the function `ssc` are renamed:
+
+  - `adj` => `K.adj`
+  - `fixef.K` => `K.fixef`
+  - `fixef.force_exact` => `K.exact`
+  - `cluster.adj` => `G.adj`
+  - `cluster.df` => `G.df`
+  
+  Retro compatibility is ensured. Thanls to Kyle Butts and Grant McDermott for the brainstorm!
+
+- in the functions `coefplot` and `iplot`: the argument `object` is removed, now all models need to be passed in `...`. The dots do not accept arguments to summary methods any more. Retro-compatibility ensured.
+
+## Other changes
+
+- in `vcov`: if the VCOV fails to be positive semi-definite (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors.
 
 - default for the argument `collin.tol` increased from `1e-10` to `1e-9`.
 
 - requires stringmagic >= 1.2.0
 
-- add checks in IVs as regeads the number of instruments and endogenous variables
+- add checks in IVs as regards the number of instruments and endogenous variables
+
+- attribute renaming: attribute of the VCOV `dof.K` becomes `df.K` (to be consistent with to other attribute `df.t`)
+
+- in IV estimations, the R2 reported in the second stage is based on the residuals of the second stage estimation and **not** the corrected residuals (using the original variables with the second stage coefficients)
+
+## etable
+
+- `setFixest_etable` now accepts the argument `div.class`
+
+- when a file is created and the containing folders do not exist:
+  - the new default is to create up to the grand parent folder
+  - the new argument `create_dirs` (default is `FALSE`) creates all containing directories
+
+- when `markdown = TRUE`, the images are directly inserted in the `<img>` container as URI, avoiding any issue with paths
+
+- the caching of table images is now automatically enabled
+
+- argument `title` becomes `caption`, retro-compatibility is ensured
+
+- argument `caption` (formerly `title`) now accepts character vectors, which become concatenated
 
 ## Bugs
 
@@ -83,7 +140,15 @@ sparse_model_matrix(mpg ~ i(vs) | gear^cyl, data = mtcars, type = c("rhs", "fixe
 
 - fix documentation bugs. Reported by @cseveren
 
-- fix bug in etable: `drop.section` was not catching the option `coef`. Thanks to @Oravishayrizi, #540
+- fix bug in `etable`: `drop.section` was not catching the option `coef`. Thanks to @Oravishayrizi, #540
+
+- fix bug in `etable` when `view = TRUE`, now it displays properly in VSCode
+
+- fix bug in `etable` preventing the use of the argument `export` when `markdown = TRUE` within a Rmd document
+
+- fix bug regarding panels in estimations, the format `panel.id = "id,time"` did not work. Now fixed. 
+
+- fig bug preventing the use of the argument `vcov` in `fitstat` for the Wald statistics
 
 # fixest 0.12.1
 

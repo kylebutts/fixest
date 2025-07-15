@@ -20,6 +20,8 @@ feols(
   se,
   ssc,
   panel.id,
+  panel.time.step = NULL,
+  panel.duplicate.method = "none",
   fixef,
   fixef.rm = "none",
   fixef.tol = 1e-06,
@@ -172,14 +174,30 @@ you should use \code{vcov} instead.}
 \item{ssc}{An object of class \code{ssc.type} obtained with the function \code{\link{ssc}}. Represents
 how the degree of freedom correction should be done.You must use the function \code{\link{ssc}}
 for this argument. The arguments and defaults of the function \code{\link{ssc}} are:
-\code{adj = TRUE}, \code{fixef.K="nested"}, \code{cluster.adj = TRUE}, \code{cluster.df = "min"},
-\code{t.df = "min"}, \verb{fixef.force_exact=FALSE)}. See the help of the function \code{\link{ssc}} for details.}
+\code{K.adj = TRUE}, \code{K.fixef = "nonnested"}, \code{G.adj = TRUE}, \code{G.df = "min"},
+\code{t.df = "min"}, \verb{K.exact = FALSE)}. See the help of the function \code{\link{ssc}} for details.}
 
 \item{panel.id}{The panel identifiers. Can either be: i) a one sided formula
 (e.g. \code{panel.id = ~id+time}), ii) a character vector of length 2
 (e.g. \code{panel.id=c('id', 'time')}, or iii) a character scalar of two variables
 separated by a comma (e.g. \code{panel.id='id,time'}). Note that you can combine variables
 with \code{^} only inside formulas (see the dedicated section in \code{\link{feols}}).}
+
+\item{panel.time.step}{The method to compute the lags, default is \code{NULL} (which means
+automatically set). Can be equal to: \code{"unitary"}, \code{"consecutive"}, \code{"within.consecutive"},
+or to a number. If \code{"unitary"}, then the largest common divisor between consecutive
+time periods is used (typically if the time variable represents years, it will be 1).
+This method can apply only to integer (or convertible to integer) variables.
+If \code{"consecutive"}, then the time variable can be of any type: two successive
+time periods represent a lag of 1. If \code{"witihn.consecutive"} then \strong{within a given id},
+two successive time periods represent a lag of 1. Finally, if the time variable is numeric,
+you can provide your own numeric time step.}
+
+\item{panel.duplicate.method}{If several observations have the same id and time values,
+then the notion of lag is not defined for them. If \code{duplicate.method = "none"} (default)
+and duplicate values are found, this leads to an error. You can use
+\code{duplicate.method = "first"} so that the first occurrence of identical id/time
+observations will be used as lag.}
 
 \item{fixef}{Character vector. The names of variables to be used as fixed-effects.
 These variables should contain the identifier of each observation (e.g., think of it
@@ -409,8 +427,7 @@ The function \code{\link{i}} has in fact more arguments, please see details in i
 
 
 Standard-errors can be computed in different ways, you can use the arguments \code{se} and \code{ssc}
-in \code{\link{summary.fixest}} to define how to compute them. By default, in the presence
-of fixed-effects, standard-errors are automatically clustered.
+in \code{\link{summary.fixest}} to define how to compute them. By default, the VCOV is the "standard" one.
 
 The following vignette: \href{https://lrberge.github.io/fixest/articles/standard_errors.html}{On standard-errors} describes in details how the standard-errors are computed in
 \code{fixest} and how you can replicate standard-errors from other software.
@@ -508,11 +525,17 @@ unique to the \emph{left-hand-side} of \code{fixest} estimations (the default be
 operator is to aggregate with sums, see \code{\link{xpd}}).
 
 Second, you can use a regular expression to grep the left-hand-sides on the fly. When the
-\code{..("regex")} feature is used naked on the LHS, the variables grepped are inserted into
+\code{..("regex")} (re \code{regex("regex")}) feature is used naked on the LHS,
+the variables grepped are inserted into
 \code{c()}. For example \verb{..("Pe") ~ Sepal.Length, iris} is equivalent to
 \verb{c(Petal.Length, Petal.Width) ~ Sepal.Length, iris}. Beware that this is a
 special feature unique to the \emph{left-hand-side} of \code{fixest} estimations
 (the default behavior of \code{..("regex")} is to aggregate with sums, see \code{\link{xpd}}).
+
+Note that if the dependent variable is also on the right-hand-side, it is automatically
+removed from the set of explanatory variable.
+For example, feols(y ~ y + x, base) works as feols(y ~ x, base).
+This is particulary useful to batch multiple estimations with multiple left hand sides.
 }
 
 \section{Argument sliding}{
@@ -589,7 +612,7 @@ summary(res, cluster = ~Species)
 #
 
 res = feols(Sepal.Length ~ Sepal.Width + Petal.Length | Species, iris)
-# By default, the SEs are clustered according to the first fixed-effect
+# Here we have "default" SEs
 summary(res)
 
 #
@@ -617,7 +640,7 @@ data(base_did)
 # We need to set up the panel with the arg. panel.id
 est1 = feols(y ~ l(x1, 0:1), base_did, panel.id = ~id+period)
 est2 = feols(f(y) ~ l(x1, -1:1), base_did, panel.id = ~id+period)
-etable(est1, est2, order = "f", drop="Int")
+etable(est1, est2, order = "f", drop = "Int")
 
 #
 # Using interactions:
@@ -625,7 +648,7 @@ etable(est1, est2, order = "f", drop="Int")
 
 data(base_did)
 # We interact the variable 'period' with the variable 'treat'
-est_did = feols(y ~ x1 + i(period, treat, 5) | id+period, base_did)
+est_did = feols(y ~ x1 + i(period, treat, 5) | id + period, base_did)
 
 # Now we can plot the result of the interaction with coefplot
 coefplot(est_did)

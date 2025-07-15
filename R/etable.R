@@ -53,9 +53,9 @@
 #' use: `fitstat=c('n', 'cor2', 'ar2', 'war2')`, or `fitstat=~n+cor2+ar2+war2` using a formula. You 
 #' can use the dot to refer to default values:` ~ . + ll` would add the log-likelihood to the 
 #' default fit statistics.
-#' @param title (Tex only.) Character scalar. The title of the Latex table.
-#' @param float (Tex only.) Logical. By default, if the argument `title` or `label` is provided, it 
-#' is set to `TRUE`. Otherwise, it is set to `FALSE`.
+#' @param caption (Tex only.) Character scalar. The caption of the Latex table.
+#' @param float (Tex only.) Logical. By default, if the argument `caption` or `label` is provided, 
+#' it is set to `TRUE`. Otherwise, it is set to `FALSE`.
 #' @param se.below Logical or `NULL` (default). Should the standard-errors be displayed below the 
 #' coefficients? If `NULL`, then this is `TRUE` for Latex and `FALSE` otherwise.
 #' @param se.row Logical scalar, default is `NULL`. Whether should be displayed the row with the 
@@ -97,6 +97,11 @@
 #' export a regular `data.frame`, use argument `tex = FALSE`.
 #' @param replace Logical, default is `FALSE`. Only used if option `file` is used. Should the 
 #' exported table be written in a new file that replaces any existing file?
+#' @param create_dirs Logical, default is `FALSE`. Only used if when some file needs to be 
+#' created (e;g. when `file` or `export` is used). By default, i.e. when `FALSE`, 
+#' if the parent directory does not exist, the containing folders are created 
+#' up to the grand parent. 
+#' If `TRUE`, all containing folders are recursively created.
 #' @param convergence Logical, default is missing. Should the convergence state of the algorithm be 
 #' displayed? By default, convergence information is displayed if at least one model did not 
 #' converge.
@@ -472,12 +477,12 @@
 #' @section Escaping special Latex characters:
 #'
 #' By default on all instances (with the notable exception of the elements of [`style.tex`]) 
-#' special Latex characters are escaped. This means that `title="Exports in million $."` will be 
+#' special Latex characters are escaped. This means that `caption="Exports in million $."` will be 
 #' exported as `"Exports in million \\$."`: the dollar sign will be escaped. This is true for the 
 #' following characters: &, `$`, %, _, ^ and #.
 #'
 #' Note, importantly, that equations are NOT escaped. This means that 
-#' `title="Functional form $a_i \\times x^b$, variation in %."` will be displayed as: 
+#' `caption="Functional form $a_i \\times x^b$, variation in %."` will be displayed as: 
 #' `"Functional form $a_i \\times x^b$, variation in \\%."`: only the 
 #' last percentage will be escaped.
 #'
@@ -808,10 +813,11 @@
 etable = function(..., vcov = NULL, stage = 2, agg = NULL,
                   se = NULL, ssc = NULL, cluster = NULL, .vcov_args = NULL,
                   digits = 4, digits.stats = 5, tex,
-                  fitstat = NULL, title = NULL, coefstat = "se", ci = 0.95,
+                  fitstat = NULL, caption = NULL, coefstat = "se", ci = 0.95,
                   se.row = NULL, se.below = NULL,
                   keep = NULL, drop = NULL, order = NULL,
-                  dict = TRUE, file = NULL, replace = FALSE, convergence = NULL,
+                  dict = TRUE, file = NULL, replace = TRUE, 
+                  create_dirs = FALSE, convergence = NULL,
                   signif.code = NULL, label = NULL, float = NULL,
                   headers = list("auto"), fixef_sizes = FALSE,
                   fixef_sizes.simplify = TRUE, keepFactors = TRUE,
@@ -856,18 +862,18 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   # Float or not
   check_arg(float, "NULL logical scalar")
   if(missnull(float)){
-    if(!missing(title) || !missing(label)){
+    if(!missing(caption) || !missing(label)){
       float = TRUE
     } else {
       float = FALSE
     }
-  } else if(!float && (!missnull(title) || !missnull(label))) {
-    what = c("title", "label")[c(!missing(title), !missing(label))]
+  } else if(!float && (!missnull(caption) || !missnull(label))) {
+    what = c("caption", "label")[c(!missing(caption), !missing(label))]
     warning("Since float = FALSE, the argument", enumerate_items(what, "s.is"), " ignored.",
         immediate. = TRUE, call. = FALSE)
   }
 
-  check_value(div.class, "character scalar")
+  check_arg(div.class, "character scalar")
 
   # NOTA: now that I allow the use of .(stuff) for headers and extralines
   # list(...) will raise an error if subtitle (now deprec) is used with .()
@@ -925,6 +931,17 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
     signif.code = dots$signifCode
     dots$signifCode = NULL
   }
+  
+  if("title" %in% names(dots)){
+    if(is.null(getOption("fixest_etable_arg_title"))){
+      # I replace title with caption, 2025-07-09
+      # In 2026-07-09, uncomment the line below to send a warning
+      # warning("The argument 'signifCode' is deprecated. Please use 'signif.code' instead.")
+      options(fixest_etable_arg_title = TRUE)
+    }
+    caption = dots$title
+    dots$title = NULL
+  }
 
   if(".vcov" %in% names(dots)){
     if(is.null(getOption("fixest_deprec_arg_.vcov"))){
@@ -940,7 +957,8 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   if(.up == 2){
     # it's pain in the necky
     sysOrigin = sys.parent()
-    mc = match.call(definition = sys.function(sysOrigin), call = sys.call(sysOrigin), expand.dots = FALSE)
+    mc = match.call(definition = sys.function(sysOrigin), call = sys.call(sysOrigin), 
+                    expand.dots = FALSE)
     dots_call = mc[["..."]]
   } else {
     mc = match.call(expand.dots = FALSE)
@@ -960,7 +978,9 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   # Arguments that can be set globally
   opts = getOption("fixest_etable")
 
-  args_global = c("postprocess.tex", "postprocess.df", "view", "markdown", "page.width")
+  args_global = c("postprocess.tex", "postprocess.df", "view", "markdown", 
+                  "page.width", "div.class")
+  
   for(arg in setdiff(args_global, names(mc))){
     if(arg %in% names(opts)){
       assign(arg, opts[[arg]])
@@ -990,7 +1010,6 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
       is_md = FALSE
     } else {
       tex = TRUE
-      export = NULL
       view = FALSE
       if(knitr::is_latex_output()){
         is_md = FALSE
@@ -1063,7 +1082,7 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
       .vcov_args = .vcov_args, digits = digits, digits.stats = digits.stats,
       se.row = se.row, se.below = se.below,
       signif.code = signif.code, coefstat = coefstat,
-      ci = ci, title = title, float = float, headers = headers,
+      ci = ci, caption = caption, float = float, headers = headers,
       keepFactors = keepFactors, tex = TEX, useSummary = useSummary,
       dots_call = dots_call, powerBelow = powerBelow, dict = dict,
       interaction.combine = interaction.combine, interaction.order = interaction.order,
@@ -1126,6 +1145,7 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   if(is_png){
      make_png = function(x) build_tex_png(x, view = view, export = export,
                                           markdown = markdown, cache = cache,
+                                          create_dirs = create_dirs,
                                           page.width = page.width)
   }
 
@@ -1155,6 +1175,9 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
   # Export to file
   is_file = !missnull(file)
   if(is_file){
+    # Create directory if it doesn't exist
+    check_set_path(file, "w", create_dirs = create_dirs)
+    
     error_sender(sink(file = file, append = !replace),
                  "Argument 'file': error when creating the document in ", file)
 
@@ -1191,8 +1214,9 @@ etable = function(..., vcov = NULL, stage = 2, agg = NULL,
 
     if(is_md){
       if(!knitr::is_latex_output()){
-        path = path_to_relative(path)
-        cat(sma('<div class = "{div.class}"><img src = "{path}"></div>\n'))
+        # we insert the URI directly
+        URI = knitr::image_uri(path)
+        catma('<div class = "{div.class}"><img src = "{URI}"></div>\n')
         return(invisible(NULL))
       }
     }
@@ -1255,6 +1279,15 @@ gen_etable_aliases = function(){
   # Now the two have been merged into etable
   # I like it much better
   # I wanted to deprecate them, but maintainance with that function is very easy
+  
+  # NOTA: I do this to avoid a discrepancy btw the current dev version 
+  # and the package being installed
+  file = "./R/etable.R"
+  if(!file.exists(file)) return()
+  env = new.env()
+  source(file, local = env)
+  if(!exists("etable", envir = env)) return()
+  etable = get("etable", env)
 
   etable_args = formals(etable)
 
@@ -1268,7 +1301,7 @@ gen_etable_aliases = function(){
   esttable_def = "esttable = function("
   coll = paste0(", \n", strrep(" ", nchar(esttable_def)))
 
-  qui_df = !arg_name %in% c("tex", "title", "label", "float", "style.tex",
+  qui_df = !arg_name %in% c("tex", "caption", "label", "float", "style.tex",
                             "notes", "placement", "postprocess.tex",
                             "meta", "meta.time", "meta.author", "meta.sys",
                             "meta.call", "meta.comment", "tpt", "arraystretch",
@@ -1320,8 +1353,8 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
                                  digits.stats = 5, fitstat_all, se.row = NULL, 
                                  se.below = NULL, dict,
                                  signif.code = c("***"=0.01, "**"=0.05, "*"=0.10),
-                                 coefstat = "se", ci = 0.95, label, headers, title,
-                                 float = FALSE, replace = FALSE, keepFactors = FALSE,
+                                 coefstat = "se", ci = 0.95, label, headers, caption,
+                                 float = FALSE, replace = TRUE, keepFactors = FALSE,
                                  tex = FALSE, useSummary, dots_call, powerBelow = -5,
                                  interaction.combine, interaction.order, i.equal,
                                  convergence, family, drop, order,
@@ -1408,8 +1441,13 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   # Full control
   #
 
-  check_arg(title, "NULL character scalar")
+  check_arg(caption, "NULL character vector no na ")
+  if(length(caption) > 1){
+    caption = paste0(caption, collapse = "")
+  }
+  
   check_set_arg(coefstat, "match(se, tstat, confint, pvalue)")
+
 
   check_set_arg(notes, "NULL character vector no na")
   if(length(notes) > 0) notes = notes[nchar(notes) > 0]
@@ -1727,25 +1765,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   yesNo = style$yesNo
 
   # default values for dict
-  dict_global = getFixest_dict()
-  if(missing(dict) || isTRUE(dict)) {
-    dict = dict_global
-  } else if(isFALSE(dict)) {
-    dict = NULL
-  } else {
-    # dict changes the values set in the global dict
-
-    if(dict[1] == "reset"){
-      dict_global = c()
-      dict = dict[-1]
-    }
-
-    if(length(dict) > 0){
-      dict_global[names(dict)] = dict
-    }
-
-    dict = dict_global
-  }
+  dict = setup_dict(dict)
 
   # headers => must be a list
   # We get the automatic headers, if split is used
@@ -1815,82 +1835,17 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   n_dots = length(dots)
 
   if(n_dots == 0) stop_up("Not any estimation as argument.")
-
-  all_models = list()
-  model_names = list()
-  auto_headers = list()
-  model_id = NULL
-  k = 1
-  for(i in 1:n_dots){
-    di = dots[[i]]
-
-    if("fixest" %in% class(di)){
-      all_models[[k]] = di
-      if(any(class(dots_call[[i]]) %in% c("call", "name"))){
-        model_names[[k]] = deparse_long(dots_call[[i]])
-      } else {
-        model_names[[k]] = as.character(dots_call[[i]])
-      }
-
-      k = k + 1
-    } else if(any(c("list", "fixest_list", "fixest_multi") %in% class(di))){
-      # we get into this list to get the fixest objects
-      types = sapply(di, function(x) class(x)[1])
-      qui = which(types %in% c("fixest", "fixest_multi"))
-      is_multi = inherits(di, "fixest_multi")
-
-      for(m in qui){
-        mod = di[[m]]
-
-        # handling names
-        if(is_multi){
-          if(any(class(dots_call[[i]]) %in% c("call", "name"))){
-            mod_name = deparse_long(dots_call[[i]])
-          } else {
-            mod_name = as.character(dots_call[[i]])
-          }
-          mod_name = paste0(mod_name, ".", m)
-        } else {
-          if(n_dots > 1){
-            if(is.null(names(di)[m]) || names(di)[m] == ""){
-              mod_name  = paste0(dots_call[[i]], "[[", m, "]]")
-            } else {
-              mod_name = paste0(dots_call[[i]], "$", names(di)[m])
-            }
-          } else {
-            mod_name = as.character(names(di)[m])
-          }
-        }
-
-        if(inherits(mod, "fixest_multi")){
-
-          for(j in seq_along(mod)){
-            all_models[[k]] = mod[[j]]
-            model_names[[k]] = paste0(mod_name, ".", j)
-
-            k = k + 1
-          }
-
-        } else {
-          # regular fixest or from fixest_list
-          all_models[[k]] = mod
-          model_names[[k]] = mod_name
-
-          id = di[[m]]$model_id
-          if(!is.null(id)){
-            model_id[k] = id
-          }
-
-          k = k + 1
-        }
-      }
-    }
-  }
+  
+  info_models = flatten_list_of_models(dots, dots_call)
+  all_models = info_models$all_models
+  model_names = info_models$model_names
+  model_id = info_models$model_id
 
   if(length(all_models) == 0) stop_up("Not any 'fixest' model as argument!")
 
   n_models = length(all_models)
 
+  auto_headers = list()
   if(AUTO_HEADERS){
 
     # SAMPLE (ie split)
@@ -2911,14 +2866,14 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   }
 
   if(isTex){
-    if(missnull(title)){
-      title = "no title"
+    if(missnull(caption)){
+      caption = "no title"
     } else {
-      title = escape_latex(title, makecell = FALSE)
+      caption = escape_latex(caption, makecell = FALSE)
     }
   } else {
-    if(missnull(title)){
-      title = NULL
+    if(missnull(caption)){
+      caption = NULL
     }
   }
 
@@ -3118,7 +3073,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
              is_fe = is_fe, nb_fe = nb_fe, slope_flag_list = slope_flag_list,
              slope_names = slope_names, useSummary = useSummary, model_names = model_names,
              family_list = family_list, fitstat_list = fitstat_list, headers = headers,
-             isHeaders = isHeaders, title = title, convergence = convergence, family = family,
+             isHeaders = isHeaders, caption = caption, convergence = convergence, family = family,
              keep = keep, drop = drop, order = order, file = file, label = label, 
              se.below = se.below,
              signif.code = signif.code, fixef_sizes = fixef_sizes, 
@@ -3159,7 +3114,7 @@ etable_internal_latex = function(info){
   fitstat_list = info$fitstat_list
   headers = info$headers
   isHeaders = info$isHeaders
-  title = info$title
+  caption = info$caption
   label = info$label
   keep = info$keep
   drop = info$drop
@@ -3230,7 +3185,7 @@ etable_internal_latex = function(info){
   #
 
   # Starting the table
-  myTitle = title
+  myTitle = caption
   if(!is.null(label)){
     myTitle = paste0("\\label{", label, "} ", myTitle)
   }
@@ -4079,7 +4034,7 @@ etable_internal_df = function(info){
   slope_flag_list = info$slope_flag_list
   family_list = info$family_list
   fitstat_list = info$fitstat_list
-  title = info$title
+  caption = info$caption
   label = info$label
   keep = info$keep
   drop = info$drop
@@ -4626,8 +4581,8 @@ setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
                             interaction.order = NULL, depvar, style.tex = NULL,
                             style.df = NULL, notes = NULL, group = NULL, extralines = NULL,
                             fixef.group = NULL, placement = "htbp", drop.section = NULL,
-                            view = FALSE, markdown = NULL, view.cache = FALSE,
-                            page.width = "fit",
+                            view = FALSE, markdown = NULL, view.cache = TRUE,
+                            page.width = "fit", div.class = "etable",
                             postprocess.tex = NULL, postprocess.df = NULL,
                             fit_format = "__var__", meta.time = NULL,
                             meta.author = NULL, meta.sys = NULL,
@@ -4697,6 +4652,7 @@ setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
 
   check_arg(view, view.cache, "logical scalar")
   check_arg(markdown, "NULL scalar(logical, character)")
+  check_arg(div.class, "character scalar")
 
   page.width = check_set_page_width(page.width)
 
@@ -4759,6 +4715,9 @@ setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
   for(v in args_default){
     opts[[v]] = eval(as.name(v))
   }
+  
+  # we always save view.cache
+  opts[["view.cache"]] = view.cache
 
   options(fixest_etable = opts)
 
@@ -5340,8 +5299,8 @@ check_build_available = function(){
   return(TRUE)
 }
 
-build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
-             cache = FALSE, page.width = "fit", up = 0){
+build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL, create_dirs = FALSE,
+                         cache = FALSE, page.width = "fit", up = 0){
 
   up = up + 1
   set_up(up)
@@ -5398,7 +5357,7 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
   do_build = TRUE
   export_markdown = id = NULL
   if(!is.null(markdown)){
-    markdown_path = check_set_path(markdown, "w, dir", create = TRUE, up = up)
+    markdown_path = check_set_path(markdown, "w, dir", create_dirs = create_dirs, up = up)
 
     all_files = list.files(markdown_path, "\\.png$", full.names = TRUE)
     id_all = gsub("^.+_|\\.png$", "", all_files)
@@ -5413,9 +5372,9 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
       export_markdown = png_name = normalizePath(all_files[id_all == id][1], "/")
     }
   }
-
+  
   if(!is.null(export)){
-    export_path = check_set_path(export, "w", up = up)
+    export_path = check_set_path(export, "w, dir", create_dirs = create_dirs, up = up)
   }
 
   dir = NULL
@@ -5654,16 +5613,17 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
       # hence we copy the file there if necessary
 
       tmp_dir = normalizePath(tempdir(), "/")
-
+      
       if(normalizePath(getwd(), "/") != tmp_dir){
         old_name = png_name
         png_name = gsub(".+/", "", png_name)
         file.copy(old_name, file.path(tmp_dir, png_name))
         setwd(tmp_dir)
       }
-
-      html_file = viewer_html_template(png_name)
-
+      
+      URI = knitr::image_uri(png_name)
+      html_file = viewer_html_template(URI)
+      
       writeLines(html_file, "etable.html")
 
       my_viewer("etable.html")
@@ -5683,13 +5643,14 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL,
 }
 
 
-check_set_path = function(x, type = "", create = TRUE, up = 0){
+check_set_path = function(x, type = "", create_dirs = TRUE, up = 0){
   # type:
   # + r: read (file or dir must exists), w (file is to be created)
   # + dir: directory and not a document
-  # create:
   # - if file: creates the parent dir if the grand parent exists
   # - if dir: creates the dir only if grand parent exists
+  # - create_dirs == TRUE: create all folders
+  # 
 
   set_up(up + 1)
 
@@ -5723,47 +5684,54 @@ check_set_path = function(x, type = "", create = TRUE, up = 0){
     stop_up("Argument '", x_dp, "' should be a path to a ", msg,
             " that exists. \n  Problem: '", path, "' does not exist.")
   }
-
-  # Here we're in write
-
-  file_name = gsub(".+/", "", path)
-  path_dir = str_trim(path, -nchar(file_name))
-  if(nchar(path_dir) == 0) path_dir = "."
+  
+  #
+  # write
+  #
+  
+  # if is_dir => we create it
+  # else we create the parent dir
 
   path_parent = dirname(path)
-  if(dir.exists(path_parent)){
-    if(is_dir && create){
-      dir.create(path)
-    }
-
-    return(path)
-  }
-
-  if(create){
+  if(nchar(path_parent) == 0) path_parent = "."
+  
+  if(!create_dirs && !dir.exists(path_parent)){
     path_grand_parent = dirname(path_parent)
-    if(dir.exists(path_grand_parent)){
-      dir.create(path_parent)
-      if(is_dir){
-        dir.create(path)
+    if(!dir.exists(path_grand_parent)){
+      path_grand_grand_parent = dirname(path_grand_parent)
+      if(!dir.exists(path_grand_grand_parent)){
+        msg = if("dir" %in% flags) "directory" else "file"
+        stop_up("Argument {bq ? x_dp} should be a path to a {msg}.\n",
+                "Problem: {Q ? path_grand_grand_parent} does not exist.",
+                "\nMaybe use the argument `create_dirs = TRUE`?")
       }
-
-      return(path)
+    }
+    
+    create_dirs = TRUE
+  }
+  
+  # we create everyone
+  if(create_dirs){
+    if(is_dir){
+      dir.create(path, recursive = TRUE)
+    } else {
+      dir.create(path_parent, recursive = TRUE)
     }
   }
 
-  msg = if("dir" %in% flags) "directory" else "file"
-  stop_up("Argument '", x_dp, "' should be a path to a ", msg, 
-          ". \n  Problem: '", path_parent, "' does not exist.")
-
+  path
 }
 
-viewer_html_template = function(png_name){
-
+viewer_html_template = function(uri){
   .dsb0('
 <!DOCTYPE html>
 <html> <head>
 
 <style>
+  
+body {
+  background-color: #fafafa;
+}
 
 #container {
  width: 100%;
@@ -5784,7 +5752,7 @@ img {
 <body>
 
 <div id="container" class = "etable">
-  <img src = ".[png_name]" alt="etable preview">
+  <img src = ".[uri]" alt="etable preview">
 </div>
 
 </body> </html>
@@ -7092,14 +7060,14 @@ is_Rmarkdown = function(){
   "knitr" %in% loadedNamespaces() && !is.null(knitr::pandoc_to())
 }
 
-path_to_relative = function(x){
+path_to_relative = function(dest, orig = "."){
   # orig = "C:/Users/berge028/Google Drive/R_packages/fixest/fixest"
   # dest = "C:/Users/berge028/Google Drive/R_packages/automake/automake/NAMESPACE"
 
   # I'm not sure it works perfectly well on linux...
-
-  dest = normalizePath(x, "/", mustWork = FALSE)
-  orig = normalizePath(".", "/", mustWork = FALSE)
+  
+  dest = normalizePath(dest, "/", mustWork = FALSE)
+  orig = normalizePath(orig, "/", mustWork = FALSE)
 
   if(dest == orig) return(".")
 

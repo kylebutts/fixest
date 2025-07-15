@@ -271,13 +271,96 @@ test(feols(Euros ~ log(dist_km) | Destination + Origin + Product,
 
 
 ####
+#### ... depvar removal ####
+####
+
+chunk("depvar removal")
+
+# we remove the depvar when it is in the RHS
+base = setNames(iris, c("y", "x1", "x2", "x3", "species"))
+
+fml_equiv = c(
+  "y" = "1",
+  "y + x1" = "x1",
+  "x1 + y + x2 + I(x1)" = "x1 + x2 + I(x1)"
+)
+
+all_funs = list(feols, feglm, femlm)
+
+id_fml = 3
+id_fun = 2
+
+fun = all_funs[[id_fun]]
+
+for(id_fun in seq_along(all_funs)){
+  fun = all_funs[[id_fun]]
+  cat("|")
+  for(id_fml in seq_along(fml_equiv)){
+    
+    if(id_fun == 3 && id_fml == 3) next
+    
+    cat(".")
+    rhs_0 = names(fml_equiv)[id_fml]
+    rhs_1 = fml_equiv[id_fml]
+    
+    # simple estimation
+    est_0 = fun(y ~ .[rhs_0], base)
+    est_1 = fun(y ~ .[rhs_1], base)
+    test(coef(est_0), coef(est_1))
+    test(se(est_0), se(est_1))
+    
+    # multiple samples
+    est_0 = fun(y ~ .[rhs_0], base, split = "species")
+    est_1 = fun(y ~ .[rhs_1], base, split = "species")
+    test(coef(est_0[[1]]), coef(est_1[[1]]))
+    test(se(est_0[[1]]), se(est_1[[1]]))
+    
+    # multiple lhs
+    est_0 = fun(c(y, x3) ~ .[rhs_0] + x3, base)
+    est_1a = fun(y ~ .[rhs_1] + x3, base)
+    est_1b = fun(x3 ~ .[rhs_0], base)
+    test(coef(est_0[[1]]), coef(est_1a))
+    test(coef(est_0[[2]]), coef(est_1b))
+    test(se(est_0[[1]]), se(est_1a))
+    test(se(est_0[[2]]), se(est_1b))
+    
+    # multiple rhs + fixef
+    est_0 = fun(y ~ csw(.[rhs_0], x3) | sw0(species), base)
+    est_1 = fun(y ~ csw(.[rhs_1], x3) | sw0(species), base)
+    for(id_mult in n_models(est_0)){
+      test(coef(est_0[[id_mult]]), coef(est_1[[id_mult]]))
+      test(se(est_0[[id_mult]]), se(est_1[[id_mult]]))
+    }
+    
+    # in IVs
+    if(id_fun == 1){
+      base$inst = rnorm(nrow(base))
+      base$endo = rnorm(nrow(base))
+      est_0 = feols(y ~ csw(.[rhs_0], x3) | sw0(species) | endo ~ inst, base)
+      est_1 = feols(y ~ csw(.[rhs_1], x3) | sw0(species) | endo ~ inst, base)
+      for(id_mult in n_models(est_0)){
+        test(coef(est_0[[id_mult]]), coef(est_1[[id_mult]]))
+      }
+    }
+  }
+}
+cat("\n")
+
+
+# model.matrix
+est = feols(y ~ x1 + y, base)
+test(ncol(model.matrix(est)), 2)
+
+
+
+
+####
 #### ... Fit methods ####
 ####
 
 chunk("Fit methods")
 
-base = iris
-names(base) = c("y", "x1", "x2", "x3", "species")
+base = setNames(iris, c("y", "x1", "x2", "x3", "species"))
 base$y_int = as.integer(base$y)
 base$y_log = sample(c(TRUE, FALSE), 150, TRUE)
 
@@ -551,7 +634,44 @@ est_pdat = feols(y ~ x1 | fe, pdat)
 est_panel = feols(y ~ x1 | fe, base_panel, panel.id = ~id+period)
 
 test(attr(vcov(est_pdat, attr = TRUE), "type"),
-   attr(vcov(est_panel, attr = TRUE), "type"))
+     attr(vcov(est_panel, attr = TRUE), "type"))
+
+#
+# testing irregularities
+# 
+
+base_panel = data.frame(
+  id = rep(letters[1:3], each = 4),
+  time = c(1, 2, 3, 3, 
+           1, 2, 4, 6, 
+           2, 4, 6, 8)
+)
+base_panel$x = rnorm(nrow(base_panel))
+base_panel$y = base_panel$x * 0.5 + rnorm(nrow(base_panel))
+
+est_panel_irr = feols(y ~ l(x), base_panel, panel.id = "id,time", 
+                      panel.duplicate.method = "first")
+
+x_lag = model.matrix(est_panel_irr)[, 2]
+test(x_lag, base_panel$x[c(1, 2, 2, 5)])
+
+est_panel_irr_cons = feols(y ~ l(x), base_panel, panel.id = "id,time", 
+                           panel.time.step = "cons",
+                           panel.duplicate.method = "first")
+
+x_lag = model.matrix(est_panel_irr_cons)[, 2]
+test(x_lag, base_panel$x[c(NULL, 1, 2, 2, 
+                           NULL, 5, NULL, 7,
+                           NULL, NULL, 10, 11)])
+
+est_panel_irr_with = feols(y ~ l(x), base_panel, panel.id = "id,time", 
+                           panel.time.step = "within",
+                           panel.duplicate.method = "first")
+
+x_lag = model.matrix(est_panel_irr_with)[, 2]
+test(x_lag, base_panel$x[c(NULL, 1, 2, 3, 
+                           NULL, 5, 6, 7,
+                           NULL, 9, 10, 11)])
 
 ####
 #### ... subset ####
@@ -1246,8 +1366,8 @@ for(cdf in c("conventional", "min")){
 
 # Data generation
 set.seed(0)
-N = 20; G = N/5; T = N/G
-d = data.frame( y=rnorm(N), x=rnorm(N), grp=rep(1:G,T), tm=rep(1:T,each=G) )
+N = 20 ; G = N / 5 ; T = N / G
+d = data.frame(y = rnorm(N), x = rnorm(N), grp = rep(1:G, T), tm = rep(1:T, each = G))
 
 # Estimations
 est_lm    = lm(y ~ x + as.factor(grp) + as.factor(tm), data=d)
@@ -2354,7 +2474,7 @@ res_bis = lm.fit(X[obs_rm, ], y[obs_rm])
 test(res_bis$coefficients, res$coefficients)
 
 # Lag
-res_lag = feols(y1 ~ l(x1, 1:2) + x2 + x3, base, panel = ~id + time)
+res_lag = feols(y1 ~ l(x1, 1:2) + x2 + x3, base, panel.id = ~id + time)
 m_lag = model.matrix(res_lag)
 test(nrow(m_lag), nobs(res_lag))
 
@@ -2528,7 +2648,7 @@ sm_nocons = sparse_model_matrix(res_nocons, type = "rhs")
 test("(Intercept)" %in% colnames(sm_nocons), FALSE)
 
 # Lag 
-res_lag = feols(y1 ~ l(x1, 1:2) + x2 + x3, base, panel = ~id + time)
+res_lag = feols(y1 ~ l(x1, 1:2) + x2 + x3, base, panel.id = ~id + time)
 sm_lag = sparse_model_matrix(res_lag, type = "rhs")
 test(nrow(sm_lag), nobs(res_lag))
 

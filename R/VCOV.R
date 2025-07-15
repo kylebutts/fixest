@@ -206,7 +206,7 @@
 #'
 vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr = FALSE, 
                        forceCovariance = FALSE, keepBounded = FALSE, 
-                       nthreads = getFixest_nthreads(), vcov_fix = FALSE, ...){
+                       nthreads = getFixest_nthreads(), vcov_fix = TRUE, ...){
   # computes the clustered vcov
 
   check_arg(attr, "logical scalar")
@@ -214,7 +214,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 
   dots = list(...)
 
-  # START :: SECTION used only internally in fixest_env
+  # === START :: SECTION used only internally in fixest_env
   only_varnames = isTRUE(dots$only_varnames)
   data_names = dots$data_names
   if(only_varnames){
@@ -223,7 +223,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
     # => idem for fixef_vars
     object = list(panel.id = dots$panel.id, fixef_vars = dots$fixef_vars)
   }
-  #   END
+  # === END
 
 
   if(isTRUE(object$NA_model)){
@@ -876,8 +876,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
   # After discussing, we decided that since this test is relatively cheap, we will do it every time. 
   # We will warn even if `vcov_fix == FALSE`.
   eigenvalues = eigen(vcov_mat, symmetric = TRUE, only.values = TRUE)$values
-  
-  if (any(eigenvalues < 1e-10)) {
+  if (any(eigenvalues < 1e-12)) {
     # We 'fix' it
     if (vcov_fix) {
       all_attr = attributes(vcov_mat)
@@ -889,11 +888,13 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
         # we should never have a complex VCOV, but just in case...
         warning("The VCOV matrix could not be fixed since its eigenvalues were complex. The complex standard-errors are reported for information purposes.", call. = FALSE)
         vcov_mat = as.complex(vcov_mat)
-      } else {
-        warning("The VCOV matrix is not positive semi-definite. It was 'fixed' (a la Cameron, Gelbach & Miller 2011), but take care with interpreting the results. See `?vcov` for more details.", call. = FALSE)
+      } else if(!isFALSE(dots$warn)){
+        warning("The VCOV matrix is not positive semi-definite and was 'fixed' (see ?vcov).", 
+                call. = FALSE)
       } 
-    } else {
-      warning("The VCOV matrix is not positive semi-definite. Take care with interpreting the results and consider correcting this via the `vcov_fix` argument.  See `?vcov` for more details.", call. = FALSE)
+    } else if(!isFALSE(dots$warn)){
+      warning("The VCOV matrix is not positive semi-definite and was 'fixed' (see ?vcov).", 
+              call. = FALSE)
     }
   }
 
@@ -974,6 +975,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
 #' then the degrees of freedom of the Student t distribution is equal to the number of 
 #' observations minus the number of estimated variables. You can also pass a number to 
 #' manually specify the DoF of the t-distribution.
+#' @param ... Only used internally (to catch deprecated parameters).
 #'
 #' @details
 #'
@@ -1111,11 +1113,13 @@ ssc = function(K.adj = TRUE, K.fixef = "nonnested", K.exact = FALSE,
 #'
 #' Computes the heteroskedasticity-robust VCOV of `fixest` objects.
 #' 
+#' @inheritParams vcov.fixest
 #' @inheritParams hatvalues.fixest
 #'
 #' @param x A `fixest` object.
 #' @param type A string scalar. Either "HC1"/"HC2"/"HC3"
-#' @param ssc An object returned by the function [`ssc`]. It specifies how to perform the small sample correction.
+#' @param ssc An object returned by the function [`ssc`]. It specifies how to perform the small 
+#' sample correction.
 #'
 #' @return
 #' If the first argument is a `fixest` object, then a VCOV is returned (i.e. a symmetric matrix).
@@ -1140,9 +1144,10 @@ ssc = function(K.adj = TRUE, K.fixef = "nonnested", K.exact = FALSE,
 #' vcov_hetero(est, "hc3", ssc = ssc(K.adj = FALSE))
 #'
 #' # Using approximate hatvalues
-#' vcov_hetero(est, "hc3", exact = FALSE, p = 500)
+#' vcov_hetero(est, "hc3", exact = FALSE, boot.size = 500)
 #'
-vcov_hetero = function(x, type = "hc1", exact = TRUE, boot.size = NULL, ssc = NULL){
+vcov_hetero = function(x, type = "hc1", exact = TRUE, boot.size = NULL, 
+                       ssc = NULL, vcov_fix = TRUE){
   # User-level function to compute clustered SEs
   # typically we only do checking and reshaping here
   
@@ -1168,7 +1173,7 @@ vcov_hetero = function(x, type = "hc1", exact = TRUE, boot.size = NULL, ssc = NU
   if(IS_REQUEST){
     res = vcov_request
   } else {
-    res = vcov(x, vcov = vcov_request)
+    res = vcov(x, vcov = vcov_request, vcov_fix = vcov_fix)
   }
 
   res
@@ -2133,8 +2138,8 @@ vcov_newey_west_internal = function(bread, scores, vars, ssc, n, K,
 }
 
 
-vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, sandwich, 
-                                        nthreads, lag = NULL, ...){
+vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, n, K, 
+                                        sandwich, nthreads, lag = NULL, ...){
   # Function that computes Driscoll-Kraay VCOV
 
   # Setting up
@@ -2181,7 +2186,7 @@ vcov_driscoll_kraay_internal = function(bread, scores, vars, ssc, sandwich,
 }
 
 
-vcov_conley_internal = function(bread, scores, vars, sandwich, nthreads, n, K,
+vcov_conley_internal = function(bread, scores, vars, ssc, n, K, sandwich, nthreads,
                                 cutoff = NULL, pixel = 0, distance = "triangular", ...){
 
   lon = vars$lng
@@ -2441,6 +2446,7 @@ ssc_compute_K = function(ssc, object, vcov_select, vcov_vars, var_names_all){
   #   => this is a very specific function, do not use vcov.fixest
   # 
   
+  n = object$nobs
   n_fe = n_fe_ok = length(object$fixef_id)
 
   # we adjust the fixef sizes to account for slopes

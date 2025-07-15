@@ -16,10 +16,23 @@
 #' @inheritParams etable
 #' @inheritSection etable Arguments keep, drop and order
 #'
-#' @param object Can be either: i) an estimation object (obtained for example from
-#'  [`feols`], ii) a list of estimation objects (several results will be plotted at
-#' once), iii) a matrix of coefficients table, iv) a numeric vector of the point 
+#' @param ... Estimation results, which can be of the following form: 
+#' i) an estimation object (obtained for example from [`feols`]), 
+#' ii) a matrix of coefficients table, iii) a numeric vector of the point 
 #' estimates -- the latter requiring the extra arguments `sd` or `ci_low` and `ci_high`.
+#' #' @param vcov Versatile argument to specify the VCOV. 
+#' In general, it is either a character scalar equal to a VCOV type, either a formula of the form:
+#'  vcov_type ~ variables. The VCOV types implemented are: "iid", "hetero" (or "HC1"), 
+#' "cluster", "twoway", "NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley". 
+#' It also accepts object from vcov_cluster, vcov_NW, NW, vcov_DK, DK, vcov_conley and conley. 
+#' It also accepts covariance matrices computed externally. 
+#' Finally it accepts functions to compute the covariances. 
+#' See the vcov documentation in the vignette.
+#' You can pass several VCOVs (as above) if you nest them into a list. 
+#' If the number of VCOVs equals the number of models, eahc VCOV is mapped to the appropriate model.
+#' If there is one model and several VCOVs, or if the first element of the list is equal to
+#' `"each"` or `"times"`, then the estimations will be replicated and the results
+#' for each estimation and each VCOV will be reported.
 #' @param sd The standard errors of the estimates. It may be missing.
 #' @param ci_low If `sd` is not provided, the lower bound of the confidence interval. 
 #' For each estimate.
@@ -35,14 +48,25 @@
 #' @param ci_level Scalar between 0 and 1: the level of the CI. By default it is equal to 0.95.
 #' @param add Default is `FALSE`, if the intervals are to be added to an existing 
 #' graph. Note that if it is the case, then the argument `x` MUST be numeric.
+#' @param xlim Numeric vector of length 2 which gives the limits of the plotting region for
+#' the x-axis. The default is `NULL`, which means that it is automatically defined.
+#' Use the argument `xlim.add` to simply increase or decrese the default limits.
+#' @param ylim Numeric vector of length 2 which gives the limits of the plotting region for
+#' the y-axis. The default is `NULL`, which means that it is automatically defined.
+#' Use the argument `ylim.add` to simply increase or decrese the default limits.
+#' @param pch The patch of the coefficient estimates. Default is 1 (circle). 
+#' This is an alias to tha argument `pt.pch`.
 #' @param pt.pch The patch of the coefficient estimates. Default is 1 (circle).
 #' @param cex Numeric, default is 1. Expansion factor for the points
 #' @param pt.cex The size of the coefficient estimates. Default is the other argument `cex`.
 #' @param col The color of the points and the confidence intervals. Default is 1 
-#' ("black"). Note that you can set the colors separately for each of them with `pt.col` and `ci.col`.
-#' @param pt.col The color of the coefficient estimates. Default is equal to the other argument `col`.
-#' @param ci.col The color of the confidence intervals. Default is equal to the other argument `col`.
+#' ("black"). Note that you can set the colors separately for each of them 
+#' with `pt.col` and `ci.col`.
+#' @param pt.col The color of the coefficient estimates. Default is equal to the argument `col`.
+#' @param ci.col The color of the confidence intervals. Default is equal to the argument `col`.
 #' @param lwd General line with. Default is 1.
+#' @param lty The line type of the confidence intervals. Default is 1. 
+#' This is an alias to the argument `ci.lty`.
 #' @param pt.lwd The line width of the coefficient estimates. Default is equal to 
 #' the other argument `lwd`.
 #' @param ci.lwd The line width of the confidence intervals. Default is equal to 
@@ -69,7 +93,7 @@
 #' @param pt.join.par List. Parameters of the line joining the coefficients. The 
 #' default values are: `col = pt.col` and `lwd = lwd`. You can add any graphical 
 #' parameter that will be passed to [`lines`]. Eg: `pt.join.par = list(lty = 2)`.
-#' @param ref Used to add points equal to 0 (typically to visualize reference points). 
+#' @param ref Used to add points at `y = 0` (typically to visualize reference points). 
 #' Either: i) "auto" (default), ii) a character vector of length 1, iii) a list 
 #' of length 1, iv) a named integer vector of length 1, or v) a numeric vector. 
 #' By default, in `iplot`, if the argument `ref` has been used in the estimation, 
@@ -171,6 +195,10 @@
 #' `i()` and not interacted with other variables. For example: `i(species, x1)` 
 #' is good while `i(species):x1` isn't. The latter will also work but the index 
 #' may feel weird in case there are many `i()` variables.
+#' @param do_iplot Logical, default is `FALSE`. For internal use only. 
+#' If `TRUE`, then `iplot` is run instead of `coefplot`.
+#' @param plot_prms A named list. It may contain additionnal parameters to be passed
+#' to the plot.
 #'
 #' @seealso
 #' See [`setFixest_coefplot`] to set the default values of `coefplot`, and the estimation 
@@ -207,18 +235,18 @@
 #' #
 #'
 #' # Estimation on Iris data with one fixed-effect (Species)
-#' est = feols(Petal.Length ~ Petal.Width + Sepal.Length +
-#'             Sepal.Width | Species, iris)
+#' # + we cluster the standard-errors
+#' est = feols(Petal.Length ~ Petal.Width + Sepal.Width | Species, 
+#'             iris, vcov = "cluster")
 #'
-#' # Estimation results with clustered standard-errors
-#' # (the default when fixed-effects are present)
-#' est_clu = summary(est)
 #' # Now with "regular" standard-errors
-#' est_std = summary(est, se = "iid")
+#' est_std = summary(est, vcov = "iid")
 #'
 #' # You can plot the two results at once
-#' coefplot(list(est_clu, est_std))
-#'
+#' coefplot(est, est_std)
+#' 
+#' # You could also use the argument vcov
+#' coefplot(est, vcov = list("cluster", "iid"))
 #'
 #' # Alternatively, you can use the argument x.shift
 #' # to do it sequentially:
@@ -226,15 +254,12 @@
 #' # First graph with clustered standard-errors
 #' coefplot(est, x.shift = -.2)
 #'
-#' # 'x.shift' was used to shift the coefficients on the left.
+#' # 'x.shift' was used to shift the coefficients to the left.
 #'
 #' # Second set of results: this time with
 #' #  standard-errors that are not clustered.
-#' coefplot(est, se = "iid", x.shift = .2,
-#'          add = TRUE, col = 2, ci.lty = 2, pch=15)
-#'
-#'  # Note that we used 'se', an argument that will
-#'  #  be passed to summary.fixest
+#' coefplot(est, vcov = "iid", x.shift = .2,
+#'          add = TRUE, col = 2, ci.lty = 2, pch = 15)
 #'
 #' legend("topright", col = 1:2, pch = 20, lwd = 1, lty = 1:2,
 #'        legend = c("Clustered", "IID"), title = "Standard-Errors")
@@ -251,7 +276,7 @@
 #' base_inter = base_did
 #'
 #' # We interact the variable 'period' with the variable 'treat'
-#' est_did = feols(y ~ x1 + i(period, treat, 5) | id+period, base_inter)
+#' est_did = feols(y ~ x1 + i(period, treat, 5) | id + period, base_inter)
 #'
 #' # In the estimation, the variable treat is interacted
 #' #  with each value of period but 5, set as a reference
@@ -264,11 +289,6 @@
 #' # If you want to keep only the coefficients
 #' # created with i() (ie the interactions), use iplot
 #' iplot(est_did)
-#'
-#' # When estimations contain interactions, as before,
-#' #  the default behavior of coefplot changes,
-#' #  it now only plots interactions:
-#' coefplot(est_did)
 #'
 #' # We can see that the graph is different from before:
 #' #  - only interactions are shown,
@@ -293,7 +313,7 @@
 #'
 #' # To respect a plotting order, use a factor
 #' base_inter$month_factor = factor(base_inter$period_month, levels = all_months)
-#' est = feols(y ~ x1 + i(month_factor, treat, "oct") | id+period, base_inter)
+#' est = feols(y ~ x1 + i(month_factor, treat, "oct") | id + period, base_inter)
 #' iplot(est)
 #'
 #'
@@ -347,48 +367,133 @@
 #' coefplot(est, group = list(Sepal = "^^Sepal.", Species = "^^Species"))
 #'
 #'
-coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL, 
+coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL, 
+                    vcov = NULL, cluster = NULL,
                     x, x.shift = 0, horiz = FALSE,
-                    dict = getFixest_dict(), keep, drop, order, ci.width = "1%",
-                    ci_level = 0.95, add = FALSE, pt.pch = c(20, 17, 15, 21, 24, 22), 
-                    pt.bg = NULL, cex = 1,
-                    pt.cex = cex, col = 1:8, pt.col = col, ci.col = col, lwd = 1, pt.lwd = lwd,
-                    ci.lwd = lwd, ci.lty = 1, grid = TRUE, grid.par = list(lty=3, col = "gray"),
-                    zero = TRUE, zero.par = list(col="black", lwd=1), pt.join = FALSE,
-                    pt.join.par = list(col = pt.col, lwd=lwd), ci.join = FALSE,
+                    dict = NULL, keep, drop, order, ci.width = "1%",
+                    ci_level = 0.95, add = FALSE, plot_prms = list(),
+                    pch = c(20, 17, 15, 21, 24, 22), col = 1:8, cex = 1, lty = 1, lwd = 1,
+                    ylim = NULL, xlim = NULL,
+                    pt.pch = pch, 
+                    pt.bg = NULL, pt.cex = cex, pt.col = col, ci.col = col, pt.lwd = lwd,
+                    ci.lwd = lwd, ci.lty = lty, grid = TRUE, 
+                    grid.par = list(lty = 3, col = "gray"),
+                    zero = TRUE, zero.par = list(col = "black", lwd = 1), pt.join = FALSE,
+                    pt.join.par = list(col = pt.col, lwd = lwd), ci.join = FALSE,
                     ci.join.par = list(lwd = lwd, col = col, lty = 2), ci.fill = FALSE,
                     ci.fill.par = list(col = "lightgray", alpha = 0.5), ref = "auto",
                     ref.line = "auto", ref.line.par = list(col = "black", lty = 2), lab.cex,
                     lab.min.cex = 0.85, lab.max.mar = 0.25, lab.fit = "auto", xlim.add,
                     ylim.add, only.params = FALSE, sep, as.multiple = FALSE,
-                    bg, group = "auto", group.par = list(lwd=2, line=3, tcl=0.75),
+                    bg, group = "auto", group.par = list(lwd = 2, line = 3, tcl = 0.75),
                     main = "Effect on __depvar__", value.lab = "Estimate and __ci__ Conf. Int.",
-                    ylab = NULL, xlab = NULL, sub = NULL){
-
-  # Set up the dictionary
-  if(is.null(dict)){
-    dict = c()
-  } else if(any(grepl("^&", names(dict)))){
-    # Speficic markuo to identify coefplot aliases
-    dict_amp = dict[grepl("^&", names(dict))]
-    names(dict_amp) = gsub("^&", "", names(dict_amp))
-    dict[names(dict_amp)] = dict_amp
-  }
+                    ylab = NULL, xlab = NULL, sub = NULL, i.select = NULL, do_iplot = NULL){
+  
 
   check_set_arg(lab.fit, "match(auto, simple, multi, tilted)")
 
   dots = list(...)
-
+  
   ylab_add_ci = missing(ci_low)
 
   #
   # iplot
   #
 
-  is_iplot = isTRUE(dots$internal.only.i)
-  i.select = dots$i.select
+  is_iplot = isTRUE(do_iplot)
   if(is_iplot){
     check_arg(i.select, "integer scalar GE{1}")
+  }
+  
+  if(length(dots) == 0){
+    stop_up("You must provide at least one model to plot. Currently no model is provided.", 
+            up = 1 * is_iplot)
+  }
+  
+  # retro-compatibility
+  if("object" %in% names(dots)){
+    all_dots = dots$object
+    dots_rest = dots[names(dots) != "object"]
+    if(!is.null(oldClass(all_dots))){
+      all_dots = append(list(all_dots), dots_rest)
+    } else {
+      all_dots = append(all_dots, dots_rest)
+    }
+  } else {
+    all_dots = dots
+  }
+  
+  info_models = flatten_list_of_models(all_dots, accept_non_fixest = TRUE)
+  all_models = info_models$all_models
+  
+  #
+  # multiple VOCVs
+  #
+  
+  # we only keep the arg `vcov`
+  if(!missnull(cluster)){
+    vcov = oldargs_to_vcov(NULL, cluster, vcov)
+  }
+  
+  if(is.list(vcov) && length(vcov) > 1){
+    # we multiply the models
+    
+    is_fixest = sapply(all_models, inherits, "fixest")
+    if(!all(is_fixest)){
+      stop_up("To use the `vcov` as a list, and hence have different VCOVs ",
+              "for different models, you provide only `fixest` estimations.",
+              "\nProblem: the {nth ? which(!is_fixest)} objects are not `fixest` models.")
+    }
+    
+    vcov_1 = vcov[[1]]
+    is_rep = identical(vcov_1, "times") || identical(vcov_1, "each")
+    
+    if(length(all_models) > 1 && !is_rep){
+      stop_up("If 'vcov' is a list, it must be of the same length as the number of models, ",
+              "or you should add the 'each' or 'times' keyword as the first ",
+              "element of the list.",
+              "\nProblem: there are {len ? all_models} models vs {len ? vcov} elements in `vcov`.")
+    }
+    
+    n_models = length(all_models)
+    all_vcov = vcov
+    
+    if(is_rep || n_models == 1){
+      
+      if(is_rep){
+        all_vcov[[1]] = NULL
+      }
+
+      n_vcov = length(all_vcov)
+      n_total = n_models * n_vcov
+
+      if(vcov_1 == "times"){
+        id_mod = rep(1:n_models, n_vcov)
+        id_vcov = rep(1:n_vcov, each = n_models)
+        
+      } else {
+        IS_EACH = TRUE
+        id_mod = rep(1:n_models, each = n_vcov)
+        id_vcov = rep(1:n_vcov, n_models)
+        
+      }
+
+      mega_models = vector("list", n_total)
+      for(i in 1:n_total){
+        mega_models[[i]] = summary(all_models[[id_mod[i]]], vcov = all_vcov[[id_vcov[i]]])
+      }
+      
+      all_models = mega_models
+      
+    } else {
+      
+      for(i in seq_along(vcov)){
+        all_models[[i]] = summary(all_models[[i]] , vcov = all_vcov[[i]])
+      }
+      
+    }
+    
+    vcov = NULL
   }
 
   #
@@ -459,15 +564,25 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
       }
     }
   }
+  
+  # Set up the dictionary
+  dict = setup_dict(dict, check = TRUE)
+  if(!is.null(dict) && any(grepl("^&", names(dict)))){
+    # Speficic markup to identify coefplot aliases
+    dict_amp = dict[grepl("^&", names(dict))]
+    names(dict_amp) = gsub("^&", "", names(dict_amp))
+    dict[names(dict_amp)] = dict_amp
+  }
 
   #
   # Getting the parameters => function coefplot_prms
   #
 
-  info = coefplot_prms(object = object, ..., sd = sd, ci_low = ci_low, 
-                       ci_high = ci_high,
+  info = coefplot_prms(all_models = all_models, is_root = TRUE, vcov = vcov,
+                       sd = sd, ci_low = ci_low, ci_high = ci_high,
                        x = x, x.shift = x.shift, dict = dict, keep = keep, drop = drop,
                        order = order, ci_level = ci_level, df.t = df.t, ref = ref, 
+                       i.select = i.select, 
                        only.i = is_iplot, sep = sep, as.multiple = as.multiple)
 
   prms = info$prms
@@ -476,7 +591,6 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   x_labels = info$labels
   x_labels_raw = info$x_labels_raw
   varlist = info$varlist
-  dots_drop = info$dots_drop
   my_xlim = info$xlim
   suggest_ref_line = info$suggest_ref_line
   multiple_est = info$multiple_est
@@ -485,7 +599,7 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
     return(list(prms = prms, is_iplot = is_iplot, at = x_at, labels = x_labels))
   }
 
-  dots = dots[!names(dots) %in% dots_drop]
+  check_arg(plot_prms, "named list")
 
   ci_low = prms$ci_low
   ci_high = prms$ci_high
@@ -506,6 +620,8 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   #
   # Title ####
   #
+  
+  check_arg(xlim, ylim, "NULL numeric vector len(2)")
 
   # xlab / main / ylab / sub
 
@@ -532,10 +648,10 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   xlab = expr_builder(xlab)
   sub = expr_builder(sub)
 
-  dots$main = ""
-  dots$ylab = ""
-  dots$xlab = ""
-  dots$sub = ""
+  plot_prms$main = ""
+  plot_prms$ylab = ""
+  plot_prms$xlab = ""
+  plot_prms$sub = ""
 
   #
   # group = auto + Height ####
@@ -703,49 +819,53 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   #
 
   # xlim
+  if(!missnull(xlim)){
+    check_arg(xlim, "numeric vector len(2) no na")
+    my_xlim = xlim
+  }
+  
   if(!missnull(xlim.add)){
-    if("xlim" %in% names(dots)){
-      mema("Since argument 'xlim' is provided, argument 'xlim.add' is ignored.")
-    } else {
-      if((!is.numeric(xlim.add) || !length(xlim.add) %in% 1:2)){
-        stop("Argument 'xlim.add' must be a numeric vector of length 1 or 2. It represents an extension factor of xlim, in percentage. (Eg: xlim.add = c(0, 0.5) extends xlim of 50% on the right.) If of lentgh 1, positive values represent the right, and negative values the left (Eg: xlim.add = -0.5 is equivalent to xlim.add = c(0.5, 0)).")
-      }
-
-      if(length(xlim.add) == 1){
-        if(xlim.add > 0) {
-          xlim.add = c(0, xlim.add)
-        } else {
-          xlim.add = c(xlim.add, 0)
-        }
-      }
-
-      x_width = diff(my_xlim)
-      my_xlim = my_xlim + xlim.add * x_width
+    
+    if((!is.numeric(xlim.add) || !length(xlim.add) %in% 1:2)){
+      stop("Argument 'xlim.add' must be a numeric vector of length 1 or 2. It represents an extension factor of xlim, in percentage. (Eg: xlim.add = c(0, 0.5) extends xlim of 50% on the right.) If of lentgh 1, positive values represent the right, and negative values the left (Eg: xlim.add = -0.5 is equivalent to xlim.add = c(0.5, 0)).")
     }
+
+    if(length(xlim.add) == 1){
+      if(xlim.add > 0) {
+        xlim.add = c(0, xlim.add)
+      } else {
+        xlim.add = c(xlim.add, 0)
+      }
+    }
+
+    x_width = diff(my_xlim)
+    my_xlim = my_xlim + xlim.add * x_width
   }
 
   # ylim
   my_ylim = range(c(ci_low, ci_high))
+  if(!missnull(ylim)){
+    check_arg(ylim, "numeric vector len(2) no na")
+    my_ylim = ylim
+  }
 
   if(!missnull(ylim.add)){
-    if("ylim" %in% names(dots)){
-      mema("Since argument 'ylim' is provided, argument 'ylim.add' is ignored.")
-    } else {
-      if((!length(ylim.add) %in% 1:2 || !is.numeric(ylim.add))){
-        stop("Argument 'ylim.add' must be a numeric vector of length 1 or 2. It represents an extension factor of ylim, in percentage. (Eg: ylim.add = c(0, 0.5) extends ylim of 50% on the top.) If of lentgh 1, positive values represent the top, and negative values the bottom (Eg: ylim.add = -0.5 is equivalent to ylim.add = c(0.5, 0)).")
-      }
-
-      if(length(ylim.add) == 1){
-        if(ylim.add > 0) {
-          ylim.add = c(0, ylim.add)
-        } else {
-          ylim.add = c(ylim.add, 0)
-        }
-      }
-
-      y_width = diff(my_ylim)
-      my_ylim = my_ylim + ylim.add * y_width
+    
+    if((!length(ylim.add) %in% 1:2 || !is.numeric(ylim.add))){
+      stop("Argument 'ylim.add' must be a numeric vector of length 1 or 2. It represents an extension factor of ylim, in percentage. (Eg: ylim.add = c(0, 0.5) extends ylim of 50% on the top.) If of lentgh 1, positive values represent the top, and negative values the bottom (Eg: ylim.add = -0.5 is equivalent to ylim.add = c(0.5, 0)).")
     }
+
+    if(length(ylim.add) == 1){
+      if(ylim.add > 0) {
+        ylim.add = c(0, ylim.add)
+      } else {
+        ylim.add = c(ylim.add, 0)
+      }
+    }
+
+    y_width = diff(my_ylim)
+    my_ylim = my_ylim + ylim.add * y_width
+    
   }
 
 
@@ -930,26 +1050,25 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
 
   all_plot_args = unique(c(names(par()), names(formals(plot.default))))
-  pblm = setdiff(names(dots), all_plot_args)
+  pblm = setdiff(names(plot_prms), all_plot_args)
   if(length(pblm) > 0){
-    # warning("The following argument", ifsingle(pblm, " is not a", "s are not"), " plotting argument", ifsingle(pblm, " and is", "s and are"), " therefore ignored: ", enumerate_items(pblm), ".")
-    dots[pblm] = NULL
+    plot_prms[pblm] = NULL
   }
 
   # preparation of the do.call
-  dots$col = col
+  plot_prms$col = col
 
   if(horiz){
-    listDefault(dots, "xlim", my_ylim)
-    listDefault(dots, "ylim", my_xlim)
+    plot_prms$xlim = my_ylim
+    plot_prms$ylim = my_xlim
   } else {
-    listDefault(dots, "xlim", my_xlim)
-    listDefault(dots, "ylim", my_ylim)
+    plot_prms$xlim = my_xlim
+    plot_prms$ylim = my_ylim
   }
 
-  dots$x = prms$x
-  dots$y = prms$y
-  dots$type = "p"
+  plot_prms$x = prms$x
+  plot_prms$y = prms$y
+  plot_prms$type = "p"
 
   #
   # Plot Call ####
@@ -957,10 +1076,10 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
   if(!add){
 
-    dots$axes = FALSE
+    plot_prms$axes = FALSE
 
     # Nude graph
-    first.par = dots
+    first.par = plot_prms
     first.par$type = "n"
     do.call("plot", first.par)
 
@@ -1063,33 +1182,37 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
     box()
 
     if(horiz){
-      axis(1)
+      axis(1, lwd = 0, lwd.ticks = 1)
 
       if(AXIS_AS_NUM){
-        axis(2, las = 1)
+        axis(2, las = 1, lwd = 0, lwd.ticks = 1)
+        
       } else {
         if(any(grepl("^&", x_labels))){
           # means we call expression()
           # drawback => expressions can overlap
           qui = grepl("^&", x_labels)
           if(any(!qui)){
-            axis(2, at = x_at[!qui], labels = x_labels[!qui], las = 1, cex = lab.cex)
+            axis(2, at = x_at[!qui], labels = x_labels[!qui], las = 1, cex = lab.cex, 
+                 lwd = 0, lwd.ticks = 1)
           }
 
           for(i in which(qui)){
-            axis(2, at = x_at[i], labels = expr_builder(x_labels[i]), las = 1, cex = lab.cex)
+            axis(2, at = x_at[i], labels = expr_builder(x_labels[i]), las = 1, cex = lab.cex, 
+                 lwd = 0, lwd.ticks = 1)
           }
 
         } else {
           # easy case: only character
-          axis(2, at = x_at, labels = x_labels, las = 1, cex = lab.cex)
+          axis(2, at = x_at, labels = x_labels, las = 1, cex = lab.cex, 
+               lwd = 0, lwd.ticks = 1)
         }
       }
     } else {
-      axis(2)
+      axis(2, lwd = 0, lwd.ticks = 1)
 
       if(AXIS_AS_NUM){
-        axis(1)
+        axis(1, lwd = 0, lwd.ticks = 1)
       } else {
         if(lab.fit == "simple"){
           if(any(grepl("^&", x_labels))){
@@ -1097,20 +1220,24 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
             # drawback => expressions can overlap
             qui = grepl("^&", x_labels)
             if(any(!qui)){
-              axis(1, at = x_at[!qui], labels = x_labels[!qui], cex.axis = lab.cex)
+              axis(1, at = x_at[!qui], labels = x_labels[!qui], cex.axis = lab.cex,
+                   lwd = 0, lwd.ticks = 1)
             }
 
             for(i in which(qui)){
-              axis(1, at = x_at[i], labels = expr_builder(x_labels[i]), cex.axis = lab.cex)
+              axis(1, at = x_at[i], labels = expr_builder(x_labels[i]), cex.axis = lab.cex,
+                   lwd = 0, lwd.ticks = 1)
             }
 
           } else {
             # easy case: only character
-            axis(1, at = x_at, labels = x_labels, cex.axis = lab.cex)
+            axis(1, at = x_at, labels = x_labels, cex.axis = lab.cex,
+                 lwd = 0, lwd.ticks = 1)
           }
         } else if(lab.fit == "multi"){
 
-          axis(1, at = x_at, labels = NA, tcl=-0.25)
+          axis(1, at = x_at, labels = NA, tcl = -0.25,
+               lwd = 0, lwd.ticks = 1)
 
           for(my_line in unique(lab.info$line)){
             qui_line = my_line == lab.info$line
@@ -1120,16 +1247,19 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
             if(any(grepl("^&", x_labels_current))){
               qui = grepl("^&", x_labels_current)
               if(any(!qui)){
-                axis(1, at = x_at_current[!qui], labels = x_labels_current[!qui], cex.axis = lab.cex, line = my_line, lwd = 0)
+                axis(1, at = x_at_current[!qui], labels = x_labels_current[!qui], 
+                     cex.axis = lab.cex, line = my_line, lwd = 0)
               }
 
               for(i in which(qui)){
-                axis(1, at = x_at_current[i], labels = expr_builder(x_labels_current[i]), cex.axis = lab.cex, line = my_line, lwd = 0)
+                axis(1, at = x_at_current[i], labels = expr_builder(x_labels_current[i]), 
+                     cex.axis = lab.cex, line = my_line, lwd = 0)
               }
 
             } else {
               # easy case: only character
-              axis(1, at = x_at_current, labels = x_labels_current, cex.axis = lab.cex, line = my_line, lwd = 0)
+              axis(1, at = x_at_current, labels = x_labels_current, cex.axis = lab.cex, 
+                   line = my_line, lwd = 0)
             }
           }
         } else if(lab.fit == "tilted"){
@@ -1139,24 +1269,24 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
           if(any(grepl("^&", x_labels))){
             qui = grepl("^&", x_labels)
             if(any(!qui)){
-              xaxis_biased(1, at = x_at[!qui], labels = x_labels[!qui], cex = lab.cex, angle = lab.info$angle, line.min = LINE_MIN_TILTED)
+              xaxis_biased(1, at = x_at[!qui], labels = x_labels[!qui], cex = lab.cex, 
+                           angle = lab.info$angle, line.min = LINE_MIN_TILTED)
             }
 
             for(i in which(qui)){
-              xaxis_biased(1, at = x_at[i], labels = expr_builder(x_labels[i]), cex = lab.cex, angle = lab.info$angle, line.min = LINE_MIN_TILTED)
+              xaxis_biased(1, at = x_at[i], labels = expr_builder(x_labels[i]), 
+                           cex = lab.cex, angle = lab.info$angle, line.min = LINE_MIN_TILTED)
             }
 
           } else {
             # easy case: only character
-            xaxis_biased(1, at = x_at, labels = x_labels, cex = lab.cex, angle = lab.info$angle, line.min = LINE_MIN_TILTED)
+            xaxis_biased(1, at = x_at, labels = x_labels, cex = lab.cex, 
+                         angle = lab.info$angle, line.min = LINE_MIN_TILTED)
           }
         }
       }
 
-
     }
-
-
 
   }
 
@@ -1412,8 +1542,8 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
   if(!add){
     # now the points or lines
-    if(dots$type != "n"){
-      point.par = dots[c("x", "y", "type", "cex", "col", "pch", "lty", "lwd")]
+    if(plot_prms$type != "n"){
+      point.par = plot_prms[c("x", "y", "type", "cex", "col", "pch", "lty", "lwd")]
       point.par$pch = par_fit(pt.pch, prms$id)
       point.par$cex = par_fit(pt.cex, prms$id)
       point.par$col = par_fit(pt.col, prms$id)
@@ -1423,12 +1553,12 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
       do.call("points", point.par)
     }
   } else {
-    dots$pch = par_fit(pt.pch, prms$id)
-    dots$cex = par_fit(pt.cex, prms$id)
-    dots$col = par_fit(pt.col, prms$id)
-    dots$lwd = par_fit(pt.lwd, prms$id)
+    plot_prms$pch = par_fit(pt.pch, prms$id)
+    plot_prms$cex = par_fit(pt.cex, prms$id)
+    plot_prms$col = par_fit(pt.col, prms$id)
+    plot_prms$lwd = par_fit(pt.lwd, prms$id)
     if(!is.null(pt.bg)) point.par$bg = par_fit(pt.bg, prms$id)
-    do.call("points", dots)
+    do.call("points", plot_prms)
   }
 
   #
@@ -1576,20 +1706,13 @@ coefplot = function(object, ..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
 
 
-coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
+coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shift = 0, 
+                         dict, i.select = NULL, 
                          keep, drop, order, ci_level = 0.95, df.t = NULL, ref = "auto",
-                         only.i = TRUE, sep, as.multiple = FALSE){
+                         only.i = TRUE, sep, as.multiple = FALSE, is_root = TRUE){
 
   # get the default for:
   # dict, ci.level, ref
-
-  dots = list(...)
-  is_internal = isTRUE(dots$internal__)
-  if("i.select" %in% names(dots)){
-    i.select = dots$i.select
-    dots$i.select = NULL
-  }
-
 
   varlist = list(ci = paste0(ci_level * 100, "%"))
   dots_drop = c()
@@ -1599,10 +1722,10 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
   NO_NAMES = FALSE
   is_iplot = only.i
   
-  set_up(1 + is_iplot)
+  set_up(1 + is_iplot + !is_root)
   
   AXIS_AS_NUM = FALSE
-  if(is_internal == FALSE && ((is.list(object) && class(object)[1] == "list") || "fixest_multi" %in% class(object))){
+  if(is_root){
     # This is a list of estimations
 
     #
@@ -1610,13 +1733,7 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
     #
 
     multiple_est = TRUE
-
-    mc = match.call()
-    mc$object = as.name("my__object__")
-    mc$only.params = TRUE
-    mc$internal__ = TRUE
-
-    nb_est = length(object)
+    nb_est = length(all_models)
 
     rerun = FALSE
     first = TRUE
@@ -1632,11 +1749,32 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
       suggest_ref_line = TRUE
       for(i in 1:nb_est){
         # cat("Eval =", i, "\n")
-        my__object__ = object[[i]]
-        prms = try(eval(mc), silent = TRUE)
+        prms = try(coefplot_prms(all_models[[i]], is_root = FALSE, vcov = vcov,
+                                 sd = sd, ci_low = ci_low, ci_high = ci_high, x = x, 
+                                 x.shift = x.shift, dict = dict, i.select = i.select,
+                                 keep = keep, drop = drop, order = order, 
+                                 ci_level = ci_level, df.t = df.t, ref = ref,
+                                 only.i = only.i, sep = sep, as.multiple = as.multiple), 
+                   silent = TRUE)
 
         if("try-error" %in% class(prms)){
-          stop_up("The {nth ? i} element of 'object' raises and error:\n", prms)
+          if(grepl("^[^\n]+(coefplot|iplot)", prms)){
+            prms = stringmagic::string_clean(prms, "^[^\n]+\n")
+          }
+          
+          # we say if the argument is invalid
+          dots = get("dots", parent.frame())
+          nm_pblm = setdiff(names(dots), c("object", ""))
+          msg = ""
+          if(length(nm_pblm) > 0){
+            msg = sma("NOTA: the argument{$s, enum.bq, are ? nm_pblm} not {$(a ;)}valid argument{$s}.")
+          }
+          
+          stop_up("The {nth ? i} model raises and error:\n", prms, msg)
+        }
+        
+        if(nb_est == 1){
+          return(prms)
         }
 
         # Some meta variables
@@ -1656,7 +1794,7 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
         res[[i]] = df_prms
       }
     }
-
+    
     AXIS_AS_NUM = num_axis
 
     all_estimates = do.call("rbind", res)
@@ -1722,38 +1860,13 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
     #
     # Single estimation ####
     #
+    
+    # this is a single estimation
+    object = all_models
 
+    if(inherits(object, "fixest")){
 
-    if(is.list(object)){
-
-      sum_exists = FALSE
-      for(c_name in class(object)){
-        if(exists(paste0("summary.", c_name), mode = "function")){
-          sum_exists = TRUE
-          break
-        }
-      }
-
-      if(!sum_exists){
-        # stop("There is no summary method for objects of class ", c_name, ". 'coefplot' applies summary to the object to extract the coeftable. Maybe add directly the coeftable in object instead?")
-        mat = coeftable(object)
-      } else {
-        fun_name = paste0("summary.", c_name)
-        args_name_sum = names(formals(fun_name))
-        args_sum = intersect(names(dots), args_name_sum)
-
-        dots_drop = args_sum
-
-        # we kick out the summary arguments from dots
-        dots[args_sum] = NULL
-
-        # We reconstruct a call to coeftable
-        mc_coeftable = match.call(expand.dots = TRUE)
-        mc_coeftable[[1]] = as.name("coeftable")
-        mc_coeftable[setdiff(names(mc_coeftable), c(args_sum, "object", ""))] = NULL
-
-        mat = eval(mc_coeftable, parent.frame())
-      }
+      mat = coeftable(object, vcov = vcov)
 
       sd = mat[, 2]
       estimate = mat[, 1]
@@ -1766,11 +1879,50 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
         varlist$depvar = depvar
       }
 
+    } else if(is.list(object) && !is.null(oldClass(object))){
+
+      sum_exists = FALSE
+      for(c_name in class(object)){
+        if(exists(paste0("summary.", c_name), mode = "function")){
+          sum_exists = TRUE
+          break
+        }
+      }
+      
+      # the dep var
+      fml = try(formula(object), silent = TRUE)
+      if(!inherits(fml, "try-error") && length(fml) == 3){
+        depvar = gsub(" ", "", as.character(fml)[[2]])
+        if(depvar %in% names(dict)) depvar = dict[depvar]
+        varlist$depvar = depvar
+      }
+
+      if(!sum_exists){
+        # stop("There is no summary method for objects of class ", c_name, ". 'coefplot' applies summary to the object to extract the coeftable. Maybe add directly the coeftable in object instead?")
+        mat = coeftable(object)
+        
+      } else {
+        obj_sum = summary(object)
+        mat = coeftable(obj_sum)
+        
+      }
+      
+      m_names = tolower(colnames(mat))
+      if(ncol(mat) == 4 || (grepl("estimate", m_names[1]) && 
+                               grepl("std\\.? error", m_names[1]))){
+        sd = mat[, 2]
+        estimate = mat[, 1]
+
+        names(estimate) = rownames(mat)
+
+      }
+
     } else if(is.matrix(object)){
       # object is a matrix containing the coefs and SEs
 
       m_names = tolower(colnames(object))
-      if(ncol(object) == 4 || (grepl("estimate", m_names[1]) && grepl("std\\.? error", m_names[1]))){
+      if(ncol(object) == 4 || (grepl("estimate", m_names[1]) && 
+                               grepl("std\\.? error", m_names[1]))){
         sd = object[, 2]
         estimate = object[, 1]
 
@@ -1781,7 +1933,7 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
       }
       
     } else if(length(object[1]) > 1 || !is.null(dim(object)) || !is.numeric(object)){
-      stop_up("Argument 'object' must be either: i) an estimation object, ii) a matrix of coefficients table, or iii) a numeric vector of the point estimates. Currently it is neither of the three.")
+      stop_up("Argument 'object' must be either: i) a `fixest` estimation, ii) a matrix of coefficients table, or iii) a numeric vector of the point estimates. Currently it is neither of the three.")
     } else {
       # it's a numeric vector
       estimate = object
@@ -1790,11 +1942,17 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
     n = length(estimate)
 
     if(missing(sd)){
-      if(missing(ci_low) || missing(ci_high)) stop_up("If 'sd' is not provided, you must provide the arguments 'ci_low' and 'ci_high'.")
+      if(missing(ci_low) || missing(ci_high)){
+        stop_up("When passing a vector of coefficients, the values for ",
+                "`sd` or `ci_low` and `ci_high` must be explicitly provided.\n",
+                "Problem: `sd`, `ci_low` and `ci_high` are missing.")
+      }
 
       varlist$ci = NULL
     } else {
-      if(!missing(ci_low) || !missing(ci_high)) warning("Since 'sd' is provided, arguments 'ci_low' or 'ci_high' are ignored.")
+      if(!missing(ci_low) || !missing(ci_high)){
+        warning("Since 'sd' is provided, arguments 'ci_low' or 'ci_high' are ignored.")
+      }
 
       # We compute the CI
       check_arg(df.t, "NULL | numeric scalar GE{1}")
@@ -2060,7 +2218,7 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
 
       prms$x = x
     }
-
+    
     # We add the reference
     if(!(identical(ref, "auto") || identical(ref, "all")) && length(ref) > 0 && !isFALSE(ref)){
 
@@ -2202,7 +2360,7 @@ coefplot_prms = function(object, ..., sd, ci_low, ci_high, x, x.shift = 0, dict,
       prms$id = 1
     }
   }
-
+  
   if(multiple_est){
     # We don't allow x.shift
 
@@ -2404,7 +2562,16 @@ gen_iplot = function(){
   # iplot has the same arguments as coefplot
   # we make all changes in coefplot
   # I automatically generate the iplot function, matching all coefplot arguments
-
+  
+  # NOTA: I do this to avoid a discrepancy btw the current dev version 
+  # and the package being installed
+  file = "./R/coefplot.R"
+  if(!file.exists(file)) return()
+  env = new.env()
+  source(file, local = env)
+  if(!exists("coefplot", envir = env)) return()
+  coefplot = get("coefplot", env)
+  
   coefplot_args = formals(coefplot)
 
   arg_name = names(coefplot_args)
@@ -2414,16 +2581,16 @@ gen_iplot = function(){
   # iplot
   #
 
-  qui_keep = !arg_name %in% c("object", "...")
+  qui_keep = !arg_name %in% c("object", "...", "i.select", "do_iplot")
 
   iplot_args = paste0(arg_name[qui_keep], " = ", arg_default[qui_keep], collapse = ", ")
   iplot_args = gsub(" = ,", ",", iplot_args)
 
   coefplot_call = paste0(arg_name[qui_keep], " = ", arg_name[qui_keep], collapse = ", ")
 
-  iplot_fun = paste0("iplot = function(object, ..., i.select = 1, ", iplot_args, "){\n\n",
-            "\tcoefplot(object = object, ..., i.select = i.select, ",
-             coefplot_call, ", internal.only.i = TRUE)\n}")
+  iplot_fun = paste0("iplot = function(..., i.select = 1, ", iplot_args, "){\n\n",
+            "\tcoefplot(..., i.select = i.select, ",
+             coefplot_call, ", do_iplot = TRUE)\n}")
 
   iplot_rox = "#' @describeIn coefplot Plots the coefficients generated with i()"
 

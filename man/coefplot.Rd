@@ -6,34 +6,40 @@
 \title{Plots confidence intervals and point estimates}
 \usage{
 coefplot(
-  object,
   ...,
   style = NULL,
   sd,
   ci_low,
   ci_high,
   df.t = NULL,
+  vcov = NULL,
+  cluster = NULL,
   x,
   x.shift = 0,
   horiz = FALSE,
-  dict = getFixest_dict(),
+  dict = NULL,
   keep,
   drop,
   order,
   ci.width = "1\%",
   ci_level = 0.95,
   add = FALSE,
-  pt.pch = c(20, 17, 15, 21, 24, 22),
-  pt.bg = NULL,
-  cex = 1,
-  pt.cex = cex,
+  plot_prms = list(),
+  pch = c(20, 17, 15, 21, 24, 22),
   col = 1:8,
+  cex = 1,
+  lty = 1,
+  lwd = 1,
+  ylim = NULL,
+  xlim = NULL,
+  pt.pch = pch,
+  pt.bg = NULL,
+  pt.cex = cex,
   pt.col = col,
   ci.col = col,
-  lwd = 1,
   pt.lwd = lwd,
   ci.lwd = lwd,
-  ci.lty = 1,
+  ci.lty = lty,
   grid = TRUE,
   grid.par = list(lty = 3, col = "gray"),
   zero = TRUE,
@@ -63,11 +69,12 @@ coefplot(
   value.lab = "Estimate and __ci__ Conf. Int.",
   ylab = NULL,
   xlab = NULL,
-  sub = NULL
+  sub = NULL,
+  i.select = NULL,
+  do_iplot = NULL
 )
 
 iplot(
-  object,
   ...,
   i.select = 1,
   style = NULL,
@@ -75,27 +82,34 @@ iplot(
   ci_low,
   ci_high,
   df.t = NULL,
+  vcov = NULL,
+  cluster = NULL,
   x,
   x.shift = 0,
   horiz = FALSE,
-  dict = getFixest_dict(),
+  dict = NULL,
   keep,
   drop,
   order,
   ci.width = "1\%",
   ci_level = 0.95,
   add = FALSE,
-  pt.pch = c(20, 17, 15, 21, 24, 22),
-  pt.bg = NULL,
-  cex = 1,
-  pt.cex = cex,
+  plot_prms = list(),
+  pch = c(20, 17, 15, 21, 24, 22),
   col = 1:8,
+  cex = 1,
+  lty = 1,
+  lwd = 1,
+  ylim = NULL,
+  xlim = NULL,
+  pt.pch = pch,
+  pt.bg = NULL,
+  pt.cex = cex,
   pt.col = col,
   ci.col = col,
-  lwd = 1,
   pt.lwd = lwd,
   ci.lwd = lwd,
-  ci.lty = 1,
+  ci.lty = lty,
   grid = TRUE,
   grid.par = list(lty = 3, col = "gray"),
   zero = TRUE,
@@ -129,11 +143,6 @@ iplot(
 )
 }
 \arguments{
-\item{object}{Can be either: i) an estimation object (obtained for example from
-\code{\link{feols}}, ii) a list of estimation objects (several results will be plotted at
-once), iii) a matrix of coefficients table, iv) a numeric vector of the point
-estimates -- the latter requiring the extra arguments \code{sd} or \code{ci_low} and \code{ci_high}.}
-
 \item{...}{Other arguments to be passed to \code{summary}, if \code{object} is an estimation,
 and/or to the function \code{plot} or \code{lines} (if \code{add = TRUE}).}
 
@@ -154,6 +163,31 @@ For each estimate.}
 when computing the confidence intervals with the Student t. By default it
 tries to capture the DoF from the estimation. To use a Normal law to compute the
 confidence interval, use \code{df.t = Inf}.}
+
+\item{vcov}{Versatile argument to specify the VCOV.
+In general, it is either a character scalar equal to a VCOV type, either a formula of the form:
+vcov_type ~ variables. The VCOV types implemented are: "iid", "hetero" (or "HC1"),
+"cluster", "twoway", "NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley".
+It also accepts object from vcov_cluster, vcov_NW, NW, vcov_DK, DK, vcov_conley and conley.
+It also accepts covariance matrices computed externally.
+Finally it accepts functions to compute the covariances.
+See the vcov documentation in the vignette.
+You can pass several VCOVs (as above) if you nest them into a list.
+If the number of VCOVs equals the number of models, eahc VCOV is mapped to the appropriate model.
+If there is one model and several VCOVs, or if the first element of the list is equal to
+\code{"each"} or \code{"times"}, then the estimations will be replicated and the results
+for each estimation and each VCOV will be reported.}
+
+\item{cluster}{Tells how to cluster the standard-errors (if clustering is requested).
+Can be either a list of vectors, a character vector of variable names, a formula or
+an integer vector. Assume we want to perform 2-way clustering over \code{var1} and \code{var2}
+contained in the data.frame \code{base} used for the estimation. All the following
+\code{cluster} arguments are valid and do the same thing:
+\code{cluster = base[, c("var1", "var2")]}, \code{cluster = c("var1", "var2")}, \code{cluster = ~var1+var2}.
+If the two variables were used as fixed-effects in the estimation, you can leave it
+blank with \code{vcov = "twoway"} (assuming \code{var1} [resp. \code{var2}] was
+the 1st [resp. 2nd] fixed-effect). You can interact two variables using \code{^} with
+the following syntax: \code{cluster = ~var1^var2} or \code{cluster = "var1^var2"}.}
 
 \item{x}{The value of the x-axis. If missing, the names of the argument \code{estimate}
 are used.}
@@ -205,23 +239,41 @@ does not contain \dQuote{Intercept} goes first).  See details.}
 \item{add}{Default is \code{FALSE}, if the intervals are to be added to an existing
 graph. Note that if it is the case, then the argument \code{x} MUST be numeric.}
 
+\item{plot_prms}{A named list. It may contain additionnal parameters to be passed
+to the plot.}
+
+\item{pch}{The patch of the coefficient estimates. Default is 1 (circle).
+This is an alias to tha argument \code{pt.pch}.}
+
+\item{col}{The color of the points and the confidence intervals. Default is 1
+("black"). Note that you can set the colors separately for each of them
+with \code{pt.col} and \code{ci.col}.}
+
+\item{cex}{Numeric, default is 1. Expansion factor for the points}
+
+\item{lty}{The line type of the confidence intervals. Default is 1.
+This is an alias to the argument \code{ci.lty}.}
+
+\item{lwd}{General line with. Default is 1.}
+
+\item{ylim}{Numeric vector of length 2 which gives the limits of the plotting region for
+the y-axis. The default is \code{NULL}, which means that it is automatically defined.
+Use the argument \code{ylim.add} to simply increase or decrese the default limits.}
+
+\item{xlim}{Numeric vector of length 2 which gives the limits of the plotting region for
+the x-axis. The default is \code{NULL}, which means that it is automatically defined.
+Use the argument \code{xlim.add} to simply increase or decrese the default limits.}
+
 \item{pt.pch}{The patch of the coefficient estimates. Default is 1 (circle).}
 
 \item{pt.bg}{The background color of the point estimate (when the \code{pt.pch} is
 in 21 to 25). Defaults to NULL.}
 
-\item{cex}{Numeric, default is 1. Expansion factor for the points}
-
 \item{pt.cex}{The size of the coefficient estimates. Default is the other argument \code{cex}.}
 
-\item{col}{The color of the points and the confidence intervals. Default is 1
-("black"). Note that you can set the colors separately for each of them with \code{pt.col} and \code{ci.col}.}
+\item{pt.col}{The color of the coefficient estimates. Default is equal to the argument \code{col}.}
 
-\item{pt.col}{The color of the coefficient estimates. Default is equal to the other argument \code{col}.}
-
-\item{ci.col}{The color of the confidence intervals. Default is equal to the other argument \code{col}.}
-
-\item{lwd}{General line with. Default is 1.}
+\item{ci.col}{The color of the confidence intervals. Default is equal to the argument \code{col}.}
 
 \item{pt.lwd}{The line width of the coefficient estimates. Default is equal to
 the other argument \code{lwd}.}
@@ -266,7 +318,7 @@ with a color. If \code{TRUE}, then you can set the graphical parameters with the
 Only used if \code{ci.fill=TRUE}. By default it is equal to \code{list(col = "lightgray", alpha = 0.5)}.
 Note that \code{alpha} is a special parameter that adds transparency to the color (ranges from 0 to 1).}
 
-\item{ref}{Used to add points equal to 0 (typically to visualize reference points).
+\item{ref}{Used to add points at \code{y = 0} (typically to visualize reference points).
 Either: i) "auto" (default), ii) a character vector of length 1, iii) a list
 of length 1, iv) a named integer vector of length 1, or v) a numeric vector.
 By default, in \code{iplot}, if the argument \code{ref} has been used in the estimation,
@@ -368,6 +420,9 @@ obtain what you want. Note that it works much better when the variables are "pur
 \code{i()} and not interacted with other variables. For example: \code{i(species, x1)}
 is good while \code{i(species):x1} isn't. The latter will also work but the index
 may feel weird in case there are many \code{i()} variables.}
+
+\item{do_iplot}{Logical, default is \code{FALSE}. For internal use only.
+If \code{TRUE}, then \code{iplot} is run instead of \code{coefplot}.}
 }
 \description{
 This function plots the results of estimations (coefficients and confidence intervals).
@@ -443,18 +498,18 @@ would end up with the following order: Wind, Temp:Wind, Temp, (Intercept).
 #
 
 # Estimation on Iris data with one fixed-effect (Species)
-est = feols(Petal.Length ~ Petal.Width + Sepal.Length +
-            Sepal.Width | Species, iris)
+# + we cluster the standard-errors
+est = feols(Petal.Length ~ Petal.Width + Sepal.Width | Species, 
+            iris, vcov = "cluster")
 
-# Estimation results with clustered standard-errors
-# (the default when fixed-effects are present)
-est_clu = summary(est)
 # Now with "regular" standard-errors
-est_std = summary(est, se = "iid")
+est_std = summary(est, vcov = "iid")
 
 # You can plot the two results at once
-coefplot(list(est_clu, est_std))
+coefplot(est, est_std)
 
+# You could also use the argument vcov
+coefplot(est, vcov = list("cluster", "iid"))
 
 # Alternatively, you can use the argument x.shift
 # to do it sequentially:
@@ -462,15 +517,12 @@ coefplot(list(est_clu, est_std))
 # First graph with clustered standard-errors
 coefplot(est, x.shift = -.2)
 
-# 'x.shift' was used to shift the coefficients on the left.
+# 'x.shift' was used to shift the coefficients to the left.
 
 # Second set of results: this time with
 #  standard-errors that are not clustered.
-coefplot(est, se = "iid", x.shift = .2,
-         add = TRUE, col = 2, ci.lty = 2, pch=15)
-
- # Note that we used 'se', an argument that will
- #  be passed to summary.fixest
+coefplot(est, vcov = "iid", x.shift = .2,
+         add = TRUE, col = 2, ci.lty = 2, pch = 15)
 
 legend("topright", col = 1:2, pch = 20, lwd = 1, lty = 1:2,
        legend = c("Clustered", "IID"), title = "Standard-Errors")
@@ -487,7 +539,7 @@ data(base_did)
 base_inter = base_did
 
 # We interact the variable 'period' with the variable 'treat'
-est_did = feols(y ~ x1 + i(period, treat, 5) | id+period, base_inter)
+est_did = feols(y ~ x1 + i(period, treat, 5) | id + period, base_inter)
 
 # In the estimation, the variable treat is interacted
 #  with each value of period but 5, set as a reference
@@ -500,11 +552,6 @@ coefplot(est_did)
 # If you want to keep only the coefficients
 # created with i() (ie the interactions), use iplot
 iplot(est_did)
-
-# When estimations contain interactions, as before,
-#  the default behavior of coefplot changes,
-#  it now only plots interactions:
-coefplot(est_did)
 
 # We can see that the graph is different from before:
 #  - only interactions are shown,
@@ -529,7 +576,7 @@ iplot(est)
 
 # To respect a plotting order, use a factor
 base_inter$month_factor = factor(base_inter$period_month, levels = all_months)
-est = feols(y ~ x1 + i(month_factor, treat, "oct") | id+period, base_inter)
+est = feols(y ~ x1 + i(month_factor, treat, "oct") | id + period, base_inter)
 iplot(est)
 
 

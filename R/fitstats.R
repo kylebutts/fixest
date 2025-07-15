@@ -94,8 +94,9 @@ print.fixest_fitstat = function(x, na.rm = FALSE, ...){
 
   if(any(is_stat)){
     stat_all = sapply(x[is_stat], function(z) z$stat)
-    stat_all = paste0("stat = ", 
-                      sfill(sfill(numberFormatNormal(stat_all), anchor = "."), right = TRUE))
+    digits_signif = sma("{s5, '.+\\.'clean ? stat_all}")
+    n_round = min(max(nchar(digits_signif), 1), 5)
+    stat_all = sma("stat = {round.", n_round, ", align.right ? stat_all}")
     for(i in seq_along(stat_all)){
       j = which(is_stat)[i]
       x[[j]]$stat = stat_all[i]
@@ -436,6 +437,8 @@ fitstat_register = function(type, fun, alias = NULL, subtypes = NULL){
 #' Computes fit statistics of fixest objects
 #'
 #' Computes various fit statistics for `fixest` estimations.
+#' 
+#' @inheritParams summary.fixest
 #'
 #' @param x A `fixest` estimation.
 #' @param type Character vector or one sided formula. The type of fit statistic to be computed. 
@@ -452,9 +455,7 @@ fitstat_register = function(type, fun, alias = NULL, subtypes = NULL){
 #' @param frame An environment in which to evaluate variables, default is `parent.frame()`. 
 #' Only used if the argument `type` is a formula and some values in the formula have to be 
 #' extended with the dot square bracket operator. Mostly for internal use.
-#' @param ... Other elements to be passed to other methods and may be used to compute 
-#' the statistics (for example you can pass on arguments to compute the VCOV when using 
-#' `type = "g"` or `type = "wald"`.).
+#' @param ... For internal use.
 #'
 #' @section Registering your own types:
 #'
@@ -565,8 +566,9 @@ fitstat_register = function(type, fun, alias = NULL, subtypes = NULL){
 #' # to errors, but that's another story!
 #'
 #'
-fitstat = function(x, type, simplify = FALSE, verbose = TRUE, show_types = FALSE,
-           frame = parent.frame(), ...){
+fitstat = function(x, type, vcov = NULL, cluster = NULL, ssc = NULL, 
+                   simplify = FALSE, verbose = TRUE, show_types = FALSE,
+                   frame = parent.frame(), ...){
 
   r2_types = c("sq.cor", "cor2", "r2", "ar2", "pr2", "apr2", "par2", "wr2",
                "war2", "awr2", "wpr2", "pwr2", "wapr2", "wpar2", "awpr2",
@@ -659,8 +661,8 @@ fitstat = function(x, type, simplify = FALSE, verbose = TRUE, show_types = FALSE
   type = tolower(type)
 
   # To update
-  if(!isTRUE(x$summary) || any(c("se", "cluster", "ssc") %in% names(dots))){
-    x = summary(x, ...)
+  if(!isTRUE(x$summary)){
+    x = summary(x, vcov = vcov, cluster = cluster, ssc = ssc, warn = FALSE)
   }
 
   IS_ETABLE = isTRUE(dots$etable)
@@ -967,16 +969,19 @@ fitstat = function(x, type, simplify = FALSE, verbose = TRUE, show_types = FALSE
                 # We compute the VCOV like for the second stage
                 flags = x$summary_flags
                 if(is.null(flags) || !is.null(dots$se) || !is.null(dots$cluster)){
-                  my_x_first = summary(my_x_first, ...)
+                  my_x_first = summary(my_x_first, vcov = vcov, cluster = cluster, 
+                                       ssc = ssc, warn = FALSE)
                 } else {
-                  my_x_first = summary(my_x_first, vcov = flags$vcov, ssc = flags$ssc, ...)
+                  my_x_first = summary(my_x_first, vcov = flags$vcov, ssc = flags$ssc, 
+                                       warn = FALSE)
                 }
               }
 
               stat = .wald(my_x_first, inst)
 
               p = pf(stat, df1, df2, lower.tail = FALSE)
-              vec = list(stat = stat, p = p, df1 = df1, df2 = df2, vcov = attr(x$cov.scaled, "type"))
+              vec = list(stat = stat, p = p, df1 = df1, df2 = df2, 
+                         vcov = attr(x$cov.scaled, "type"))
               res_all[[paste0(type, "::", endo)]] = set_value(vec, value)
             }
           }

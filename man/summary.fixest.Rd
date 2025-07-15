@@ -17,7 +17,7 @@
   se = NULL,
   keepBounded = FALSE,
   n = 1000,
-  vcov_fix = FALSE,
+  vcov_fix = TRUE,
   nthreads = getFixest_nthreads(),
   ...
 )
@@ -61,8 +61,8 @@ the following syntax: \code{cluster = ~var1^var2} or \code{cluster = "var1^var2"
 \item{ssc}{An object of class \code{ssc.type} obtained with the function \code{\link{ssc}}. Represents
 how the degree of freedom correction should be done.You must use the function \code{\link{ssc}}
 for this argument. The arguments and defaults of the function \code{\link{ssc}} are:
-\code{adj = TRUE}, \code{fixef.K="nested"}, \code{cluster.adj = TRUE}, \code{cluster.df = "min"},
-\code{t.df = "min"}, \verb{fixef.force_exact=FALSE)}. See the help of the function \code{\link{ssc}} for details.}
+\code{K.adj = TRUE}, \code{K.fixef = "nonnested"}, \code{G.adj = TRUE}, \code{G.df = "min"},
+\code{t.df = "min"}, \verb{K.exact = FALSE)}. See the help of the function \code{\link{ssc}} for details.}
 
 \item{stage}{Can be equal to \code{2} (default), \code{1}, \code{1:2} or \code{2:1}. Only used if the object
 is an IV estimation: defines the stage to which \code{summary} should be applied. If \code{stage = 1}

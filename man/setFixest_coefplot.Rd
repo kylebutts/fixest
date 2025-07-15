@@ -94,11 +94,12 @@ in 21 to 25). Defaults to NULL.}
 \item{pt.cex}{The size of the coefficient estimates. Default is the other argument \code{cex}.}
 
 \item{col}{The color of the points and the confidence intervals. Default is 1
-("black"). Note that you can set the colors separately for each of them with \code{pt.col} and \code{ci.col}.}
+("black"). Note that you can set the colors separately for each of them
+with \code{pt.col} and \code{ci.col}.}
 
-\item{pt.col}{The color of the coefficient estimates. Default is equal to the other argument \code{col}.}
+\item{pt.col}{The color of the coefficient estimates. Default is equal to the argument \code{col}.}
 
-\item{ci.col}{The color of the confidence intervals. Default is equal to the other argument \code{col}.}
+\item{ci.col}{The color of the confidence intervals. Default is equal to the argument \code{col}.}
 
 \item{lwd}{General line with. Default is 1.}
 

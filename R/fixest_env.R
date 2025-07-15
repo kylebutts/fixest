@@ -14,13 +14,15 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
                       linear.start = 0, data.save = FALSE,
                       jacobian.method = "simple", useHessian = TRUE, hessian.args = NULL,
                       opt.control = list(), vcov = NULL, cluster, se, ssc, y, X, fixef_df,
-                      panel.id, fixef.rm = "perfect", nthreads = getFixest_nthreads(),
+                      panel.id, panel.time.step = NULL, 
+                      panel.duplicate.method = "none", 
+                      fixef.rm = "perfect", nthreads = getFixest_nthreads(),
                       lean = FALSE, verbose = 0, theta.init, fixef.tol = 1e-5,
                       fixef.iter = 10000, collin.tol = 1e-14, deriv.iter = 5000,
                       deriv.tol = 1e-4, glm.iter = 25, glm.tol = 1e-8, etastart, mustart,
                       fixef.algo = NULL,
                       warn = TRUE, notes = getFixest_notes(), combine.quick, demeaned = FALSE,
-                      origin_bis, origin = "feNmlm", mc_origin, mc_origin_bis, mc_origin_ter,
+                      origin_bis = NULL, origin = "feNmlm", mc_origin, mc_origin_bis, mc_origin_ter,
                       computeModel0 = FALSE, weights = NULL, only.coef = FALSE,
                       debug = FALSE, mem.clean = FALSE, call_env = NULL, call_env_bis, ...){
 
@@ -68,7 +70,9 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
   #
   # Arguments control
-  main_args = c("fml", "data", "panel.id", "offset", "subset", "split", "fsplit", "split.keep",
+  
+  main_args = c("fml", "data", "panel.id", "panel.time.step", "panel.duplicate.method", 
+                "offset", "subset", "split", "fsplit", "split.keep",
                 "split.drop", "vcov", "data.save",
                 "cluster", "se", "ssc", "fixef.rm", "fixef.tol", "fixef.iter", "fixef",
                 "nthreads", "lean", "verbose", "warn", "notes", "combine.quick",
@@ -784,35 +788,44 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     
 
     if(debug) cat(" ---> Panel setup\n")
-
+    
     info = fixest_fml_rewriter(fml)
     isPanel = info$isPanel
     fml = info$fml
 
     if(isPanel){
       panel.info = NULL
+      
+      if(!missnull(panel.id)){
+        # we recreate the panel with the new user info
+        attr(data, "panel_info") = NULL
+      }
+      
       if(!is.null(attr(data, "panel_info"))){
-        if(!missnull(panel.id)){
-          warning("The argument 'panel.id' is provided but argument 'data' is already a 'fixest_panel' object. Thus the argument 'panel.id' is ignored.", immediate. = TRUE)
-        }
-
         panel__meta__info = attr(data, "panel_info")
-        panel.id = panel__meta__info$panel.id
-        panel.info = panel__meta__info$call
+        
       } else {
         # Later: automatic deduction using the first two clusters
         if(missnull(panel.id)){
           stop("To use lag/leads (with l()/f()): either provide the argument 'panel.id' with the panel identifiers OR set your data as a panel with function panel().")
         }
-        panel__meta__info = panel_setup(data, panel.id, from_fixest = TRUE)
+        
+        panel__meta__info = panel_setup(data, panel.id, 
+                                        time.step = panel.time.step,
+                                        duplicate.method = panel.duplicate.method, 
+                                        from_fixest = TRUE)
       }
+      
+      panel.id = panel__meta__info$panel.id
+      panel.info = panel__meta__info$call
       class(data) = "data.frame"
     } else if(!missnull(panel.id)){
       # basic checking
       if(inherits(panel.id, "formula")){
         panel_vars = all.vars(panel.id)
       } else {
-        panel_vars = all.vars(.xpd(rhs = panel.id))
+        panel.id = .xpd(rhs = gsub(",", "+", panel.id))
+        panel_vars = all.vars(panel.id)
       }
 
       pblm = setdiff(panel_vars, dataNames)
@@ -3239,6 +3252,8 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
   # Panel information
   if(!is.null(panel.id)){
     res$panel.id = panel.id
+    res$panel.time.step = panel.time.step
+    res$panel.duplicate.method = panel.duplicate.method
   }
 
   if(isPanel && !is.null(panel.info)){

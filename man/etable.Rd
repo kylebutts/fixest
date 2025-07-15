@@ -32,7 +32,8 @@ esttable(
   order = NULL,
   dict = TRUE,
   file = NULL,
-  replace = FALSE,
+  replace = TRUE,
+  create_dirs = FALSE,
   convergence = NULL,
   signif.code = NULL,
   headers = list("auto"),
@@ -73,7 +74,7 @@ esttex(
   digits = 4,
   digits.stats = 5,
   fitstat = NULL,
-  title = NULL,
+  caption = NULL,
   coefstat = "se",
   ci = 0.95,
   se.row = NULL,
@@ -83,7 +84,8 @@ esttex(
   order = NULL,
   dict = TRUE,
   file = NULL,
-  replace = FALSE,
+  replace = TRUE,
+  create_dirs = FALSE,
   convergence = NULL,
   signif.code = NULL,
   label = NULL,
@@ -141,7 +143,7 @@ etable(
   digits.stats = 5,
   tex,
   fitstat = NULL,
-  title = NULL,
+  caption = NULL,
   coefstat = "se",
   ci = 0.95,
   se.row = NULL,
@@ -151,7 +153,8 @@ etable(
   order = NULL,
   dict = TRUE,
   file = NULL,
-  replace = FALSE,
+  replace = TRUE,
+  create_dirs = FALSE,
   convergence = NULL,
   signif.code = NULL,
   label = NULL,
@@ -227,8 +230,9 @@ setFixest_etable(
   drop.section = NULL,
   view = FALSE,
   markdown = NULL,
-  view.cache = FALSE,
+  view.cache = TRUE,
   page.width = "fit",
+  div.class = "etable",
   postprocess.tex = NULL,
   postprocess.df = NULL,
   fit_format = "__var__",
@@ -292,8 +296,8 @@ you should use \code{vcov} instead.}
 \item{ssc}{An object of class \code{ssc.type} obtained with the function \code{\link{ssc}}. Represents
 how the degree of freedom correction should be done.You must use the function \code{\link{ssc}}
 for this argument. The arguments and defaults of the function \code{\link{ssc}} are:
-\code{adj = TRUE}, \code{fixef.K="nested"}, \code{cluster.adj = TRUE}, \code{cluster.df = "min"},
-\code{t.df = "min"}, \verb{fixef.force_exact=FALSE)}. See the help of the function \code{\link{ssc}} for details.}
+\code{K.adj = TRUE}, \code{K.fixef = "nonnested"}, \code{G.adj = TRUE}, \code{G.df = "min"},
+\code{t.df = "min"}, \verb{K.exact = FALSE)}. See the help of the function \code{\link{ssc}} for details.}
 
 \item{cluster}{Tells how to cluster the standard-errors (if clustering is requested).
 Can be either a list of vectors, a character vector of variable names, a formula or
@@ -386,6 +390,12 @@ export a regular \code{data.frame}, use argument \code{tex = FALSE}.}
 
 \item{replace}{Logical, default is \code{FALSE}. Only used if option \code{file} is used. Should the
 exported table be written in a new file that replaces any existing file?}
+
+\item{create_dirs}{Logical, default is \code{FALSE}. Only used if when some file needs to be
+created (e;g. when \code{file} or \code{export} is used). By default, i.e. when \code{FALSE},
+if the parent directory does not exist, the containing folders are created
+up to the grand parent.
+If \code{TRUE}, all containing folders are recursively created.}
 
 \item{convergence}{Logical, default is missing. Should the convergence state of the algorithm be
 displayed? By default, convergence information is displayed if at least one model did not
@@ -578,12 +588,12 @@ margin width represent the width of a single side margin (and hence will be doub
 when \code{markdown = TRUE}. The table in an image format is embedded in a \verb{<div>} container,
 and that container is of class \code{div.class}.}
 
-\item{title}{(Tex only.) Character scalar. The title of the Latex table.}
+\item{caption}{(Tex only.) Character scalar. The caption of the Latex table.}
 
 \item{label}{(Tex only.) Character scalar. The label of the Latex table.}
 
-\item{float}{(Tex only.) Logical. By default, if the argument \code{title} or \code{label} is provided, it
-is set to \code{TRUE}. Otherwise, it is set to \code{FALSE}.}
+\item{float}{(Tex only.) Logical. By default, if the argument \code{caption} or \code{label} is provided,
+it is set to \code{TRUE}. Otherwise, it is set to \code{FALSE}.}
 
 \item{style.tex}{An object created by the function \code{\link{style.tex}}. It represents the style of the
 Latex table, see the documentation of \code{\link{style.tex}}.}
@@ -847,12 +857,12 @@ Its default placement is at the top of the fixed-effects section.
 
 
 By default on all instances (with the notable exception of the elements of \code{\link{style.tex}})
-special Latex characters are escaped. This means that \code{title="Exports in million $."} will be
+special Latex characters are escaped. This means that \code{caption="Exports in million $."} will be
 exported as \code{"Exports in million \\\\$."}: the dollar sign will be escaped. This is true for the
 following characters: &, \code{$}, \%, _, ^ and #.
 
 Note, importantly, that equations are NOT escaped. This means that
-\code{title="Functional form $a_i \\\\times x^b$, variation in \%."} will be displayed as:
+\code{caption="Functional form $a_i \\\\times x^b$, variation in \%."} will be displayed as:
 \code{"Functional form $a_i \\\\times x^b$, variation in \\\\\%."}: only the
 last percentage will be escaped.
 

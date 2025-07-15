@@ -4,14 +4,14 @@
 \alias{hatvalues.fixest}
 \title{Hat values for \code{fixest} objects}
 \usage{
-\method{hatvalues}{fixest}(model, exact = TRUE, p = 1000, ...)
+\method{hatvalues}{fixest}(model, exact = TRUE, boot.size = 1000, ...)
 }
 \arguments{
 \item{model}{A fixest object. For instance from feols or feglm.}
 
 \item{exact}{Logical scalar, default is \code{TRUE}. Whether the diagonals of the projection matrix should be calculated exactly. If \code{FALSE}, then it will be approximated using a JLA algorithm. See details. Unless you have a very large number of observations, it is recommended to keep the default value.}
 
-\item{p}{Numeric scala, default is 1000. This is only used when \code{exact == FALSE}. This determined the number of bootstrap samples used to estimate the projection matrix.}
+\item{boot.size}{Integer scalar or \code{NULL}, default is 1000. This is only used when \code{exact == FALSE}. This determines the number of bootstrap samples used to estimate the projection matrix. If equal to \code{NULL}, it falls back to the default value of 1000.}
 
 \item{...}{Not currently used.}
 }
@@ -26,7 +26,7 @@ Hat values are not available for \code{\link[=femlm]{fenegbin}}, \code{\link{fem
 
 Hat values for generalized linear model are disussed in Belsley, Kuh and Welsch (1980), Cook and Weisberg (1982), etc.
 
-When \code{exact == FALSE}, the Johnson-Lindenstrauss approximation (JLA) algorithm is used which approximates the diagonals of the projection matrix. For more precision (but longer time), increase the value of \code{p}. See Kline, Saggio, and Sølvsten (2020) for details.
+When \code{exact == FALSE}, the Johnson-Lindenstrauss approximation (JLA) algorithm is used which approximates the diagonals of the projection matrix. For more precision (but longer time), increase the value of \code{boot.size}. See Kline, Saggio, and Sølvsten (2020) for details.
 }
 \examples{
 

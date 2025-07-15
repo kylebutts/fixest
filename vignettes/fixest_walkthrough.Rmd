@@ -664,7 +664,7 @@ Let's compare our results in plot form:
 
 ```{r}
 # Plot the two TWFE results
-iplot(list(res_twfe, res_sa20), sep = 0.5)
+iplot(res_twfe, res_sa20, sep = 0.5)
 
 # Add the true results
 att_true = tapply(base_stagg$treatment_effect_true, base_stagg$time_to_treatment, mean)[-1]

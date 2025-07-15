@@ -4,11 +4,22 @@
 \alias{print.fixest_multi}
 \title{Print method for fixest_multi objects}
 \usage{
-\method{print}{fixest_multi}(x, ...)
+\method{print}{fixest_multi}(x, type = "etable", ...)
 }
 \arguments{
 \item{x}{A \code{fixest_multi} object, obtained from a \code{fixest} estimation leading to
 multiple results.}
+
+\item{type}{A character either equal to \code{"etable"}, \code{"short"}, \code{"long"},
+\code{"compact"}, \code{"se_compact"} or \code{"se_long"}.
+If \code{etable}, the function \code{\link{etable}} is used to print the result.
+If \code{short}, only the table of coefficients is displayed for each estimation.
+If \code{long}, then the full results are displayed for each estimation. If \code{compact},
+a \code{data.frame} is returned with one line per model and the formatted
+coefficients + standard-errors in the columns. If \code{se_compact}, a \code{data.frame} is
+returned with one line per model, one numeric column for each coefficient and one numeric
+column for each standard-error. If \code{"se_long"}, same as \code{"se_compact"} but the data is in a
+long format instead of wide.}
 
 \item{...}{Other arguments to be passed to \code{\link{summary.fixest_multi}}.}
 }

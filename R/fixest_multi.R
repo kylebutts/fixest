@@ -422,8 +422,10 @@ n_models = function(x, lhs = FALSE, rhs = FALSE, sample = FALSE,
 #'
 #' @param object A `fixest_multi` object, obtained from a `fixest` estimation leading to 
 #' multiple results.
-#' @param type A character either equal to `"short"`, `"long"`, `"compact"`, `"se_compact"` 
-#' or `"se_long"`. If `short`, only the table of coefficients is displayed for each estimation. 
+#' @param type A character either equal to `"etable"`, `"short"`, `"long"`, 
+#' `"compact"`, `"se_compact"` or `"se_long"`. 
+#' If `etable`, the function [`etable`] is used to print the result.
+#' If `short`, only the table of coefficients is displayed for each estimation. 
 #' If `long`, then the full results are displayed for each estimation. If `compact`, 
 #' a `data.frame` is returned with one line per model and the formatted 
 #' coefficients + standard-errors in the columns. If `se_compact`, a `data.frame` is 
@@ -444,7 +446,7 @@ n_models = function(x, lhs = FALSE, rhs = FALSE, sample = FALSE,
 #' # Multiple estimation
 #' res = feols(y ~ csw(x1, x2, x3), base, split = ~species)
 #'
-#' # By default, the type is "short"
+#' # By default, the type is "etable"
 #' # You can still use the arguments from summary.fixest
 #' summary(res, se = "hetero")
 #'
@@ -457,12 +459,12 @@ n_models = function(x, lhs = FALSE, rhs = FALSE, sample = FALSE,
 #' summary(res, type = "se_long")
 #'
 #'
-summary.fixest_multi = function(object, type = "short", vcov = NULL, se = NULL, 
+summary.fixest_multi = function(object, type = "etable", vcov = NULL, se = NULL, 
                                 cluster = NULL, ssc = NULL,
                                 stage = 2, lean = FALSE, n = 1000, ...){
   dots = list(...)
 
-  check_set_arg(type, "match(short, long, compact, se_compact, se_long)")
+  check_set_arg(type, "NULL match(etable, short, long, compact, se_compact, se_long)")
   
   # .vcov is now deprecated
   if(".vcov" %in% names(dots)){
@@ -483,7 +485,7 @@ summary.fixest_multi = function(object, type = "short", vcov = NULL, se = NULL,
 
   if(is_user_level_call()){
     validate_dots(suggest_args = c("type", "vcov"),
-            valid_args = c("agg", "forceCovariance", "keepBounded", "nthreads"))
+                  valid_args = c("agg", "forceCovariance", "keepBounded", "nthreads"))
   }
 
   est_1 = object[[1]]
@@ -494,12 +496,14 @@ summary.fixest_multi = function(object, type = "short", vcov = NULL, se = NULL,
         # this is necessary if the list has names
         vcov_list <- list(vcov[[i]])
         names(vcov_list)[[1]] <- names(vcov)[[i]]
-        object[[i]] = summary(object[[i]], se = se, cluster = cluster, ssc = ssc, vcov = vcov_list, stage = stage, lean = lean, n = n, ...)
+        object[[i]] = summary(object[[i]], se = se, cluster = cluster, ssc = ssc, 
+                              vcov = vcov_list, stage = stage, lean = lean, n = n, ...)
       } else {
         # this is necessary if the list has names
         vcov_list <- list(vcov)
         names(vcov_list)[[1]] <- names(vcov)
-        object[[i]] = summary(object[[i]], vcov = vcov, se = se, cluster = cluster, ssc = ssc, stage = stage, lean = lean, n = n, ...)
+        object[[i]] = summary(object[[i]], vcov = vcov, se = se, cluster = cluster, ssc = ssc, 
+                              stage = stage, lean = lean, n = n, ...)
       }
     }
 
@@ -608,6 +612,7 @@ summary.fixest_multi = function(object, type = "short", vcov = NULL, se = NULL,
 #' Displays summary information on fixest_multi objects in the R console.
 #'
 #' @method print fixest_multi
+#' @inheritParams summary.fixest_multi
 #'
 #' @param x A `fixest_multi` object, obtained from a `fixest` estimation leading to 
 #' multiple results.
@@ -630,20 +635,29 @@ summary.fixest_multi = function(object, type = "short", vcov = NULL, se = NULL,
 #' # Let's print all that
 #' res
 #'
-print.fixest_multi = function(x, ...){
+print.fixest_multi = function(x, type = "etable", ...){
 
   if(is_user_level_call()){
-    validate_dots(valid_args = stvec("/type, vcov, se, cluster, ssc, stage, lean, agg, forceCovariance, keepBounded, n, nthreads"))
+    validate_dots(valid_args = stvec("vcov, se, cluster, ssc, stage, lean, agg, forceCovariance, keepBounded, n, nthreads"))
+  }
+  
+  if(missing(type) && !is.null(attr(x, "print_request"))){
+    type = attr(x, "print_request")
   }
 
-  x = summary(x, fromPrint = TRUE, ...)
+  x = summary(x, type = type, fromPrint = TRUE, ...)
+  type = attr(x, "print_request")
 
   # Type = compact
   if(is.data.frame(x)){
     return(x)
   }
+  
+  if(type == "etable"){
+    return(print(etable(x)))
+  }
 
-  is_short = identical(attr(x, "print_request"), "short")
+  is_short = identical(type, "short")
 
   tree = attr(x, "tree")
   tree_index = attr(x, "tree_index")

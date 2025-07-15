@@ -274,7 +274,7 @@ femlm_ll = function(coef, env){
 	y = get("lhs", env)
 
 	if(anyNA(coef)) stop("Divergence... (some coefs are NA)\nTry option verbose=2 to figure out the problem.")
-
+  
 	mu_both = get_mu(coef, env)
 	mu = mu_both$mu
 	exp_mu = mu_both$exp_mu
@@ -426,7 +426,7 @@ get_mu = function(coef, env, final = FALSE){
 
 	if(length(coefMu)>0){
 		for(i in 1:length(coefMu)){
-			if(all(coef==coefMu[[i]])){
+			if(all(coef == coefMu[[i]])){
 				return(list(mu = valueMu[[i]], exp_mu = valueExpMu[[i]]))
 			}
 		}

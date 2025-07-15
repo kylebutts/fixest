@@ -57,7 +57,6 @@
 #' est_pois = fepois(Euros ~ log(dist_km)|Origin+Destination+Product, trade)
 #'
 #' # displaying the results
-#' #  (by default SEs are clustered if FEs are used)
 #' print(est_pois)
 #'
 #' # By default the coefficient table is displayed.
@@ -518,7 +517,7 @@ print.fixest = function(x, n, type = "table", fitstat = NULL, ...){
 #'
 summary.fixest = function(object, vcov = NULL, cluster = NULL, ssc = NULL,
                           stage = NULL, lean = FALSE, agg = NULL, forceCovariance = FALSE,
-                          se = NULL, keepBounded = FALSE, n = 1000, vcov_fix = FALSE,
+                          se = NULL, keepBounded = FALSE, n = 1000, vcov_fix = TRUE,
                           nthreads = getFixest_nthreads(), ...){
 
   # computes the clustered SEs and returns the modified vcov and coeftable
@@ -613,7 +612,8 @@ summary.fixest = function(object, vcov = NULL, cluster = NULL, ssc = NULL,
                                            vcov = vcov, ssc = ssc, lean = lean,
                                            forceCovariance = forceCovariance,
                                            vcov_fix = vcov_fix,
-                                           n = n, nthreads = nthreads, iv = TRUE)
+                                           n = n, nthreads = nthreads, iv = TRUE, 
+                                           ...)
 
           stage_names[length(stage_names) + 1] = paste0("First stage: ", 
                                                         names(object$iv_first_stage)[i])
@@ -623,7 +623,7 @@ summary.fixest = function(object, vcov = NULL, cluster = NULL, ssc = NULL,
         # We keep the information on clustering => matters for wald tests of 1st stage
         my_res = summary(object, vcov = vcov, ssc = ssc, lean = lean,
                          forceCovariance = forceCovariance, vcov_fix = vcov_fix,
-                         n = n, nthreads = nthreads, iv = TRUE)
+                         n = n, nthreads = nthreads, iv = TRUE, ...)
 
         res[[length(res) + 1]] = my_res
         stage_names[length(stage_names) + 1] = "Second stage"
@@ -1680,7 +1680,6 @@ se.matrix = function(object, keep, drop, order, ...){
 #' # Coeftable/se/tstat/pvalue
 #' #
 #'
-#' # Default is clustering along Origin^Product
 #' coeftable(est)
 #' se(est)
 #' tstat(est)
@@ -1694,7 +1693,7 @@ se.matrix = function(object, keep, drop, order, ...){
 #' pvalue(est, cluster = ~Origin + Product)
 #' tstat(est, cluster = ~Origin + Product)
 #'
-#' # Or you can cluster only once:
+#' # Or you can cluster only once using summary:
 #' est_sum = summary(est, cluster = ~Origin + Product)
 #' coeftable(est_sum)
 #' se(est_sum)
@@ -3615,6 +3614,11 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
       fml = fml, fake_intercept = fake_intercept,
       subset = subset),
       "In 'model.matrix', the RHS could not be evaluated: ")
+    
+    if(!is.null(object$rm_variable)){
+      qui = which(colnames(linear.mat) %in% object$rm_variable)
+      linear.mat = linear.mat[, -qui, drop = FALSE]
+    }
 
     if(collin.rm){
       qui = which(colnames(linear.mat) %in% object$collin.var)

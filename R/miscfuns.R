@@ -5727,6 +5727,153 @@ fixest_CI_factor = function(x, level, vcov = NULL, df.t = NULL){
 }
 
 
+flatten_list_of_models = function(dots, dots_call = NULL, accept_non_fixest = FALSE){
+  # dots = list(...) obtained in the upper function
+  
+  n_dots = length(dots)
+  if(n_dots == 0){
+    return(list(all_models = list(), model_names = list(), model_id = NULL))
+  }
+  
+  build_model_names = !is.null(dots_call)
+  
+  all_models = list()
+  model_names = list()
+  model_id = NULL
+  k = 1
+  for(i in 1:n_dots){
+    di = dots[[i]]
+    
+    if(inherits(di, "fixest")){
+      all_models[[k]] = di
+      
+      if(build_model_names){
+        if(any(class(dots_call[[i]]) %in% c("call", "name"))){
+          model_names[[k]] = deparse(dots_call[[i]], nlines = 1)[1]
+        } else {
+          model_names[[k]] = as.character(dots_call[[i]])
+        }
+      }
+
+      k = k + 1
+    } else if(inherits(di, c("list", "fixest_list", "fixest_multi"))){
+      # we get into this list to get the fixest objects
+      types = sapply(di, function(x) class(x)[1])
+      qui = which(types %in% c("fixest", "fixest_multi"))
+      is_multi = inherits(di, "fixest_multi")
+
+      for(m in qui){
+        mod = di[[m]]
+
+        # handling names
+        if(build_model_names){
+          if(is_multi){
+            if(any(class(dots_call[[i]]) %in% c("call", "name"))){
+              mod_name = deparse_long(dots_call[[i]])
+            } else {
+              mod_name = as.character(dots_call[[i]])
+            }
+            mod_name = paste0(mod_name, ".", m)
+          } else {
+            if(n_dots > 1){
+              if(is.null(names(di)[m]) || names(di)[m] == ""){
+                
+                if(length(dots_call[[i]]) == 1){
+                  mod_name = paste0(dots_call[[i]], "[[", m, "]]")
+                } else {
+                  mod_name = paste0("arg", i, "[[", m, "]]")
+                }
+                
+              } else {
+                mod_name = names(di)[m]
+              }
+            } else {
+              mod_name = as.character(names(di)[m])
+            }
+          }
+        }
+
+        if(inherits(mod, "fixest_multi")){
+
+          for(j in seq_along(mod)){
+            all_models[[k]] = mod[[j]]
+            
+            if(build_model_names){
+              model_names[[k]] = paste0(mod_name, ".", j)
+            }
+
+            k = k + 1
+          }
+
+        } else {
+          # regular fixest or from fixest_list
+          all_models[[k]] = mod
+          
+          if(build_model_names){
+            model_names[[k]] = mod_name
+          }
+
+          id = di[[m]]$model_id
+          if(!is.null(id)){
+            model_id[k] = id
+          }
+
+          k = k + 1
+        }
+      }
+      
+    } else if(accept_non_fixest){
+      all_models[[k]] = di
+            
+      if(build_model_names){
+        if(any(class(dots_call[[i]]) %in% c("call", "name"))){
+          model_names[[k]] = deparse(dots_call[[i]], nlines = 1)[1]
+        } else {
+          model_names[[k]] = as.character(dots_call[[i]])
+        }
+      }
+
+      k = k + 1
+    }
+  }
+  
+  list(all_models = all_models, model_names = model_names, model_id = model_id)
+}
+
+setup_dict = function(dict, check = FALSE){
+  
+  if(check){
+    check_arg(dict, "NULL logical scalar | named character vector no na")
+  }
+  
+  dict_global = getFixest_dict()
+  
+  if(missnull(dict) || isTRUE(dict)) {
+    dict = dict_global
+    
+  } else if(isFALSE(dict)) {
+    dict = NULL
+    
+  } else {
+    # dict changes the values set in the global dict
+
+    if(dict[1] == "reset"){
+      dict_global = c()
+      dict = dict[-1]
+    }
+
+    if(length(dict) > 0){
+      dict_global[names(dict)] = dict
+    }
+
+    dict = dict_global
+  }
+  
+  dict
+}
+
+
+
 #### --------------- ####
 #### Small Utilities ####
 ####
@@ -5964,9 +6111,9 @@ keep_apply = function(x, keep = NULL, logical = FALSE){
     }
 
     if(grepl("^!", var2keep)){
-      qui_keep = qui_keep | !grepl(substr(var2keep, 2, nchar(var2keep)), vect2check)
+      qui_keep = qui_keep | !grepl(substr(var2keep, 2, nchar(var2keep)), vect2check, perl = TRUE)
     } else {
-      qui_keep = qui_keep | grepl(var2keep, vect2check)
+      qui_keep = qui_keep | grepl(var2keep, vect2check, perl = TRUE)
     }
   }
 
@@ -6000,9 +6147,9 @@ drop_apply = function(x, drop = NULL){
     }
 
     if(grepl("^!", var2drop)){
-      res = res[grepl(substr(var2drop, 2, nchar(var2drop)), vect2check)]
+      res = res[grepl(substr(var2drop, 2, nchar(var2drop)), vect2check, perl = TRUE)]
     } else {
-      res = res[!grepl(var2drop, vect2check)]
+      res = res[!grepl(var2drop, vect2check, perl = TRUE)]
     }
   }
 
@@ -6034,10 +6181,10 @@ order_apply = function(x, order = NULL){
     }
 
     if(grepl("^!", var2order)){
-      who = !grepl(substr(var2order, 2, nchar(var2order)), vect2check)
+      who = !grepl(substr(var2order, 2, nchar(var2order)), vect2check, perl = TRUE)
       res = c(res[who], res[!who])
     } else {
-      who = grepl(var2order, vect2check)
+      who = grepl(var2order, vect2check, perl = TRUE)
       res = c(res[who], res[!who])
     }
   }
@@ -6828,18 +6975,25 @@ get_vars = function(x){
   attr(terms(x), "term.labels")
 }
 
-mat_posdef_fix = function(X, tol = 0){
+mat_posdef_fix = function(X, tol = 1e-12, check = FALSE){
   # X must be a symmetric matrix
   # We don't check it
+  
+  if(check){
+    eigval = eigen(X, symmetric = TRUE, only.values = TRUE)$values
+    if(all(eigval > tol)){
+      return(X)
+    }
+  }
 
-  e  = eigen(X, symmetric = TRUE)
+  e = eigen(X, symmetric = TRUE)
   # Should already be TRUE if this function is called, but in case someone else wants to use it, does not hurt to check.
   if (any(e$values < tol)){
     if (is.complex(e$values)) {
       attr(X, "is_complex") = TRUE
     } else {
       dm = dimnames(X)
-      X = tcrossprod(e$vectors %*% diag(pmax(e$values, 1e-12), nrow(X)), e$vectors)
+      X = tcrossprod(e$vectors %*% diag(pmax(e$values, tol), nrow(X)), e$vectors)
       dimnames(X) = dm
     }
   }
@@ -7090,6 +7244,22 @@ insert_in_between = function(x, y){
   res[2 * 1:n_x] = y
 
   res
+}
+
+insert_at = function(x, value, pos){
+  
+  n_x = length(x)
+  stopifnot(length(value) == 1, pos <= n_x + 1, identical(typeof(x), typeof(value)))
+  
+  if(pos == 1){
+    return(c(value, x))
+  }
+  
+  if(pos == n_x + 1){
+    return(c(x, value))
+  }
+  
+  c(x[1:(pos - 1)], value, x[(pos + 1): n_x])
 }
 
 str_trim = function(x, n_first = 0, n_last = 0){

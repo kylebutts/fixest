@@ -685,7 +685,7 @@ or to \code{"images/etable/"} for earlier versions.}
 this argument is \code{TRUE} if the argument \code{file} (used for exportation) is not missing; it is
 equal to \code{FALSE} otherwise.}
 
-\item{view.cache}{Logical, default is \code{FALSE}. Only used when \code{view = TRUE}.
+\item{view.cache}{Logical, default is \code{TRUE}. Only used when \code{view = TRUE}.
 Whether the PNGs of the tables should be cached.}
 
 \item{reset}{(\code{setFixest_etable} only.) Logical, default is \code{FALSE}. If \code{TRUE}, this will reset

@@ -300,7 +300,7 @@
 #' at the desired location and inserted in the document via a markdown link. If equal to `TRUE`, 
 #' the default location of the PNGs is a temporary folder for `R > 4.0.0`, 
 #' or to `"images/etable/"` for earlier versions.
-#' @param view.cache Logical, default is `FALSE`. Only used when `view = TRUE`. 
+#' @param view.cache Logical, default is `TRUE`. Only used when `view = TRUE`. 
 #' Whether the PNGs of the tables should be cached.
 #' @param type Character scalar equal to 'pdflatex' (default), 'magick', 'dir' or 'tex'. 
 #' Which log file to report; if 'tex', the full source code of the tex file is returned, 

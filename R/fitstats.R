@@ -1346,7 +1346,7 @@ r2 = function(x, type = "all", full_names = FALSE){
   isFixef = "fixef_vars" %in% names(x)
   n = nobs(x)
   
-  if(isTRUE(x$iv)){
+  if(isTRUE(x$iv) && identical(x$iv_stage, 2)){
     x$ssr = cpp_ssq(x$iv_residuals)
   }
 

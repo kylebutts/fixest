@@ -126,6 +126,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - argument `caption` (formerly `title`) now accepts character vectors, which become concatenated
 
+- argument `coefstat` gains the option `pvalue`
+
 ## Bugs
 
 - fix bug in `predict` when the data of origin was missing. Thanks to @grantmcdermott, #544

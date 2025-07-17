@@ -206,7 +206,7 @@ setFixest_etable(
   digits = 4,
   digits.stats = 5,
   fitstat,
-  coefstat = c("se", "tstat", "confint"),
+  coefstat = c("se", "tstat", "confint", "pvalue"),
   ci = 0.95,
   se.below = TRUE,
   keep,
@@ -335,9 +335,9 @@ use: \code{fitstat=c('n', 'cor2', 'ar2', 'war2')}, or \code{fitstat=~n+cor2+ar2+
 can use the dot to refer to default values:\code{ ~ . + ll} would add the log-likelihood to the
 default fit statistics.}
 
-\item{coefstat}{One of \code{"se"} (default), \code{"tstat"} or \code{"confint"}. The statistic to report for
-each coefficient: the standard-error, the t-statistics or the confidence interval. You can
-adjust the confidence interval with the argument \code{ci}.}
+\item{coefstat}{One of \code{"se"} (default), \code{"tstat"}, \code{"pvalue"}, or \code{"confint"}. The statistic to report for
+each coefficient: the standard-error, the t-statistics, the p-value,
+or the confidence interval. You can adjust the confidence interval with the argument \code{ci}.}
 
 \item{ci}{Level of the confidence interval, defaults to \code{0.95}. Only used if
 \code{coefstat = confint}.}

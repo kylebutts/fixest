@@ -150,6 +150,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fig bug preventing the use of the argument `vcov` in `fitstat` for the Wald statistics
 
+- fix bug in `coeftable.default` not catching the right coefficients matrix
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

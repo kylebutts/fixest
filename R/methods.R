@@ -1509,6 +1509,7 @@ coeftable.default = function(object, keep, drop, order, ...){
     if(!is.null(colnames(mat)) && any(grepl("(?i)(coef|estimate|value|Pr\\()", colnames(mat)))){
       ok = TRUE
       res = mat
+      break
     }
   }
 

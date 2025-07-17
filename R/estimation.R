@@ -1938,7 +1938,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     resid_new = cpp_iv_resid(res$residuals, res$coefficients, 
                              dots$resid_1st_stage, is_int, nthreads)
     res$iv_residuals = res$residuals
-    res$iv_corrected_residuals = resid_new
+    res$residuals = resid_new
   }
 
   #

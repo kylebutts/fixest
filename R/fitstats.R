@@ -1345,6 +1345,10 @@ r2 = function(x, type = "all", full_names = FALSE){
   is_ols = x$method_type == "feols"
   isFixef = "fixef_vars" %in% names(x)
   n = nobs(x)
+  
+  if(isTRUE(x$iv)){
+    x$ssr = cpp_ssq(x$iv_residuals)
+  }
 
   res = rep(NA, length(type_all))
   for(i in seq_along(type_all)){

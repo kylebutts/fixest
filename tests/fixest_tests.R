@@ -1005,16 +1005,14 @@ res_2nd = feols(y ~ fit_x_endo_1 + fit_x_endo_2 + x1, base)
 test(coef(est_iv), coef(res_2nd))
 
 # the SE
-resid_iv = base$y - predict(res_2nd, data.frame(x1 = base$x1, fit_x_endo_1 = base$x_endo_1, fit_x_endo_2 = base$x_endo_2))
+resid_iv = base$y - predict(res_2nd, 
+                            data.frame(x1 = base$x1, fit_x_endo_1 = base$x_endo_1, 
+                                       fit_x_endo_2 = base$x_endo_2))
 sigma2_iv = sum(resid_iv**2) / (res_2nd$nobs - res_2nd$nparams)
 
 sum_2nd = summary(res_2nd, vcov = res_2nd$cov.iid / res_2nd$sigma2 * sigma2_iv)
 
-# We only check that on Windows => avoids super odd bug in fedora devel
-# The worst is that I just can't debug it.... so that's the way it's done.
-if(Sys.info()["sysname"] == "Windows"){
-  test(se(sum_2nd), se(est_iv))
-}
+test(se(sum_2nd), se(est_iv))
 
 # check no bug when all exogenous vars are removed bc of collinearity
 df = data.frame(x = rnorm(8), y = rnorm(8),

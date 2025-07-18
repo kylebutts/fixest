@@ -128,6 +128,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - argument `coefstat` gains the option `pvalue`
 
+- default values for `fitstat` set in `setFixest_etable` can be accessed with a `'.'` 
+
 ## Bugs
 
 - fix bug in `predict` when the data of origin was missing. Thanks to @grantmcdermott, #544
@@ -153,6 +155,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 - fig bug preventing the use of the argument `vcov` in `fitstat` for the Wald statistics
 
 - fix bug in `coeftable.default` not catching the right coefficients matrix
+
+- fix bug in `etable` preventing the user to modify the `fitstat` argument if it was previously set with `setFixest_etable`
 
 # fixest 0.12.1
 

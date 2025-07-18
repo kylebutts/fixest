@@ -7246,20 +7246,33 @@ insert_in_between = function(x, y){
   res
 }
 
-insert_at = function(x, value, pos){
+insert_at = function(x, values, pos){
   
   n_x = length(x)
-  stopifnot(length(value) == 1, pos <= n_x + 1, identical(typeof(x), typeof(value)))
+  stopifnot(pos <= n_x + 1, identical(mode(x), mode(values)))
+  
+  if(length(values) == 0){
+    return(x)
+  }
   
   if(pos == 1){
-    return(c(value, x))
+    return(c(values, x))
   }
   
   if(pos == n_x + 1){
-    return(c(x, value))
+    return(c(x, values))
   }
   
-  c(x[1:(pos - 1)], value, x[(pos + 1): n_x])
+  c(x[1:(pos - 1)], values, x[(pos + 1): n_x])
+}
+
+replace_at = function(x, values, pos){
+  
+  n_x = length(x)
+  stopifnot(pos <= n_x, identical(mode(x), mode(values)))
+  
+  x = x[-pos]
+  insert_at(x, values, pos)
 }
 
 str_trim = function(x, n_first = 0, n_last = 0){

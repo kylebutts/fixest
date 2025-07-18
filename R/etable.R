@@ -2271,9 +2271,19 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   #
   # ... fitstat ####
   #
-
+  
+  fitstat_default = NULL
   if("fitstat" %in% names(opts)){
-    fitstat_all = opts$fitstat
+    # there is a default fitstat
+    fitstat_default = opts$fitstat 
+    if(is.null(fitstat_all)){
+      fitstat_all = opts$fitstat
+    }
+    
+    if(inherits(fitstat_default, "formula")){
+      fitstat_default = gsub(" ", "", strsplit(deparse_long(fitstat_default[[2]]), "+", fixed = TRUE)[[1]])
+    }
+    
   }
 
   if(missnull(fitstat_all)){
@@ -2302,39 +2312,43 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   }
 
   if("." %in% fitstat_all){
-    # Default values:
-    #   - if all OLS: typical R2
-    #   - if any non-OLS: pseudo R2 + squared cor.
-    is_ols = sapply(all_models, function(x) x$method_type == "feols")
-
-    if(all(is_ols)){
-      if(any(sapply(all_models, function(x) "fixef_vars" %in% names(x)))){
-        # means any FE model
-        fitstat_default = c("r2", "wr2")
-      } else {
-        fitstat_default = c("r2", "ar2")
-      }
-    } else {
-      fitstat_default = c("cor2", "pr2", "bic")
-    }
-
-    fitstat_default = c("n", fitstat_default)
-
-    if(any(sapply(all_models, function(x) !is.null(x$theta)))){
-      fitstat_default = c(fitstat_default, "theta")
-    }
-
-    fitstat_default = setdiff(fitstat_default, fitstat_all)
-
+    
     if(length(fitstat_default) > 0){
       i = which(fitstat_all == ".")[1]
-      if(i == length(fitstat_all)){
-        fitstat_all = c(fitstat_all[0:(i-1)], fitstat_default)
+      fitstat_all = replace_at(fitstat_all, fitstat_default, i)
+    }
+    
+    if("." %in% fitstat_all){
+      # Default values:
+      #   - if all OLS: typical R2
+      #   - if any non-OLS: pseudo R2 + squared cor.
+      is_ols = sapply(all_models, function(x) x$method_type == "feols")
+
+      if(all(is_ols)){
+        if(any(sapply(all_models, function(x) "fixef_vars" %in% names(x)))){
+          # means any FE model
+          fitstat_default = c("r2", "wr2")
+        } else {
+          fitstat_default = c("r2", "ar2")
+        }
       } else {
-        fitstat_all = c(fitstat_all[0:(i-1)], fitstat_default, fitstat_all[(i+1):length(fitstat_all)])
+        fitstat_default = c("cor2", "pr2", "bic")
+      }
+
+      fitstat_default = c("n", fitstat_default)
+
+      if(any(sapply(all_models, function(x) !is.null(x$theta)))){
+        fitstat_default = c(fitstat_default, "theta")
+      }
+
+      fitstat_default = setdiff(fitstat_default, fitstat_all)
+
+      if(length(fitstat_default) > 0){
+        i = which(fitstat_all == ".")[1]
+        fitstat_all = replace_at(fitstat_all, fitstat_default, i)
       }
     }
-
+    
   }
 
   fitstat_all = tolower(fitstat_all)

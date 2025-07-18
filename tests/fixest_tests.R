@@ -2990,6 +2990,22 @@ test(cpp_escape_markup("\\$this_is **not** an\\^equation\\$. But $this&one, \\$,
    "\\$this\\_is \\textbf{not} an\\^equation\\$. But $this&one, \\$, * is *$ \\textit{is}.")
 
 
+# fitstat default
+base = setNames(iris, c("y", "x1", "x2", "x3", "species"))
+
+est = feols(y ~ x1 | species, base)
+setFixest_etable(fitstat = ~r2 + n)
+df = etable(est)
+test(tail(df[, 1], 2), c("R2", "Observations"))
+
+df_rmse = etable(est, fitstat = ~rmse)
+test(tail(df_rmse[, 1], 1), "RMSE")
+
+df_rmse_plus = etable(est, fitstat = ~rmse + .)
+test(tail(df_rmse_plus[, 1], 3), c("RMSE", "R2", "Observations"))
+
+
+
 ####
 #### data.save and fixest_data ####
 ####

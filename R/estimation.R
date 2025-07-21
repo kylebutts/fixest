@@ -2258,7 +2258,7 @@ feols.fit = function(y, X, fixef_df, vcov, offset, split, fsplit, split.keep, sp
 
   if("try-error" %in% class(env)){
     mc = match.call()
-    origin = ifelse(is.null(mc$origin), "feols.fit", mc$origin)
+    origin = ifelse(is.null(mc[["origin"]]), "feols.fit", mc[["origin"]])
     stop(format_error_msg(env, origin))
   }
 
@@ -2501,7 +2501,7 @@ feglm = function(fml, data, family = "gaussian", vcov, offset, weights, subset, 
 
   if("try-error" %in% class(env)){
     mc = match.call()
-    origin = ifelse(is.null(mc$origin), "feglm", mc$origin)
+    origin = ifelse(is.null(mc[["origin"]]), "feglm", mc[["origin"]])
     stop(format_error_msg(env, origin))
   }
 
@@ -4031,7 +4031,7 @@ feNmlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"
 
   if("try-error" %in% class(env)){
     mc = match.call()
-    origin = ifelse(is.null(mc$origin), "feNmlm", mc$origin)
+    origin = ifelse(is.null(mc[["origin"]]), "feNmlm", mc[["origin"]])
     stop(format_error_msg(env, origin))
   }
 

@@ -374,13 +374,10 @@ List cpp_quf_gnl(SEXP x){
   } else if(TYPEOF(x) == STRSXP){
 
     IS_STR = true;
-    std::uintptr_t xi_uintptr;
-
+    
+    std::uintptr_t *px_uintptr = (std::uintptr_t *) STRING_PTR_RO(x);
     for(int i=0 ; i<n ; ++i){
-      const char *pxi = CHAR(STRING_ELT(x, i));
-      xi_uintptr = reinterpret_cast<std::uintptr_t>(pxi);
-
-      x_ull.push_back(static_cast<unsigned long long>(xi_uintptr));
+      x_ull.push_back(px_uintptr[i]);
 
       // Rcout << xi_uintptr << "  ----  " << xi_ull << "\n";
     }
@@ -945,12 +942,7 @@ List cpp_quf_table_sum(SEXP x, SEXP y, bool do_sum_y, bool rm_0, bool rm_1,
       x_type_all[q] = "string";
       
       std::uintptr_t *px_uintptr = (std::uintptr_t *) STRING_PTR_RO(xq);
-      // std::uintptr_t xi_uintptr;
       for(int i=0 ; i<n ; ++i){
-        // const char *pxi = CHAR(STRING_ELT(xq, i));
-        // xi_uintptr = reinterpret_cast<std::uintptr_t>(pxi);
-        // x_ull_all[q].push_back(static_cast<unsigned long long>(xi_uintptr));
-        
         x_ull_all[q].push_back(px_uintptr[i]);
 
         // Rcout << xi_uintptr << "  ----  " << xi_ull << "\n";

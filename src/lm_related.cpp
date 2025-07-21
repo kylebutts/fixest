@@ -284,7 +284,7 @@ void set_sparse(std::vector<int> &n_j, std::vector<int> &start_j, std::vector<in
 
 }
 
-void mp_sparse_XtX(NumericMatrix &XtX, const std::vector<int> &n_j, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const NumericMatrix &X, int nthreads){
+void matprod_sparse_XtX(NumericMatrix &XtX, const std::vector<int> &n_j, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const NumericMatrix &X, int nthreads){
 
   int K = X.ncol();
 
@@ -320,7 +320,7 @@ void mp_sparse_XtX(NumericMatrix &XtX, const std::vector<int> &n_j, const std::v
   }
 }
 
-void mp_sparse_Xty(NumericVector &Xty, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const double *y, int nthreads){
+void matprod_sparse_Xty(NumericVector &Xty, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const double *y, int nthreads){
 
   int K = Xty.length();
 
@@ -344,7 +344,7 @@ void mp_sparse_Xty(NumericVector &Xty, const std::vector<int> &start_j, const st
 
 
 // mp: mat prod
-void mp_XtX(NumericMatrix &XtX, const NumericMatrix &X, const NumericMatrix &wX, int nthreads){
+void matprod_XtX(NumericMatrix &XtX, const NumericMatrix &X, const NumericMatrix &wX, int nthreads){
 
   int N = X.nrow();
   bool isX = N > 1;
@@ -401,7 +401,7 @@ void mp_XtX(NumericMatrix &XtX, const NumericMatrix &X, const NumericMatrix &wX,
 }
 
 // mp: mat prod
-void mp_Xty(NumericVector &Xty, const NumericMatrix &X, const double *y, int nthreads){
+void matprod_Xty(NumericVector &Xty, const NumericMatrix &X, const double *y, int nthreads){
 
   int N = X.nrow();
   int K = X.ncol();
@@ -441,7 +441,8 @@ void mp_Xty(NumericVector &Xty, const NumericMatrix &X, const double *y, int nth
 }
 
 // [[Rcpp::export]]
-List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_0w = false, int nthreads = 1){
+List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_0w = false, 
+                         int nthreads = 1){
 
   int N = X.nrow();
   int K = X.ncol();
@@ -468,26 +469,26 @@ List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_
     //     }
     //
     //     // XtX
-    //     mp_XtX(XtX, X, wX, nthreads);
+    //     matprod_XtX(XtX, X, wX, nthreads);
     //
     //     // Xty
-    //     mp_Xty(Xty, wX, y, nthreads);
+    //     matprod_Xty(Xty, wX, y, nthreads);
     //
     //
     // } else {
     //     // Identique, mais pas besoin de faire une copie de X ni de y qui peuvent etre couteuses
     //
     //     // XtX
-    //     mp_XtX(XtX, X, X, nthreads);
+    //     matprod_XtX(XtX, X, X, nthreads);
     //
     //     // Xty
-    //     mp_Xty(Xty, X, y, nthreads);
+    //     matprod_Xty(Xty, X, y, nthreads);
     //
     // }
 
     NumericMatrix wX;
     if(isWeight){
-       wX = Rcpp::clone(X);
+      wX = Rcpp::clone(X);
       for(int k=0 ; k<K ; ++k){
         for(int i=0 ; i<N ; ++i){
           wX(i, k) *= w[i];
@@ -499,7 +500,7 @@ List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_
     }
 
     // XtX
-    mp_XtX(XtX, X, wX, nthreads);
+    matprod_XtX(XtX, X, wX, nthreads);
     res["XtX"] = XtX;
 
     // Xty
@@ -509,7 +510,7 @@ List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_
 
       for(int v=0 ; v<n_vars_y ; ++v){
         NumericVector Xty_tmp(K);
-        mp_Xty(Xty_tmp, wX, REAL(VECTOR_ELT(y, v)), nthreads);
+        matprod_Xty(Xty_tmp, wX, REAL(VECTOR_ELT(y, v)), nthreads);
         Xty[v] = Xty_tmp;
       }
 
@@ -517,7 +518,7 @@ List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_
 
     } else {
       NumericVector Xty(K);
-      mp_Xty(Xty, wX, REAL(y), nthreads);
+      matprod_Xty(Xty, wX, REAL(y), nthreads);
       res["Xty"] = Xty;
     }
 
@@ -538,7 +539,7 @@ List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_
   List res;
 
   // XtX
-  mp_sparse_XtX(XtX, n_j, start_j, all_i, x, X, nthreads);
+  matprod_sparse_XtX(XtX, n_j, start_j, all_i, x, X, nthreads);
   res["XtX"] = XtX;
 
   // Xty
@@ -548,7 +549,7 @@ List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_
 
     for(int v=0 ; v<n_vars_y ; ++v){
       NumericVector Xty_tmp(K);
-      mp_sparse_Xty(Xty_tmp, start_j, all_i, x, REAL(VECTOR_ELT(y, v)), nthreads);
+      matprod_sparse_Xty(Xty_tmp, start_j, all_i, x, REAL(VECTOR_ELT(y, v)), nthreads);
       Xty[v] = Xty_tmp;
     }
 
@@ -556,7 +557,7 @@ List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_
 
   } else {
     NumericVector Xty(K);
-    mp_sparse_Xty(Xty, start_j, all_i, x, REAL(y), nthreads);
+    matprod_sparse_Xty(Xty, start_j, all_i, x, REAL(y), nthreads);
     res["Xty"] = Xty;
   }
 
@@ -591,13 +592,13 @@ NumericMatrix cpp_crossprod(NumericMatrix X, NumericVector w, int nthreads){
       }
 
       // XtX
-      mp_XtX(XtX, X, wX, nthreads);
+      matprod_XtX(XtX, X, wX, nthreads);
 
     } else {
       // Identique, mais pas besoin de faire une copie de X ni de y qui peuvent etre couteuses
 
       // XtX
-      mp_XtX(XtX, X, X, nthreads);
+      matprod_XtX(XtX, X, X, nthreads);
     }
 
     return XtX;
@@ -615,7 +616,7 @@ NumericMatrix cpp_crossprod(NumericMatrix X, NumericVector w, int nthreads){
   set_sparse(n_j, start_j, all_i, x, X, w);
 
   // XtX
-  mp_sparse_XtX(XtX, n_j, start_j, all_i, x, X, nthreads);
+  matprod_sparse_XtX(XtX, n_j, start_j, all_i, x, X, nthreads);
 
   return XtX;
 }
@@ -646,7 +647,7 @@ NumericMatrix cpp_mat_reconstruct(NumericMatrix X, Rcpp::LogicalVector id_excl){
 
 
 // mp: mat prod
-void mp_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, const NumericMatrix &X, const NumericMatrix &Z, const NumericMatrix &wZ, int nthreads){
+void matprod_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, const NumericMatrix &X, const NumericMatrix &Z, const NumericMatrix &wZ, int nthreads){
 
   int N = Z.nrow();
   int K1 = Z.ncol();
@@ -723,7 +724,7 @@ void mp_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, const NumericMatri
 }
 
 // mp: mat prod
-void mp_ZXtu(NumericVector &ZXtu, const NumericMatrix &X, const NumericMatrix &Z, const double *u, int nthreads){
+void matprod_ZXtu(NumericVector &ZXtu, const NumericMatrix &X, const NumericMatrix &Z, const double *u, int nthreads){
 
   int N = Z.nrow();
   int K1 = Z.ncol();
@@ -747,7 +748,7 @@ void mp_ZXtu(NumericVector &ZXtu, const NumericMatrix &X, const NumericMatrix &Z
 
 }
 
-void mp_sparse_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, const std::vector<int> &n_j, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const NumericMatrix &X, const NumericMatrix &Z, const NumericMatrix &wZ, int nthreads){
+void matprod_sparse_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, const std::vector<int> &n_j, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const NumericMatrix &X, const NumericMatrix &Z, const NumericMatrix &wZ, int nthreads){
 
   int N  = Z.nrow();
   int K1 = Z.ncol();
@@ -809,7 +810,7 @@ void mp_sparse_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, const std::
   }
 }
 
-void mp_sparse_ZXtu(NumericVector &ZXtu, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const double *u, const NumericMatrix &X, const NumericMatrix &wZ, int nthreads){
+void matprod_sparse_ZXtu(NumericVector &ZXtu, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const double *u, const NumericMatrix &X, const NumericMatrix &wZ, int nthreads){
 
   int N = wZ.nrow();
   int K1 = wZ.ncol();
@@ -896,11 +897,11 @@ List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, NumericVe
     }
 
     // XtX
-    mp_XtX(XtX, X, wX, nthreads);
+    matprod_XtX(XtX, X, wX, nthreads);
     res["XtX"] = XtX;
 
     // (ZX)'(ZX)
-    mp_ZXtZX(ZXtZX, XtX, X, Z, wZ, nthreads);
+    matprod_ZXtZX(ZXtZX, XtX, X, Z, wZ, nthreads);
     res["ZXtZX"] = ZXtZX;
 
     // Xty
@@ -914,7 +915,7 @@ List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, NumericVe
 
       for(int v=0 ; v<n_vars_y ; ++v){
         NumericVector Xty_tmp(K2);
-        mp_Xty(Xty_tmp, wX, REAL(VECTOR_ELT(y, v)), nthreads);
+        matprod_Xty(Xty_tmp, wX, REAL(VECTOR_ELT(y, v)), nthreads);
         Xty[v] = Xty_tmp;
       }
 
@@ -922,7 +923,7 @@ List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, NumericVe
 
     } else {
       NumericVector Xty(K2);
-      mp_Xty(Xty, wX, REAL(y), nthreads);
+      matprod_Xty(Xty, wX, REAL(y), nthreads);
       res["Xty"] = Xty;
     }
 
@@ -933,7 +934,7 @@ List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, NumericVe
 
     for(int v=0 ; v<n_vars_u ; ++v){
       NumericVector ZXtu_tmp(K2 + K1);
-      mp_ZXtu(ZXtu_tmp, wX, wZ, REAL(VECTOR_ELT(u, v)), nthreads);
+      matprod_ZXtu(ZXtu_tmp, wX, wZ, REAL(VECTOR_ELT(u, v)), nthreads);
       ZXtu[v] = ZXtu_tmp;
     }
 
@@ -956,11 +957,11 @@ List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, NumericVe
   List res;
 
   // XtX
-  mp_sparse_XtX(XtX, n_j, start_j, all_i, x, X, nthreads);
+  matprod_sparse_XtX(XtX, n_j, start_j, all_i, x, X, nthreads);
   res["XtX"] = XtX;
 
   // (xZ)'(ZX)
-  mp_sparse_ZXtZX(ZXtZX, XtX, n_j, start_j, all_i, x, X, Z, wZ, nthreads);
+  matprod_sparse_ZXtZX(ZXtZX, XtX, n_j, start_j, all_i, x, X, Z, wZ, nthreads);
   res["ZXtZX"] = ZXtZX;
 
   // Xty
@@ -974,7 +975,7 @@ List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, NumericVe
 
     for(int v=0 ; v<n_vars_y ; ++v){
       NumericVector Xty_tmp(K2);
-      mp_sparse_Xty(Xty_tmp, start_j, all_i, x, REAL(VECTOR_ELT(y, v)), nthreads);
+      matprod_sparse_Xty(Xty_tmp, start_j, all_i, x, REAL(VECTOR_ELT(y, v)), nthreads);
       Xty[v] = Xty_tmp;
     }
 
@@ -982,7 +983,7 @@ List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, NumericVe
 
   } else {
     NumericVector Xty(K2);
-    mp_sparse_Xty(Xty, start_j, all_i, x, REAL(y), nthreads);
+    matprod_sparse_Xty(Xty, start_j, all_i, x, REAL(y), nthreads);
     res["Xty"] = Xty;
   }
 
@@ -992,7 +993,7 @@ List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, NumericVe
 
   for(int v=0 ; v<n_vars_u ; ++v){
     NumericVector ZXtu_tmp(K2 + K1);
-    mp_sparse_ZXtu(ZXtu_tmp, start_j, all_i, x, REAL(VECTOR_ELT(u, v)), X, wZ, nthreads);
+    matprod_sparse_ZXtu(ZXtu_tmp, start_j, all_i, x, REAL(VECTOR_ELT(u, v)), X, wZ, nthreads);
     ZXtu[v] = ZXtu_tmp;
   }
 
@@ -1054,7 +1055,7 @@ List cpp_iv_product_completion(NumericMatrix XtX, NumericVector Xty, NumericMatr
   // (UX)'(UX)
 
   if(sparse_check(X) == false){
-    mp_ZXtZX(UXtUX, XtX, X, U, wU, nthreads);
+    matprod_ZXtZX(UXtUX, XtX, X, U, wU, nthreads);
     res["UXtUX"] = UXtUX;
 
   } else {
@@ -1065,7 +1066,7 @@ List cpp_iv_product_completion(NumericMatrix XtX, NumericVector Xty, NumericMatr
 
     set_sparse(n_j, start_j, all_i, x, X, w);
 
-    mp_sparse_ZXtZX(UXtUX, XtX, n_j, start_j, all_i, x, X, U, wU, nthreads);
+    matprod_sparse_ZXtZX(UXtUX, XtX, n_j, start_j, all_i, x, X, U, wU, nthreads);
     res["UXtUX"] = UXtUX;
   }
 

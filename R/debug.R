@@ -14,13 +14,13 @@ debug_msg = function(...){
   close(f)
 }
 
-debug_save = function(path = NULL){
+debug_save = function(path = NULL, up = 0){
   # saves all the variables from the current function
-  vars = ls(envir = parent.frame())
+  vars = ls(envir = parent.frame(up + 1))
   
   env = new.env(parent = emptyenv())
   for(v in vars){
-    value = try(get(v, envir = parent.frame()), silent = TRUE)
+    value = try(get(v, envir = parent.frame(up + 1)), silent = TRUE)
     if(!is_error(value)){
       assign(v, value, env)
     }
@@ -34,22 +34,39 @@ debug_save = function(path = NULL){
   save(list = names(env), envir = env, file = path)
 }
 
-debug_load = function(path = NULL, env = parent.frame()){
+debug_clear = function(){
+  unlink("./../debug.RData")
+}
+
+debug_load = function(path = NULL, env = parent.frame(), new_env = FALSE){
   
   check_arg(path, "NULL path create")
   if(is.null(path)){
     path = "./../debug.RData"
   }
   
+  if(new_env){
+    env = new.env(parent = emptyenv())
+  }
+  
   load(path, env)
   
+  return(invisible(env))
 }
 
-any_variable_different_from_saved = function(path = NULL){
+debug_any_variable_different_from_saved = function(path = NULL){
+  # checks if the variables from an environment (a closure) are the same
+  # as the one which were previously saved
+  # if there is no file => saving is done here
   
   check_arg(path, "NULL path create")
   if(is.null(path)){
     path = "./../debug.RData"
+  }
+  
+  if(!file.exists(path)){
+    debug_save(path, up = 1)
+    return(FALSE)
   }
   
   env_old = new.env()
@@ -61,8 +78,7 @@ any_variable_different_from_saved = function(path = NULL){
   for(v in names(env_old)){
     x = env_old[[v]]
     y = env_new[[v]]
-    if(!is_similar(x, y)){
-      mema("Object {bq ? v} is not identical")
+    if(!is_similar(x, y, obj_name = v, msg = TRUE, do_all = TRUE)){
       is_different = TRUE
     }
   }

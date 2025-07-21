@@ -253,7 +253,8 @@ static bool sparse_check(const NumericMatrix &X){
   return false;
 }
 
-void set_sparse(std::vector<int> &n_j, std::vector<int> &start_j, std::vector<int> &all_i, std::vector<double> &x, const NumericMatrix &X, const NumericVector &w){
+void set_sparse(std::vector<int> &n_j, std::vector<int> &start_j, std::vector<int> &all_i, 
+                std::vector<double> &x, const NumericMatrix &X, const NumericVector &w){
 
   int N = X.nrow();
   int K = X.ncol();
@@ -284,7 +285,9 @@ void set_sparse(std::vector<int> &n_j, std::vector<int> &start_j, std::vector<in
 
 }
 
-void matprod_sparse_XtX(NumericMatrix &XtX, const std::vector<int> &n_j, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const NumericMatrix &X, int nthreads){
+void matprod_sparse_XtX(NumericMatrix &XtX, const std::vector<int> &n_j, 
+                        const std::vector<int> &start_j, const std::vector<int> &all_i, 
+                        const std::vector<double> &x, const NumericMatrix &X, int nthreads){
 
   int K = X.ncol();
 
@@ -320,7 +323,9 @@ void matprod_sparse_XtX(NumericMatrix &XtX, const std::vector<int> &n_j, const s
   }
 }
 
-void matprod_sparse_Xty(NumericVector &Xty, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const double *y, int nthreads){
+void matprod_sparse_Xty(NumericVector &Xty, const std::vector<int> &start_j, 
+                        const std::vector<int> &all_i, const std::vector<double> &x, 
+                        const double *y, int nthreads){
 
   int K = Xty.length();
 
@@ -344,7 +349,8 @@ void matprod_sparse_Xty(NumericVector &Xty, const std::vector<int> &start_j, con
 
 
 // mp: mat prod
-void matprod_XtX(NumericMatrix &XtX, const NumericMatrix &X, const NumericMatrix &wX, int nthreads){
+void matprod_XtX(NumericMatrix &XtX, const NumericMatrix &X, 
+                 const NumericMatrix &wX, int nthreads){
 
   int N = X.nrow();
   bool isX = N > 1;
@@ -441,51 +447,23 @@ void matprod_Xty(NumericVector &Xty, const NumericMatrix &X, const double *y, in
 }
 
 // [[Rcpp::export]]
-List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_0w = false, 
-                         int nthreads = 1){
-
+List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, 
+                         bool correct_0w = false, int nthreads = 1){
+  
   int N = X.nrow();
   int K = X.ncol();
-
+  
   bool isWeight = w.length() > 1;
-
+  
   bool is_y_list = TYPEOF(y) == VECSXP;
-
+  
   NumericMatrix XtX(K, K);
-
-
+  
   if(sparse_check(X) == false){
     // NOT SPARSE
-
+    
     List res;
-
-    // if(isWeight){
-    //
-    //     NumericMatrix wX(Rcpp::clone(X));
-    //     for(int k=0 ; k<K ; ++k){
-    //         for(int i=0 ; i<N ; ++i){
-    //             wX(i, k) *= w[i];
-    //         }
-    //     }
-    //
-    //     // XtX
-    //     matprod_XtX(XtX, X, wX, nthreads);
-    //
-    //     // Xty
-    //     matprod_Xty(Xty, wX, y, nthreads);
-    //
-    //
-    // } else {
-    //     // Identique, mais pas besoin de faire une copie de X ni de y qui peuvent etre couteuses
-    //
-    //     // XtX
-    //     matprod_XtX(XtX, X, X, nthreads);
-    //
-    //     // Xty
-    //     matprod_Xty(Xty, X, y, nthreads);
-    //
-    // }
-
+    
     NumericMatrix wX;
     if(isWeight){
       wX = Rcpp::clone(X);
@@ -502,18 +480,18 @@ List cpp_sparse_products(NumericMatrix X, NumericVector w, SEXP y, bool correct_
     // XtX
     matprod_XtX(XtX, X, wX, nthreads);
     res["XtX"] = XtX;
-
+    
     // Xty
     if(is_y_list){
       int n_vars_y = Rf_length(y);
       List Xty(n_vars_y);
-
+      
       for(int v=0 ; v<n_vars_y ; ++v){
         NumericVector Xty_tmp(K);
         matprod_Xty(Xty_tmp, wX, REAL(VECTOR_ELT(y, v)), nthreads);
         Xty[v] = Xty_tmp;
       }
-
+      
       res["Xty"] = Xty;
 
     } else {
@@ -647,7 +625,9 @@ NumericMatrix cpp_mat_reconstruct(NumericMatrix X, Rcpp::LogicalVector id_excl){
 
 
 // mp: mat prod
-void matprod_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, const NumericMatrix &X, const NumericMatrix &Z, const NumericMatrix &wZ, int nthreads){
+void matprod_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, 
+                   const NumericMatrix &X, const NumericMatrix &Z, 
+                   const NumericMatrix &wZ, int nthreads){
 
   int N = Z.nrow();
   int K1 = Z.ncol();
@@ -724,7 +704,8 @@ void matprod_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, const Numeric
 }
 
 // mp: mat prod
-void matprod_ZXtu(NumericVector &ZXtu, const NumericMatrix &X, const NumericMatrix &Z, const double *u, int nthreads){
+void matprod_ZXtu(NumericVector &ZXtu, const NumericMatrix &X, 
+                  const NumericMatrix &Z, const double *u, int nthreads){
 
   int N = Z.nrow();
   int K1 = Z.ncol();
@@ -748,7 +729,11 @@ void matprod_ZXtu(NumericVector &ZXtu, const NumericMatrix &X, const NumericMatr
 
 }
 
-void matprod_sparse_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, const std::vector<int> &n_j, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const NumericMatrix &X, const NumericMatrix &Z, const NumericMatrix &wZ, int nthreads){
+void matprod_sparse_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, 
+                          const std::vector<int> &n_j, const std::vector<int> &start_j, 
+                          const std::vector<int> &all_i, const std::vector<double> &x, 
+                          const NumericMatrix &X, const NumericMatrix &Z, 
+                          const NumericMatrix &wZ, int nthreads){
 
   int N  = Z.nrow();
   int K1 = Z.ncol();
@@ -810,7 +795,10 @@ void matprod_sparse_ZXtZX(NumericMatrix &ZXtZX, const NumericMatrix &XtX, const 
   }
 }
 
-void matprod_sparse_ZXtu(NumericVector &ZXtu, const std::vector<int> &start_j, const std::vector<int> &all_i, const std::vector<double> &x, const double *u, const NumericMatrix &X, const NumericMatrix &wZ, int nthreads){
+void matprod_sparse_ZXtu(NumericVector &ZXtu, const std::vector<int> &start_j, 
+                         const std::vector<int> &all_i, const std::vector<double> &x, 
+                         const double *u, const NumericMatrix &X, const NumericMatrix &wZ, 
+                         int nthreads){
 
   int N = wZ.nrow();
   int K1 = wZ.ncol();
@@ -842,7 +830,8 @@ void matprod_sparse_ZXtu(NumericVector &ZXtu, const std::vector<int> &start_j, c
 
 
 // [[Rcpp::export]]
-List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, NumericVector w, int nthreads){
+List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, 
+                     NumericVector w, int nthreads){
   // We compute the following:
   // - X'X
   // - X'y
@@ -1004,7 +993,8 @@ List cpp_iv_products(NumericMatrix X, SEXP y, NumericMatrix Z, SEXP u, NumericVe
 
 
 // [[Rcpp::export]]
-List cpp_iv_product_completion(NumericMatrix XtX, NumericVector Xty, NumericMatrix X, NumericVector y, NumericMatrix U, NumericVector w, int nthreads){
+List cpp_iv_product_completion(NumericMatrix XtX, NumericVector Xty, NumericMatrix X, 
+                               NumericVector y, NumericMatrix U, NumericVector w, int nthreads){
   // We compute the following
   // - (UX)'(UX)
   // - (UX)'y
@@ -1075,7 +1065,8 @@ List cpp_iv_product_completion(NumericMatrix XtX, NumericVector Xty, NumericMatr
 }
 
 // [[Rcpp::export]]
-NumericVector cpp_iv_resid(NumericVector resid_2nd, NumericVector coef, SEXP resid_1st, bool is_int, int nthreads){
+NumericVector cpp_iv_resid(NumericVector resid_2nd, NumericVector coef, 
+                           SEXP resid_1st, bool is_int, int nthreads){
 
   int N = resid_2nd.length();
   int K = Rf_length(resid_1st);

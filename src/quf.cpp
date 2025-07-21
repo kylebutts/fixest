@@ -887,15 +887,15 @@ List cpp_quf_table_sum(SEXP x, SEXP y, bool do_sum_y, bool rm_0, bool rm_1,
       stop("y should not be a list when its values are assessed.");
     }
   }
-
-
+  
+  
   // I create a fake vector to avoid conditional calls later on
   vector<int> x_sizes_fake(Q, 0);
   int *px_sizes = do_refactor ? INTEGER(r_x_sizes) : x_sizes_fake.data();
-
+  
   int n_keep = obs2keep.length();
   bool identical_x = do_refactor && obs2keep[0] == 0;
-
+  
   // the vectors of qufed
   List res_x_quf_all(Q);
   vector<int*> p_x_quf_all(Q);
@@ -943,14 +943,15 @@ List cpp_quf_table_sum(SEXP x, SEXP y, bool do_sum_y, bool rm_0, bool rm_1,
     } else if(TYPEOF(xq) == STRSXP){
       // We make the conversion to unsigned long long
       x_type_all[q] = "string";
-
-      std::uintptr_t xi_uintptr;
-
+      
+      std::uintptr_t *px_uintptr = (std::uintptr_t *) STRING_PTR_RO(xq);
+      // std::uintptr_t xi_uintptr;
       for(int i=0 ; i<n ; ++i){
-        const char *pxi = CHAR(STRING_ELT(xq, i));
-        xi_uintptr = reinterpret_cast<std::uintptr_t>(pxi);
-
-        x_ull_all[q].push_back(static_cast<unsigned long long>(xi_uintptr));
+        // const char *pxi = CHAR(STRING_ELT(xq, i));
+        // xi_uintptr = reinterpret_cast<std::uintptr_t>(pxi);
+        // x_ull_all[q].push_back(static_cast<unsigned long long>(xi_uintptr));
+        
+        x_ull_all[q].push_back(px_uintptr[i]);
 
         // Rcout << xi_uintptr << "  ----  " << xi_ull << "\n";
       }

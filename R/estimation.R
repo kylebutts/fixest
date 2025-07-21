@@ -2797,7 +2797,9 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
       eta = linkfun(mustart)
 
       # just a rough estimate (=> high tol values) [no benefit in high precision]
-      model_fe = try(feglm.fit(X = 0, etastart = eta, offset = offset_fe, glm.tol = 1e-2, fixef.tol = 1e-2, env = env, lean_internal = TRUE))
+      model_fe = try(feglm.fit(X = 0, etastart = eta, offset = offset_fe, 
+                               glm.tol = 1e-2, fixef.tol = 1e-2, env = env, 
+                               lean_internal = TRUE))
 
       if("try-error" %in% class(model_fe)){
         stop("Estimation failed during initialization when getting the fixed-effects, maybe change the values of 'start'? \n", model_fe)
@@ -2863,6 +2865,20 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
   #
   # The main loop
   #
+  
+  # DEBUG
+  
+  mema("y start: ", digest::digest(y))
+  mema("X start: ", digest::digest(X))
+  
+  fixef_id_list = get("fixef_id_list", env)
+  mema("fixef_id: ", digest::digest(fixef_id_list))
+  
+  md5 = digest::digest(eta)
+  mema("eta start: {md5}")
+  
+  md5 = digest::digest(mu)
+  mema("mu start: {md5}")
 
   wols_means = 1
   conv = FALSE

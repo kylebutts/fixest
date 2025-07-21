@@ -2865,20 +2865,6 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
   #
   # The main loop
   #
-  
-  # DEBUG
-  
-  mema("y start: ", digest::digest(y))
-  mema("X start: ", digest::digest(X))
-  
-  fixef_id_list = get("fixef_id_list", env)
-  mema("fixef_id: ", digest::digest(fixef_id_list))
-  
-  md5 = digest::digest(eta)
-  mema("eta start: {md5}")
-  
-  md5 = digest::digest(mu)
-  mema("mu start: {md5}")
 
   wols_means = 1
   conv = FALSE

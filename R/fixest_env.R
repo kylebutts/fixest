@@ -2203,10 +2203,6 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       fixef_df = error_sender(prepare_df(fixef_terms_full$fe_vars, data, combine.quick),
                    "Problem evaluating the fixed-effects part of the formula:\n")
       
-      
-      # DEBUG
-      mema("fixef_df: ", digest::digest(fixef_df))
-      
       fixef_vars = names(fixef_df)
 
       # Slopes
@@ -2381,9 +2377,6 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       }
     }
     
-    # DEBUG
-    mema("fixef_df after NA: ", digest::digest(fixef_df))
-
     #
     # ... QUF setup ####
     #
@@ -2415,9 +2408,6 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     fixef_sizes_res = info_fe$fixef_sizes_res
     new_order       = info_fe$new_order
     
-    # DEBUG
-    mema("fixef_id: ", digest::digest(fixef_id))
-
     notes = c(notes, message_fixef)
 
     if(length(obs2remove_NA) > 0){
@@ -3362,11 +3352,6 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
   if(is.null(fixef_sizes)){
     fixef_sizes = 0
   }
-  
-  browser()
-  save(list = stringmagic::string_vec("fixef_df, lhs, do_sum_y, rm_0, rm_1, rm_single",
-                         "only_slope, nthreads, isRefactor, fixef_sizes, obs2keep"), 
-       file = "./../_PROBLEM/555-varying-results/env_quf.rdata")
 
   quf_info_all = cpp_quf_table_sum(x = fixef_df, y = lhs, do_sum_y = do_sum_y,
                                    rm_0 = rm_0, rm_1 = rm_1, rm_single = rm_single,
@@ -3375,9 +3360,6 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
                                    obs2keep = obs2keep)
 
   fixef_id = quf_info_all$quf
-  
-  # DEBUG
-  mema("fixef_id in quf: ", digest::digest(fixef_id))
 
   # table/sum_y/sizes
   fixef_table = quf_info_all$table

@@ -3393,6 +3393,11 @@ demeaning_algo = function(extraProj = 0, iter_warmup = 15, iter_projAfterAcc = 4
 
 as.character.formula = function(x, ...) as.character.default(x, ...)
 
+
+is_error = function(x){
+  inherits(x, "try-error")
+}
+
 parse_macros = function(..., reset = FALSE, from_xpd = FALSE, check = TRUE, frame = NULL){
   set_up(1)
 

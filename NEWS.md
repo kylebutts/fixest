@@ -160,8 +160,9 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug in `etable` preventing the user to modify the `fitstat` argument if it was previously set with `setFixest_etable`
 
-- fix bug in predict when there is an estimation with only the constant. Reported by @Oravishayrizi
-, #576
+- fix bug in `predict.fixest` when there is an estimation with only the constant. Reported by @Oravishayrizi, #576
+
+- fix bug in `predict.fixest` when `interval != "none"` and `sample = "estimation"`, now the prediction only applies to the estimation sample and not the original sample. Reported  by Alex Fisher, #549
 
 # fixest 0.12.1
 

@@ -2542,6 +2542,13 @@ predict.fixest = function(object, newdata, type = c("response", "link"), se.fit 
 
     if(do_anyway || isTRUE(object$lean)){
       newdata = fetch_data(object, "In 'predict', ")
+      
+      if(sample == "estimation"){
+        for(i in seq_along(object$obs_selection)){
+          newdata = select_obs(newdata, object$obs_selection[[i]])
+        }
+      }
+      
       is_original_data = TRUE
     } else {
       if(type == "response" || object$method_type == "feols"){
@@ -2568,6 +2575,9 @@ predict.fixest = function(object, newdata, type = c("response", "link"), se.fit 
       return(res)
     }
 
+  } else if(sample == "original"){
+    warning("The argument `sample` is ignored when `newdata` is provided.")
+    sample = "estimation"
   }
 
   if(!is.matrix(newdata) && !"data.frame" %in% class(newdata)){

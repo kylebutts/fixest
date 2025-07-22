@@ -1950,6 +1950,10 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
       # it's a numeric vector
       estimate = object
     }
+    
+    if(!is.list(object)){
+      object = list()
+    }
 
     n = length(estimate)
 

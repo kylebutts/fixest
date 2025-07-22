@@ -3869,7 +3869,7 @@ reshape_env = function(env, obs2keep = NULL, lhs = NULL, rhs = NULL, assign_lhs 
 
         # RHS
         iv.mat = get("iv.mat", env)
-        iv.mat = select_obs(iv.mat, obs2keep, nthreads, msg = "instrument")
+        iv.mat = select_obs(iv.mat, obs2keep, nthreads, varname = "instrument")
         assign("iv.mat", iv.mat, new_env)
 
       }

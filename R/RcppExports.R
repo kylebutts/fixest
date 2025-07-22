@@ -81,10 +81,6 @@ cpp_paste_conditional <- function(x, id, n) {
     .Call(`_fixest_cpp_paste_conditional`, x, id, n)
 }
 
-cpp_sparse_products_bis <- function(X, w, y, correct_0w = FALSE, nthreads = 1L) {
-    .Call(`_fixest_cpp_sparse_products_bis`, X, w, y, correct_0w, nthreads)
-}
-
 cpp_cholesky <- function(X, tol = 1.0/100000.0/100000.0, nthreads = 1L) {
     .Call(`_fixest_cpp_cholesky`, X, tol, nthreads)
 }

@@ -387,21 +387,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cpp_sparse_products_bis
-List cpp_sparse_products_bis(NumericMatrix X, NumericVector w, SEXP y, bool correct_0w, int nthreads);
-RcppExport SEXP _fixest_cpp_sparse_products_bis(SEXP XSEXP, SEXP wSEXP, SEXP ySEXP, SEXP correct_0wSEXP, SEXP nthreadsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type w(wSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< bool >::type correct_0w(correct_0wSEXP);
-    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_sparse_products_bis(X, w, y, correct_0w, nthreads));
-    return rcpp_result_gen;
-END_RCPP
-}
 // cpp_cholesky
 List cpp_cholesky(NumericMatrix X, double tol, int nthreads);
 RcppExport SEXP _fixest_cpp_cholesky(SEXP XSEXP, SEXP tolSEXP, SEXP nthreadsSEXP) {
@@ -1205,7 +1190,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fixest_cpp_dsb_full_string", (DL_FUNC) &_fixest_cpp_dsb_full_string, 1},
     {"_fixest_cpp_dsb_if_extract", (DL_FUNC) &_fixest_cpp_dsb_if_extract, 1},
     {"_fixest_cpp_paste_conditional", (DL_FUNC) &_fixest_cpp_paste_conditional, 3},
-    {"_fixest_cpp_sparse_products_bis", (DL_FUNC) &_fixest_cpp_sparse_products_bis, 5},
     {"_fixest_cpp_cholesky", (DL_FUNC) &_fixest_cpp_cholesky, 3},
     {"_fixest_cpp_sparse_products", (DL_FUNC) &_fixest_cpp_sparse_products, 5},
     {"_fixest_cpp_crossprod", (DL_FUNC) &_fixest_cpp_crossprod, 3},

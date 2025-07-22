@@ -110,6 +110,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - in IV estimations, the R2 reported in the second stage is based on the residuals of the second stage estimation and **not** the corrected residuals (using the original variables with the second stage coefficients)
 
+- slight performance increase for estimations with single variables
+
 ## etable
 
 - `setFixest_etable` now accepts the argument `div.class`

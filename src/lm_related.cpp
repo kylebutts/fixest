@@ -18,118 +18,6 @@
 
 using namespace Rcpp;
 
-void matprod_XtX_bis(NumericMatrix &XtX, const NumericMatrix &X, 
-                     const NumericMatrix &wX, int nthreads){
-
-  int N = X.nrow();
-  bool isX = N > 1;
-  int K = isX ? X.ncol() : 0;
-  
-  
-  for(int k_row = 0 ; k_row < K ; ++k_row){
-    for(int k_col = k_row ; k_col < K ; ++k_col){
-      double val = 0;
-      
-      const double *px = &(X(0, k_row));
-      const double *pwx = &(wX(0, k_col));
-      
-      #pragma omp simd reduction(+:val)
-      for(int i=0 ; i<N ; ++i){
-        val += px[i] * pwx[i];
-      }
-
-      XtX(k_row, k_col) = val;
-      XtX(k_col, k_row) = val;
-    }
-  }
-
-}
-
-void matprod_Xty_bis(NumericVector &Xty, const NumericMatrix &X, const double *y, int nthreads){
-
-  int N = X.nrow();
-  int K = X.ncol();
-  
-  for(int j = 0 ; j < K ; ++j){
-    double val = 0;
-    const double *px = &(X(0, j));
-    #pragma omp simd reduction(+:val)
-    for(int i = 0 ; i < N ; ++i){
-      val += px[i] * y[i];
-    }
-
-    Xty[j] = val;
-  }
-
-}
-
-// [[Rcpp::export]]
-List cpp_sparse_products_bis(NumericMatrix X, NumericVector w, SEXP y, 
-                             bool correct_0w = false, int nthreads = 1){
-  
-  int N = X.nrow();
-  int K = X.ncol();
-  
-  bool isWeight = w.length() > 1;
-  
-  bool is_y_list = TYPEOF(y) == VECSXP;
-  
-  NumericMatrix XtX(K, K);
-  
-  List res;
-  
-  NumericMatrix wX;
-  if(isWeight){
-    wX = Rcpp::clone(X);
-    for(int k=0 ; k<K ; ++k){
-      for(int i=0 ; i<N ; ++i){
-        wX(i, k) *= w[i];
-      }
-    }
-  } else {
-    // shallow copy
-    wX = X;
-  }
-
-  // XtX
-  matprod_XtX_bis(XtX, X, wX, nthreads);
-  res["XtX"] = XtX;
-  
-  // Xty
-  if(is_y_list){
-    int n_vars_y = Rf_length(y);
-    List Xty(n_vars_y);
-    
-    for(int v=0 ; v<n_vars_y ; ++v){
-      NumericVector Xty_tmp(K);
-      matprod_Xty_bis(Xty_tmp, wX, REAL(VECTOR_ELT(y, v)), nthreads);
-      Xty[v] = Xty_tmp;
-    }
-    
-    res["Xty"] = Xty;
-
-  } else {
-    NumericVector Xty(K);
-    matprod_Xty_bis(Xty, wX, REAL(y), nthreads);
-    res["Xty"] = Xty;
-  }
-
-  return res;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void invert_tri(NumericMatrix &R, int K, int nthreads = 1){
 
   // Startegy: we invert by bands (b) => better for parallelization
@@ -468,24 +356,16 @@ void matprod_XtX(NumericMatrix &XtX, const NumericMatrix &X,
   
   // specific scheme for large N and K == 1
   if(K == 1){
-
-    std::vector<double> all_values(nthreads, 0);
-    std::vector<int> bounds = set_parallel_scheme(N, nthreads);
-
-    #pragma omp parallel for num_threads(nthreads)
-    for(int t=0 ; t<nthreads ; ++t){
-      double val = 0;
-      for(int i=bounds[t]; i<bounds[t + 1] ; ++i){
-        val += X(i, 0) * wX(i, 0);
-      }
-      all_values[t] = val;
-    }
-
+    
+    const double *px = &(X(0, 0));
+    const double *pwx = &(wX(0, 0));
+    
     double value = 0;
-    for(int t=0 ; t<nthreads ; ++t){
-      value += all_values[t];
+    #pragma omp simd reduction(+:value)
+    for(int i=0 ; i<N ; ++i){
+      value += px[i] * pwx[i];
     }
-
+    
     XtX(0, 0) = value;
 
   } else {
@@ -522,25 +402,16 @@ void matprod_Xty(NumericVector &Xty, const NumericMatrix &X, const double *y, in
   int K = X.ncol();
 
   if(K == 1){
-
-    std::vector<double> all_values(nthreads, 0);
-    std::vector<int> bounds = set_parallel_scheme(N, nthreads);
-
-    #pragma omp parallel for num_threads(nthreads)
-    for(int t=0 ; t<nthreads ; ++t){
-      double val = 0;
-      for(int i=bounds[t]; i<bounds[t + 1] ; ++i){
-        val += X(i, 0) * y[i];
-      }
-      all_values[t] = val;
-    }
-
+    
+    const double *px = &(X(0, 0));
     double value = 0;
-    for(int t=0 ; t<nthreads ; ++t){
-      value += all_values[t];
+    #pragma omp simd reduction(+:value)
+    for(int i=0 ; i<N ; ++i){
+      value += px[i] * y[i];
     }
 
     Xty[0] = value;
+    
   } else  {
     #pragma omp parallel for num_threads(nthreads)
     for(int j=0 ; j<K ; ++j){

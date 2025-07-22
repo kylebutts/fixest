@@ -4925,7 +4925,7 @@ fetch_data = function(x, prefix = "", suffix = "", no_error = FALSE){
 
   # 3) Global environment
 
-  if(!isTRUE(x$lean) && !identical(parent.env(x$call_env), .GlobalEnv)){
+  if(isTRUE(x$lean) || !identical(parent.env(x$call_env), .GlobalEnv)){
     # ...and again
     try(data <- eval(x$call$data, .GlobalEnv), silent = TRUE)
 
@@ -4937,7 +4937,7 @@ fetch_data = function(x, prefix = "", suffix = "", no_error = FALSE){
   # => Error message
   
   begin = sma(prefix, " we", .last = "ws, upper.sentence")
-
+  
   if(nchar(suffix) > 0){
     suffix = gsub("^ +", "", suffix)
   }

@@ -460,6 +460,10 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     if(!"data.frame" %in% class(data)){
       stop("The argument 'data' must be a data.frame or a matrix.")
     }
+    
+    if(nrow(data) <= 1){
+      stopi("The data set contains {nrow(data)} observation: the estimation cannot be done.")
+    }
 
     # More robust to ensure it's always a plain data.frame, avoids problems from specific methods.
     # Maybe at some point do as Sebastian suggested and use plain lists instead?
@@ -973,7 +977,6 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
   #
 
   if(debug) cat(" - Data formatting\n")
-
 
   #
   # ... subset ####

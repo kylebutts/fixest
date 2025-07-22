@@ -168,6 +168,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug when a custom `vcov` is passed to `fixest::feols` with the `fixest::` prefix. Thanks to Kyle Butts, #540
 
+- fix bug R crashing when data set with 0-observation was provided by the user. Reported by @luciowasserman, #577
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

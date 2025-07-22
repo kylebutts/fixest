@@ -112,6 +112,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - slight performance increase for estimations with single variables
 
+- in multiple estimations for which, after NA removal, the variables in the step-wise part are vectors of only 0s can now be estimated. The stepwise part is simply ignored. Feature request by @shoonlee, #483
+
 ## etable
 
 - `setFixest_etable` now accepts the argument `div.class`

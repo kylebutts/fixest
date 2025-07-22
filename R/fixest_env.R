@@ -1442,15 +1442,15 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
         linear_core = list()
         linear_core$left = error_sender(fixest_model_matrix(fml_core_left, data, fake_intercept),
-                        "Evaluation of the right-hand-side of the formula raises an error: ")
+                        "Evaluation of the right-hand-side of the formula, before the step-wise part, raises an error: ")
 
         linear_core$right = error_sender(fixest_model_matrix(fml_core_right, data, TRUE),
-                        "Evaluation of the right-hand-side of the formula raises an error: ")
+                        "Evaluation of the right-hand-side of the formula, after the step-wise part, raises an error: ")
 
         rhs_sw = list()
         for(i in seq_along(fml_all_sw)){
           rhs_sw[[i]] = error_sender(fixest_model_matrix(fml_all_sw[[i]], data, TRUE),
-                         "Evaluation of the right-hand-side of the formula raises an error: ")
+                         "Evaluation of the right-hand-side of the formula, in the step-wise part, raises an error: ")
         }
 
       } else {
@@ -1555,7 +1555,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     v_core = unlist(lapply(linear_core, colnames))
     v_sw = unlist(lapply(rhs_sw, colnames))
     linear.varnames = linear.params = unique(c(v_core, v_sw))
-
+ 
   } else {
     linear.params = linear.start = linear.varnames = NULL
   }
@@ -2158,7 +2158,8 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
   # I wanted to evaluate all the FEs first, then send the evaluated stuff for later. Like in stepwise linear.
   # This is actually a bad idea because FEs are too complex to manipulate (damn SLOPES!!!).
   # This means that lags in the FEs + stepwise FEs will never be supported.
-
+  
+  na_rm_fixef = FALSE
   isSlope = onlySlope = FALSE
   if(isFixef){
     # The main fixed-effects construction
@@ -2409,6 +2410,8 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     new_order       = info_fe$new_order
     
     notes = c(notes, message_fixef)
+    
+    na_rm_fixef = length(obs2remove) > 0
 
     if(length(obs2remove_NA) > 0){
       # we update the value of obs2remove (will contain both NA and removed bc of outcomes)
@@ -2485,7 +2488,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
     if(isLinear){
       # We drop only 0 variables (may happen for factors)
-      linear.mat = select_obs(linear.mat, -obs2remove, nthreads)
+      linear.mat = select_obs(linear.mat, -obs2remove, nthreads, na_rm_fixef = na_rm_fixef)
 
       # useful for feNmlm
       linear.params = colnames(linear.mat)
@@ -2499,8 +2502,9 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     }
 
     if(do_iv){
-      iv_lhs = select_obs(iv_lhs, -obs2remove)
-      iv.mat = select_obs(iv.mat, -obs2remove, nthreads, "instrument")
+      iv_lhs = select_obs(iv_lhs, -obs2remove, na_rm_fixef = na_rm_fixef)
+      iv.mat = select_obs(iv.mat, -obs2remove, nthreads, varname = "instrument", 
+                          na_rm_fixef = na_rm_fixef)
     }
 
     if(isOffset){
@@ -2518,10 +2522,55 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     if(isSplit){
       split = split[-obs2remove]
     }
-
+    
     if(multi_rhs){
-      linear_core = select_obs(linear_core, -obs2remove, nthreads)
-      rhs_sw = select_obs(rhs_sw, -obs2remove, nthreads)
+      
+      linear_core = select_obs(linear_core, -obs2remove, nthreads, na_rm_fixef = na_rm_fixef)
+      rhs_sw = select_obs(rhs_sw, -obs2remove, nthreads, 
+                          varname = "explanatory variable",
+                          extra = " *in the step-wise part*",
+                          na_rm_fixef = na_rm_fixef,
+                          no_error = TRUE)
+      
+      if(is_error(rhs_sw)){
+        # we remove the stepwise part
+        # this is not a multiple RHS any more
+        
+        warn_up(rhs_sw, "\n => The step-wise part is ignored.")
+        
+        isLinear = TRUE
+        multi_rhs = FALSE
+        if(length(linear_core$left) > 1){
+          
+          if(length(linear_core$right) > 1){
+            linear.mat = cbind(linear_core$left, linear_core$right)
+            fml_linear = xpd(fml_core_left, add = fml_core_right[[3]])
+          } else {
+            linear.mat = linear_core$left
+            fml_linear = fml_core_left
+          }
+          
+        } else if(length(linear_core$right) > 1){
+          linear.mat = linear_core$right
+          fml_linear = fml_core_right
+        }
+        
+        # useful for feNmlm
+        linear.varnames = linear.params = colnames(linear.mat)
+        params = c(nonlinear.params, linear.params)
+        lparams = length(params)
+        
+      } else if(!is.null(attr(rhs_sw, "index_pblm"))){
+        warn_up(attr(rhs_sw, "only-0"))
+        
+        index_pblm = attr(rhs_sw, "index_pblm")
+        rhs_info_stepwise$fml_all_full = rhs_info_stepwise$fml_all_full[-index_pblm]
+        rhs_info_stepwise$fml_all_sw = rhs_info_stepwise$fml_all_sw[-index_pblm]
+        
+        vars_pblm = attr(rhs_sw, "vars_pblm")
+        rhs_info_stepwise$sw_all_vars = setdiff(rhs_info_stepwise$sw_all_vars, vars_pblm)
+      }
+      
     }
 
   }
@@ -2571,7 +2620,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
   # Starting values:
   # NOTA: within this function it is called linear.start while in the client functions, it is called start
-  if(isLinear && !missing(linear.start)){
+  if(isLinear && !missnull(linear.start)){
     # we format linear.start => end product is a either a 1-length vector or a named vector
 
     n_vars = ncol(linear.mat)
@@ -4374,7 +4423,9 @@ extract_stepwise = function(fml, tms, all_vars = TRUE){
 # b = 1:5
 # d = list(matrix(1:10, 5, 2), 1, matrix(1:5, 5, 1))
 # select_obs(a, 1:2) ; select_obs(b, 1:2) ; select_obs(d, 1:2)
-select_obs = function(x, index, nthreads = 1, msg = "explanatory variable"){
+select_obs = function(x, index, nthreads = 1, varname = "explanatory variable", 
+                      extra = "",
+                      na_rm_fixef = FALSE, no_error = FALSE){
   # => selection of observations.
   # Since some objects can be of multiple types, this avoids code repetition and increases clarity.
 
@@ -4385,7 +4436,13 @@ select_obs = function(x, index, nthreads = 1, msg = "explanatory variable"){
 
       only_0 = cpp_check_only_0(x, nthreads)
       if(all(only_0 == 1)){
-        stop("After removing NAs (or perfect fit fixed-effects), not a single explanatory variable is different from 0.")
+        full_msg = sma("After removing NAs{&na_rm_fixef; (or perfect fit fixed-effects)}, not a single {varname} is different from 0.")
+        if(no_error){
+          class(full_msg) = "try-error"
+          return(full_msg)
+        } else {
+          stop_up(full_msg, verbatim = TRUE)
+        }
 
       } else if(any(only_0 == 1)){
         x = x[, only_0 == 0, drop = FALSE]
@@ -4401,19 +4458,56 @@ select_obs = function(x, index, nthreads = 1, msg = "explanatory variable"){
 
   } else if(is.matrix(x[[1]]) || length(x[[1]]) == 1){
     # Means RHS
+    is_error = FALSE
+    index_pblm = integer()
+    vars_pblm = character()
     for(i in seq_along(x)){
       if(length(x[[i]]) > 1){
         x[[i]] = x[[i]][index, , drop = FALSE]
 
         only_0 = cpp_check_only_0(x[[i]], nthreads)
         if(all(only_0 == 1)){
-          stop("After removing NAs (or perfect fit fixed-effects), not a single ", msg, " is different from 0.")
+          is_error = TRUE
+          vars_pblm = c(vars_pblm, colnames(x[[i]]))
+          index_pblm = i
+          
+          full_msg = sma("After removing NAs{&na_rm_fixef; (or perfect fit fixed-effects)}, not a single {varname}{extra} is different from 0.")
+          
+          if(!no_error){
+            stop_up(full_msg, verbatim = TRUE)
+          }
 
         } else if(any(only_0 == 1)){
           x[[i]] = x[[i]][, only_0 == 0, drop = FALSE]
         }
       }
     }
+    
+    if(is_error){
+      
+      vars_pblm = unique(vars_pblm)
+      
+      if(length(index_pblm) == length(x)){
+        # All parts in the SW are 0
+        class(full_msg) = "try-error"
+        return(full_msg)
+        
+      } else {
+        x = x[-index_pblm]
+        
+        if(length(x) == 1 && length(x[[1]]) == 1){
+          # just the intercept
+          class(full_msg) = "try-error"
+          return(full_msg)
+        }
+        
+        full_msg = sma("After removing NAs{&na_rm_fixef; (or perfect fit fixed-effects)}, {&len(vars_pblm)>0;{Len?.};a} {varname}{$s?vars_pblm}{extra} {$are?vars_pblm} only 0s ({enum.bq ? vars_pblm}).")
+        attr(x, "only-0") = full_msg
+        attr(x, "index_pblm") = index_pblm
+        attr(x, "vars_pblm") = vars_pblm
+      }
+    }
+    
 
   } else {
     for(i in seq_along(x)){

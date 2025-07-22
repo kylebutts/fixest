@@ -31,8 +31,9 @@ fixed-effects.}
 \code{"driscoll_kraaay"}. The type of standard-errors to use by default for estimations with the
 argument \code{panel.id} set up. Note that panel has precedence over the presence of fixed-effects.}
 
-\item{all}{Character scalar equal to either: \code{"iid"}, or \code{"hetero"}. By default is is \code{NULL}. If
-provided, it sets all the SEs to that value.}
+\item{all}{Character scalar equal to either: \code{"iid"}, or \code{"hetero"} (or \code{"cluster"} if
+the argument \code{no_FE} is provided).
+By default is is \code{NULL}. If provided, it sets all the SEs to that value.}
 
 \item{reset}{Logical, default is \code{FALSE}. Whether to reset to the default values.}
 }

@@ -2787,8 +2787,9 @@ getFixest_ssc = function(){
 #' @param panel Character scalar equal to either: `"iid"` (default), `"hetero"`, `"cluster"`, or 
 #' `"driscoll_kraaay"`. The type of standard-errors to use by default for estimations with the 
 #' argument `panel.id` set up. Note that panel has precedence over the presence of fixed-effects.
-#' @param all Character scalar equal to either: `"iid"`, or `"hetero"`. By default is is `NULL`. If 
-#' provided, it sets all the SEs to that value.
+#' @param all Character scalar equal to either: `"iid"`, or `"hetero"` (or `"cluster"` if 
+#' the argument `no_FE` is provided). 
+#' By default is is `NULL`. If provided, it sets all the SEs to that value. 
 #' @param reset Logical, default is `FALSE`. Whether to reset to the default values.
 #'
 #' @return
@@ -2829,7 +2830,14 @@ setFixest_vcov = function(no_FE = "iid", one_FE = "iid", two_FE = "iid",
   check_set_arg(one_FE, "match(iid, hetero, cluster)")
   check_set_arg(two_FE, "match(iid, hetero, cluster, twoway)")
   check_set_arg(panel,  "match(iid, hetero, cluster, DK, driscoll_kraay)")
-  check_set_arg(all, "NULL match(iid, hetero)")
+  
+  args = intersect(c("no_FE", "one_FE", "two_FE", "panel"), names(match.call()))
+  if("no_FE" %in% args){
+    check_set_arg(all, "NULL match(iid, hetero, cluster)")
+  } else {
+    check_set_arg(all, "NULL match(iid, hetero)")
+  }
+  
   check_set_arg(reset, "logical scalar")
 
   opts = getOption("fixest_vcov_default")
@@ -2842,7 +2850,7 @@ setFixest_vcov = function(no_FE = "iid", one_FE = "iid", two_FE = "iid",
   }
 
 
-  args = intersect(c("no_FE", "one_FE", "two_FE", "panel"), names(match.call()))
+  
 
   for(a in args){
     opts[[a]] = eval(as.name(a))

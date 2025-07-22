@@ -9,7 +9,7 @@ as well as their number of NA values."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -257,8 +257,8 @@ cardinal product of all double negatived conditions is returned.</p>
 <span class="r-in"><span> <span class="fu">n_unik</span><span class="op">(</span><span class="va">base_main</span><span class="op">:</span><span class="va">base_extra</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ##                 base_main base_extra </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ## # Observations:     1,080        100 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##             id:       108         73 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Exclusive   |        45         10 # Common: 63</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##             id:       108         66 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Exclusive   |        52         10 # Common: 56</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ##         period:        10         20 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ## # Exclusive   |         0         10 # Common: 10</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ##      id^period:     1,080        100 </span>
@@ -269,9 +269,9 @@ cardinal product of all double negatived conditions is returned.</p>
 <span class="r-in"><span><span class="co"># You can show unique values for any variable, as before</span></span></span>
 <span class="r-in"><span><span class="fu">n_unik</span><span class="op">(</span><span class="va">tmp</span> <span class="op">+</span> <span class="va">base_main</span> <span class="op">+</span> <span class="va">base_extra</span> <span class="op">~</span> <span class="va">id</span><span class="op">[</span><span class="op">!</span><span class="op">!</span><span class="cn">NA</span><span class="op">(</span><span class="va">z</span><span class="op">)</span><span class="op">]</span> <span class="op">+</span> <span class="va">id</span><span class="op">^</span><span class="va">period</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ##               tmp base_main base_extra</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##         id:   108       108         73</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##         id:   108       108         66</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ##  id[NA(z)]:   108        --          0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ## id[!NA(z)]:    59        --         73</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## id[!NA(z)]:    51        --         66</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ##  id^period: 1,080     1,080        100</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>

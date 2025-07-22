@@ -9,7 +9,7 @@ time series settings."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -92,9 +92,12 @@ sample correction.</p></dd>
 
 
 <dt id="arg-vcov-fix">vcov_fix<a class="anchor" aria-label="anchor" href="#arg-vcov-fix"></a></dt>
-<dd><p>Logical scalar, default is <code>TRUE</code>. If the VCOV ends up not being
+<dd><p>Logical scalar, default is <code>FALSE</code>. If the VCOV ends up not being
 positive definite, whether to "fix" it using an eigenvalue decomposition
-(a la Cameron, Gelbach &amp; Miller 2011).</p></dd>
+(a la Cameron, Gelbach &amp; Miller 2011).
+Since the VCOV should be PSD asymptotically, this might be a sign of a problem
+with using the asymptotic approximation (e.g. too few units in clusters).
+If a problem is detected, the function will print a message to inform you.</p></dd>
 
 
 <dt id="arg-unit">unit<a class="anchor" aria-label="anchor" href="#arg-unit"></a></dt>
@@ -154,7 +157,8 @@ Panel Data." <em>The Review of Economics and Statistics</em>, 80(4), 549-560. do
 <span class="r-in"><span><span class="co"># Panel Newey-West, lag = 2</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, <span class="va">base_did</span>, <span class="fu">NW</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span> <span class="op">~</span> <span class="va">id</span> <span class="op">+</span> <span class="va">period</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 1,080Standard-errors: Newey-West (L=2) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 1,080</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: Newey-West (L=2) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 1.988753   0.186061 10.6887 2.0500e-06 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.983110   0.051618 19.0457 1.3968e-08 ***</span>
@@ -165,7 +169,8 @@ Panel Data." <em>The Review of Economics and Statistics</em>, 80(4), 549-560. do
 <span class="r-in"><span><span class="co"># Driscoll-Kraay</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, <span class="va">base_did</span>, <span class="va">DK</span> <span class="op">~</span> <span class="va">period</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 1,080Standard-errors: Driscoll-Kraay (L=1) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 1,080</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: Driscoll-Kraay (L=1) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 1.988753   0.789538  2.51888 3.2829e-02 *  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.983110   0.036115 27.22141 5.9051e-10 ***</span>
@@ -178,7 +183,8 @@ Panel Data." <em>The Review of Economics and Statistics</em>, 80(4), 549-560. do
 <span class="r-in"><span><span class="va">est</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, <span class="va">base_did</span>, <span class="st">"NW"</span>, panel.id <span class="op">=</span> <span class="op">~</span><span class="va">id</span> <span class="op">+</span> <span class="va">period</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">est</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 1,080Standard-errors: Newey-West (L=1) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 1,080</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: Newey-West (L=1) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 1.988753   0.174111 11.4223 1.1709e-06 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.983110   0.052699 18.6551 1.6762e-08 ***</span>

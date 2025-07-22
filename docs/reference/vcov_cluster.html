@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,9 +74,12 @@ sample correction.</p></dd>
 
 
 <dt id="arg-vcov-fix">vcov_fix<a class="anchor" aria-label="anchor" href="#arg-vcov-fix"></a></dt>
-<dd><p>Logical scalar, default is <code>TRUE</code>. If the VCOV ends up not being
+<dd><p>Logical scalar, default is <code>FALSE</code>. If the VCOV ends up not being
 positive definite, whether to "fix" it using an eigenvalue decomposition
-(a la Cameron, Gelbach &amp; Miller 2011).</p></dd>
+(a la Cameron, Gelbach &amp; Miller 2011).
+Since the VCOV should be PSD asymptotically, this might be a sign of a problem
+with using the asymptotic approximation (e.g. too few units in clusters).
+If a problem is detected, the function will print a message to inform you.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -131,13 +134,14 @@ functions (e.g. <code><a href="vcov.fixest.html">vcov.fixest</a></code> or even 
 <span class="r-in"><span><span class="co"># per se: pretty useless...</span></span></span>
 <span class="r-in"><span><span class="fu">vcov_cluster</span><span class="op">(</span><span class="op">~</span><span class="va">species</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ~species</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x0000017acac65f90&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x0000023557156700&gt;</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># ...but VCOV-requests can be used at estimation time:</span></span></span>
 <span class="r-in"><span><span class="co"># it may be more explicit than...</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, <span class="va">base</span>, vcov <span class="op">=</span> <span class="fu">vcov_cluster</span><span class="op">(</span><span class="st">"species"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 150Standard-errors: Clustered (species) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: Clustered (species) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error   t value Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  6.526223   0.939312  6.947878 0.020093 *  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          -0.223361   0.406738 -0.549152 0.638023    </span>
@@ -148,7 +152,8 @@ functions (e.g. <code><a href="vcov.fixest.html">vcov.fixest</a></code> or even 
 <span class="r-in"><span><span class="co"># ...the equivalent, built-in way:</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, <span class="va">base</span>, vcov <span class="op">=</span> <span class="op">~</span><span class="va">species</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 150Standard-errors: Clustered (species) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: Clustered (species) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error   t value Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  6.526223   0.939312  6.947878 0.020093 *  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          -0.223361   0.406738 -0.549152 0.638023    </span>
@@ -160,7 +165,8 @@ functions (e.g. <code><a href="vcov.fixest.html">vcov.fixest</a></code> or even 
 <span class="r-in"><span><span class="co"># so you can feed them with a VCOV-request:</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, <span class="va">base</span>, vcov <span class="op">=</span> <span class="fu">vcov_cluster</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 150Standard-errors: Clustered (rep(1:5, 30)) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: Clustered (rep(1:5, 30)) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  6.526223   0.296270 22.02795 2.5137e-05 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          -0.223361   0.100044 -2.23263 8.9350e-02 .  </span>

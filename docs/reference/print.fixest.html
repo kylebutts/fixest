@@ -13,7 +13,7 @@ function setFixest_print)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -130,12 +130,13 @@ visualize the results of multiple estimations.</p></div>
 <span class="r-in"><span><span class="va">est_pois</span> <span class="op">=</span> <span class="fu"><a href="feglm.html">fepois</a></span><span class="op">(</span><span class="va">Euros</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">dist_km</span><span class="op">)</span><span class="op">|</span><span class="va">Origin</span><span class="op">+</span><span class="va">Destination</span><span class="op">+</span><span class="va">Product</span>, <span class="va">trade</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># displaying the results</span></span></span>
-<span class="r-in"><span><span class="co">#  (by default SEs are clustered if FEs are used)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">est_pois</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Poisson estimation, Dep. Var.: Euros</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 38,325Fixed-effects: Origin: 15,  Destination: 15,  Product: 20Standard-errors: Clustered (Origin) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error  z value  Pr(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km) -1.52775   0.115627 -13.2127 &lt; 2.2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 38,325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-effects: Origin: 15,  Destination: 15,  Product: 20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value  Pr(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km) -1.52775   1.93e-06 -793130 &lt; 2.2e-16 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-Likelihood: -7.133e+11   Adj. Pseudo R2: 0.760389</span>
@@ -162,23 +163,27 @@ visualize the results of multiple estimations.</p></div>
 <span class="r-in"><span><span class="co"># We modify which fit statistic to display</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">est_pois</span>, fitstat <span class="op">=</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="va">lr</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Poisson estimation, Dep. Var.: Euros</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 38,325Fixed-effects: Origin: 15,  Destination: 15,  Product: 20Standard-errors: Clustered (Origin) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error  z value  Pr(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km) -1.52775   0.115627 -13.2127 &lt; 2.2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 38,325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-effects: Origin: 15,  Destination: 15,  Product: 20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value  Pr(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km) -1.52775   1.93e-06 -793130 &lt; 2.2e-16 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-Likelihood: -7.133e+11   Adj. Pseudo R2: 0.760389</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            BIC:  1.427e+12     Squared Cor.: 0.60377 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> LR: stat = 4.527e+12, p &lt; 2.2e-16, on 49 DoF.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> LR: stat = 4,527,313,489,475.2, p &lt; 2.2e-16, on 49 DoF.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># We add the LR test to the default (represented by the ".")</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># to show only the LR stat:</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">est_pois</span>, fitstat <span class="op">=</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="va">lr.stat</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Poisson estimation, Dep. Var.: Euros</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 38,325Fixed-effects: Origin: 15,  Destination: 15,  Product: 20Standard-errors: Clustered (Origin) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error  z value  Pr(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km) -1.52775   0.115627 -13.2127 &lt; 2.2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 38,325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-effects: Origin: 15,  Destination: 15,  Product: 20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value  Pr(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km) -1.52775   1.93e-06 -793130 &lt; 2.2e-16 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-Likelihood: -7.133e+11   Adj. Pseudo R2: 0.760389 </span>
@@ -189,9 +194,11 @@ visualize the results of multiple estimations.</p></div>
 <span class="r-in"><span><span class="fu">setFixest_print</span><span class="op">(</span>fitstat <span class="op">=</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="va">lr.stat</span> <span class="op">+</span> <span class="va">rmse</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">est_pois</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Poisson estimation, Dep. Var.: Euros</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 38,325Fixed-effects: Origin: 15,  Destination: 15,  Product: 20Standard-errors: Clustered (Origin) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error  z value  Pr(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km) -1.52775   0.115627 -13.2127 &lt; 2.2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 38,325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-effects: Origin: 15,  Destination: 15,  Product: 20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error z value  Pr(&gt;|z|)    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km) -1.52775   1.93e-06 -793130 &lt; 2.2e-16 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Log-Likelihood: -7.133e+11   Adj. Pseudo R2: 0.760389    </span>

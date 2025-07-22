@@ -9,7 +9,7 @@ type of standard-errors to be computed."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,12 +56,11 @@ type of standard-errors to be computed.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'fixest_multi'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
-<span>  type <span class="op">=</span> <span class="st">"short"</span>,</span>
+<span>  type <span class="op">=</span> <span class="st">"etable"</span>,</span>
 <span>  vcov <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  se <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ssc <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  .vcov <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stage <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  lean <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n <span class="op">=</span> <span class="fl">1000</span>,</span>
@@ -79,8 +78,10 @@ multiple results.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
-<dd><p>A character either equal to <code>"short"</code>, <code>"long"</code>, <code>"compact"</code>, <code>"se_compact"</code>
-or <code>"se_long"</code>. If <code>short</code>, only the table of coefficients is displayed for each estimation.
+<dd><p>A character either equal to <code>"etable"</code>, <code>"short"</code>, <code>"long"</code>,
+<code>"compact"</code>, <code>"se_compact"</code> or <code>"se_long"</code>.
+If <code>etable</code>, the function <code><a href="etable.html">etable</a></code> is used to print the result.
+If <code>short</code>, only the table of coefficients is displayed for each estimation.
 If <code>long</code>, then the full results are displayed for each estimation. If <code>compact</code>,
 a <code>data.frame</code> is returned with one line per model and the formatted
 coefficients + standard-errors in the columns. If <code>se_compact</code>, a <code>data.frame</code> is
@@ -89,7 +90,7 @@ column for each standard-error. If <code>"se_long"</code>, same as <code>"se_com
 long format instead of wide.</p></dd>
 
 
-<dt id="arg-vcov-vcov">vcov, .vcov<a class="anchor" aria-label="anchor" href="#arg-vcov-vcov"></a></dt>
+<dt id="arg-vcov">vcov<a class="anchor" aria-label="anchor" href="#arg-vcov"></a></dt>
 <dd><p>Versatile argument to specify the VCOV. In general, it is either a character
 scalar equal to a VCOV type, either a formula of the form: <code>vcov_type ~ variables</code>. The
 VCOV types implemented are: "iid", "hetero" (or "HC1"), "cluster", "twoway",
@@ -126,8 +127,8 @@ the following syntax: <code>cluster = ~var1^var2</code> or <code>cluster = "var1
 <dd><p>An object of class <code>ssc.type</code> obtained with the function <code><a href="ssc.html">ssc</a></code>. Represents
 how the degree of freedom correction should be done.You must use the function <code><a href="ssc.html">ssc</a></code>
 for this argument. The arguments and defaults of the function <code><a href="ssc.html">ssc</a></code> are:
-<code>adj = TRUE</code>, <code>fixef.K="nested"</code>, <code>cluster.adj = TRUE</code>, <code>cluster.df = "min"</code>,
-<code>t.df = "min"</code>, <code>fixef.force_exact=FALSE)</code>. See the help of the function <code><a href="ssc.html">ssc</a></code> for details.</p></dd>
+<code>K.adj = TRUE</code>, <code>K.fixef = "nonnested"</code>, <code>G.adj = TRUE</code>, <code>G.df = "min"</code>,
+<code>t.df = "min"</code>, <code>K.exact = FALSE)</code>. See the help of the function <code><a href="ssc.html">ssc</a></code> for details.</p></dd>
 
 
 <dt id="arg-stage">stage<a class="anchor" aria-label="anchor" href="#arg-stage"></a></dt>
@@ -175,70 +176,52 @@ estimations: <code>summary.fixest_multi</code>, <code><a href="print.fixest_mult
 <span class="r-in"><span><span class="co"># Multiple estimation</span></span></span>
 <span class="r-in"><span><span class="va">res</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fu"><a href="stepwise.html">csw</a></span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span><span class="op">)</span>, <span class="va">base</span>, split <span class="op">=</span> <span class="op">~</span><span class="va">species</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># By default, the type is "short"</span></span></span>
+<span class="r-in"><span><span class="co"># By default, the type is "etable"</span></span></span>
 <span class="r-in"><span><span class="co"># You can still use the arguments from summary.fixest</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res</span>, se <span class="op">=</span> <span class="st">"hetero"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: Heteroskedasticity-robust </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                 x.1                x.2                x.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species)             setosa             setosa             setosa</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                   y                  y                  y</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          2.639*** (0.2986)  2.304*** (0.4336)  2.352*** (0.4372)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1               0.6905*** (0.0859) 0.6674*** (0.0922) 0.6548*** (0.0925)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x2                                     0.2834 (0.2648)    0.2376 (0.2753)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x3                                                        0.2521 (0.2846)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ __________________ __________________ __________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type        Heteroskedas.-rob. Heteroskedas.-rob. Heteroskedas.-rob.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                     50                 50                 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                          0.55138            0.57026            0.57514</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Adj. R2                     0.54203            0.55197            0.54743</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ### Sample: setosa</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                 x.4                x.5                x.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species)         versicolor         versicolor         versicolor</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                   y                  y                  y</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          3.540*** (0.6170)  2.116*** (0.4313)  1.896*** (0.4343)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1               0.8651*** (0.2207)    0.2476 (0.1765)   0.3869. (0.2071)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x2                                  0.7356*** (0.1114) 0.9083*** (0.1598)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x3                                                       -0.6792 (0.4366)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ __________________ __________________ __________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type        Heteroskedas.-rob. Heteroskedas.-rob. Heteroskedas.-rob.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                     50                 50                 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                          0.27658            0.58413            0.60503</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Adj. R2                     0.26151            0.56644            0.57927</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.639001   0.298624 8.83722 1.2326e-11 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.690490   0.085903 8.03803 1.9293e-10 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                 x.7                x.8                x.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species)          virginica          virginica          virginica</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                   y                  y                  y</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          3.907*** (0.7607)    0.6248 (0.5381)    0.6999 (0.5534)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1               0.9015*** (0.2462)   0.2600. (0.1302)  0.3303** (0.1225)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x2                                  0.9348*** (0.0770) 0.9455*** (0.0809)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x3                                                       -0.1698 (0.2103)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ __________________ __________________ __________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type        Heteroskedas.-rob. Heteroskedas.-rob. Heteroskedas.-rob.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                     50                 50                 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                          0.20906            0.76147            0.76522</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Adj. R2                     0.19258            0.75132            0.74991</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.303738   0.433561 5.31352 2.8928e-06 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.667416   0.092247 7.23508 3.6001e-09 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2          0.283419   0.264794 1.07034 2.8993e-01    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2 + x3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.351890   0.437230 5.379067 2.4390e-06 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.654835   0.092468 7.081774 6.8711e-09 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2          0.237560   0.275270 0.863009 3.9261e-01    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x3          0.252126   0.284622 0.885827 3.8032e-01    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ### Sample: versicolor</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 3.539735   0.617019 5.73683 6.3108e-07 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.865078   0.220701 3.91969 2.8079e-04 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.116431   0.431296 4.90714 1.1507e-05 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.247642   0.176500 1.40307 1.6717e-01    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2          0.735587   0.111386 6.60395 3.2636e-08 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2 + x3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  1.895540   0.434294  4.36465 7.1434e-05 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1           0.386858   0.207117  1.86782 6.8165e-02 .  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2           0.908337   0.159800  5.68420 8.5897e-07 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x3          -0.679224   0.436600 -1.55571 1.2663e-01    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ### Sample: virginica</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 3.906836   0.760748 5.13552 5.0735e-06 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.901534   0.246200 3.66179 6.2338e-04 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 0.624782   0.538060  1.16118 2.5143e-01    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.259954   0.130150  1.99734 5.1596e-02 .  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2          0.934819   0.076962 12.14650 4.2031e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2 + x3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error   t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  0.699883   0.553402  1.264692 2.1235e-01    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1           0.330337   0.122494  2.696759 9.7515e-03 ** </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2           0.945536   0.080881 11.690520 2.2562e-15 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x3          -0.169753   0.210310 -0.807154 4.2373e-01    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res</span>, type <span class="op">=</span> <span class="st">"long"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -246,7 +229,9 @@ estimations: <code>summary.fixest_multi</code>, <code><a href="print.fixest_mult
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50Sample (species): setosaStandard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species): setosa</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.639001   0.310014 8.51251 3.7424e-11 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.690490   0.089899 7.68074 6.7098e-10 ***</span>
@@ -256,7 +241,9 @@ estimations: <code>summary.fixest_multi</code>, <code><a href="print.fixest_mult
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50Sample (species): setosaStandard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species): setosa</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.303738   0.385294 5.97917 2.8943e-07 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.667416   0.090356 7.38653 2.1252e-09 ***</span>
@@ -267,7 +254,9 @@ estimations: <code>summary.fixest_multi</code>, <code><a href="print.fixest_mult
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2 + x3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50Sample (species): setosaStandard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species): setosa</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.351890   0.392868 5.986471 3.0342e-07 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.654835   0.092447 7.083324 6.8344e-09 ***</span>
@@ -281,7 +270,9 @@ estimations: <code>summary.fixest_multi</code>, <code><a href="print.fixest_mult
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50Sample (species): versicolorStandard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species): versicolor</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 3.539735   0.562874 6.28869 9.0690e-08 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.865078   0.201938 4.28389 8.7719e-05 ***</span>
@@ -291,7 +282,9 @@ estimations: <code>summary.fixest_multi</code>, <code><a href="print.fixest_mult
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50Sample (species): versicolorStandard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species): versicolor</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.116431   0.494256 4.28206 9.0640e-05 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.247642   0.186839 1.32543 1.9144e-01    </span>
@@ -302,7 +295,9 @@ estimations: <code>summary.fixest_multi</code>, <code><a href="print.fixest_mult
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2 + x3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50Sample (species): versicolorStandard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species): versicolor</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  1.895540   0.507055  3.73833 5.1122e-04 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1           0.386858   0.204545  1.89131 6.4890e-02 .  </span>
@@ -316,7 +311,9 @@ estimations: <code>summary.fixest_multi</code>, <code><a href="print.fixest_mult
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50Sample (species): virginicaStandard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species): virginica</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 3.906836   0.757061 5.16053 4.6563e-06 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.901534   0.253106 3.56189 8.4346e-04 ***</span>
@@ -326,7 +323,9 @@ estimations: <code>summary.fixest_multi</code>, <code><a href="print.fixest_mult
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50Sample (species): virginicaStandard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species): virginica</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 0.624782   0.524867  1.19036 2.3988e-01    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.259954   0.153338  1.69531 9.6634e-02 .  </span>
@@ -337,7 +336,9 @@ estimations: <code>summary.fixest_multi</code>, <code><a href="print.fixest_mult
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2 + x3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50Sample (species): virginicaStandard-errors: IID </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sample (species): virginica</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error   t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  0.699883   0.533601  1.311623 1.9616e-01    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> x1           0.330337   0.174329  1.894909 6.4400e-02 .  </span>

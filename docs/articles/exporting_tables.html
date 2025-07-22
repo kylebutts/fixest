@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,7 +67,7 @@
                         <h4 data-toc-skip class="author">Laurent
 Berge</h4>
             
-            <h4 data-toc-skip class="date">2025-04-18</h4>
+            <h4 data-toc-skip class="date">2025-07-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/lrberge/fixest/blob/HEAD/vignettes/exporting_tables.Rmd" class="external-link"><code>vignettes/exporting_tables.Rmd</code></a></small>
       <div class="d-none name"><code>exporting_tables.Rmd</code></div>
@@ -303,9 +303,7 @@ from <code>etable</code>:</p>
 <span><span class="co">#&gt; |      S.E.: Clustered       |     by: Day      |     by: Day      |</span></span>
 <span><span class="co">#&gt; |        Observations        |       111        |       111        |</span></span>
 <span><span class="co">#&gt; |             R2             |     0.63686      |     0.81604      |</span></span>
-<span><span class="co">#&gt; |         Within R2          |     0.53154      |     0.61471      |</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Table: New default values</span></span></code></pre>
+<span><span class="co">#&gt; |         Within R2          |     0.53154      |     0.61471      |</span></span></code></pre>
 </div>
 </div>
 </div>
@@ -527,13 +525,14 @@ can’t apply directly. To export them, you first need to coerce the
 results into a list: by simply using <code>as.list(est)</code>.</p>
 <p>By default in <code>fixest</code> the estimations are separated from
 the calculation of the VCOV matrices. That’s not a problem when using
-<code>etable</code> since, after providing the argument <code>se</code>
-or <code>cluster</code>, all VCOVs are calculated at once. Using other
-tools for exportation requires a call to <code>summary</code> for each
-model to compute the appropriate standard-errors. But this process can
-also be automatized. The function <code><a href="../reference/rep.fixest.html">.l()</a></code> can be used to
-coerce several <code>fixest</code> objects to which <code>summary</code>
-can then be applied, for example:</p>
+<code>etable</code> since, after providing the argument
+<code>vcov</code> or <code>cluster</code>, all VCOVs are calculated at
+once. Using other tools for exportation requires a call to
+<code>summary</code> for each model to compute the appropriate
+standard-errors. But this process can also be automatized. The function
+<code><a href="../reference/rep.fixest.html">.l()</a></code> can be used to coerce several <code>fixest</code>
+objects to which <code>summary</code> can then be applied, for
+example:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="../reference/rep.fixest.html">.l</a></span><span class="op">(</span><span class="va">est</span>, <span class="va">est_slopes</span><span class="op">)</span>, cluster <span class="op">=</span> <span class="op">~</span> <span class="va">Month</span><span class="op">)</span></span></code></pre></div>
 <p>The previous code returns a list of the five estimations for which

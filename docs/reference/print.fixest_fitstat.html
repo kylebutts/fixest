@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,13 +80,13 @@ are not displayed.</p></dd>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Extracting the 'working' number of observations used to compute the pvalues</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="fitstat.html">fitstat</a></span><span class="op">(</span><span class="va">gravity</span>, <span class="st">"g"</span>, simplify <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 38295</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Some fit statistics</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="fitstat.html">fitstat</a></span><span class="op">(</span><span class="va">gravity</span>, <span class="op">~</span> <span class="va">rmse</span> <span class="op">+</span> <span class="va">r2</span> <span class="op">+</span> <span class="va">wald</span> <span class="op">+</span> <span class="va">wf</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                 RMSE: 2.26215</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                   R2: 0.50428</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wald (joint nullity): stat =   272.9, p &lt; 2.2e-16, on 1 and 38,309 DoF, VCOV: Clustered (Destination).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wald (joint nullity): stat = 5,832.8, p &lt; 2.2e-16, on 1 and 38,295 DoF, VCOV: IID.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   F-test (projected): stat = 5,832.8, p &lt; 2.2e-16, on 1 and 38,295 DoF.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># You can use them in etable</span></span></span>
@@ -94,15 +94,15 @@ are not displayed.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                 gravity</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              log(Euros)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km)         -2.072*** (0.1254)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km)         -2.072*** (0.0271)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:       ------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Destination                         Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Origin                              Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ____________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E.: Clustered         by: Destination</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                           IID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> RMSE                             2.2622</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> R2                              0.50428</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wald (joint nullity)             272.90</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wald (joint nullity)            5,832.8</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> F-test (projected)              5,832.8</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
@@ -112,15 +112,15 @@ are not displayed.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                          gravity</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                       log(Euros)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km)                  -2.072*** (0.1254)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km)                  -2.072*** (0.0271)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:                ------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Destination                                  Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Origin                                       Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _____________________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E.: Clustered                  by: Destination</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                                    IID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> RMSE                                      2.2622</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> R2                                       0.50428</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wald (joint nullity), p-value           4.32e-61</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wald (joint nullity), p-value              0e-16</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> F-test (projected), p-value                0e-16</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
@@ -141,12 +141,12 @@ are not displayed.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                               gravity</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:            log(Euros)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km)       -2.072*** (0.1254)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> log(dist_km)       -2.072*** (0.0271)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:     ------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Destination                       Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Origin                            Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> __________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E.: Clustered       by: Destination</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                         IID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   38,325</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> R2                            0.50428</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                     0.13218</span>

@@ -9,7 +9,7 @@ estimation objects (aka fixest_multi)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -121,8 +121,8 @@ the following syntax: <code>cluster = ~var1^var2</code> or <code>cluster = "var1
 <dd><p>An object of class <code>ssc.type</code> obtained with the function <code><a href="ssc.html">ssc</a></code>. Represents
 how the degree of freedom correction should be done.You must use the function <code><a href="ssc.html">ssc</a></code>
 for this argument. The arguments and defaults of the function <code><a href="ssc.html">ssc</a></code> are:
-<code>adj = TRUE</code>, <code>fixef.K="nested"</code>, <code>cluster.adj = TRUE</code>, <code>cluster.df = "min"</code>,
-<code>t.df = "min"</code>, <code>fixef.force_exact=FALSE)</code>. See the help of the function <code><a href="ssc.html">ssc</a></code> for details.</p></dd>
+<code>K.adj = TRUE</code>, <code>K.fixef = "nonnested"</code>, <code>G.adj = TRUE</code>, <code>G.df = "min"</code>,
+<code>t.df = "min"</code>, <code>K.exact = FALSE)</code>. See the help of the function <code><a href="ssc.html">ssc</a></code> for details.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -168,20 +168,22 @@ confidence intervals.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># the 'id' provides the index of the estimation</span></span></span>
 <span class="r-in"><span><span class="va">est</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">6</span><span class="op">)</span><span class="op">]</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Expl. vars.: x1 + x2 + x3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-effects: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  1.855997   0.250777  7.40098 9.8539e-12 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1           0.650837   0.066647  9.76538  &lt; 2.2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2           0.709132   0.056719 12.50248  &lt; 2.2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x3          -0.556483   0.127548 -4.36293 2.4129e-05 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                 x.1                x.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                   y                  y</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          1.856*** (0.2508)                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1               0.6508*** (0.0667) 0.4959*** (0.0861)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x2               0.7091*** (0.0567) 0.8292*** (0.0685)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x3              -0.5565*** (0.1275)  -0.3152* (0.1512)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------- ------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> species                          No                Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ ___________________ __________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                       IID                IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                    150                150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                          0.85861            0.86731</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                        --            0.65201</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-effects: species</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1  0.495889   0.086070  5.76147 4.8675e-08 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2  0.829244   0.068528 12.10087  &lt; 2.2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x3 -0.315155   0.151196 -2.08442 3.8888e-02 *  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

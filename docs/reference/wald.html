@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -153,6 +153,7 @@ second degrees of freedoms.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Same but with clustered SEs</span></span></span>
 <span class="r-in"><span><span class="fu">wald</span><span class="op">(</span><span class="va">est</span>, <span class="st">"poly"</span>, cluster <span class="op">=</span> <span class="st">"Month"</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>The VCOV matrix is not positive semi-definite and was 'fixed' (see ?vcov).</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Wald test, H0: joint nullity of poly(Temp, 3)1, poly(Temp, 3)2 and poly(Temp, 3)3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  stat = 170.3, p-value &lt; 2.2e-16, on 3 and 105 DoF, VCOV: Clustered (Month).</span>
 <span class="r-in"><span></span></span>

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,7 +57,7 @@
 <span>  <span class="va">data</span>,</span>
 <span>  time.step <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  duplicate.method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"first"</span><span class="op">)</span>,</span>
+<span>  duplicate.method <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -67,7 +67,7 @@
 <span>  <span class="va">data</span>,</span>
 <span>  time.step <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  duplicate.method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"first"</span><span class="op">)</span>,</span>
+<span>  duplicate.method <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -203,6 +203,8 @@ the function <code><a href="feols.html">feols</a></code>).</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> If 'time.step' is a number, then it must be an exact divisor of all the</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> difference between two consecutive time periods. This is currently not the</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> case: 7 is not a divisor of 1 (the difference btw the time periods 2 and 1).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Alternatively, it can be equal to 'unitary', 'consecutive' or</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 'within.consecutive'</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Adding NAs + unsorted IDs</span></span></span>
 <span class="r-in"><span><span class="va">base</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span></span>

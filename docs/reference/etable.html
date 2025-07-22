@@ -11,7 +11,7 @@ render properly. See setFixest_etable to set the default values, and style.tex t
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,7 +64,6 @@ render properly. See <code>setFixest_etable</code> to set the default values, an
 <span>  se <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ssc <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  .vcov <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  .vcov_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  digits <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  digits.stats <span class="op">=</span> <span class="fl">5</span>,</span>
@@ -78,7 +77,8 @@ render properly. See <code>setFixest_etable</code> to set the default values, an
 <span>  order <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dict <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  file <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  replace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  replace <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  create_dirs <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  convergence <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  signif.code <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  headers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"auto"</span><span class="op">)</span>,</span>
@@ -115,12 +115,11 @@ render properly. See <code>setFixest_etable</code> to set the default values, an
 <span>  se <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ssc <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  .vcov <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  .vcov_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  digits <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  digits.stats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  fitstat <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  caption <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  coefstat <span class="op">=</span> <span class="st">"se"</span>,</span>
 <span>  ci <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  se.row <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -130,7 +129,8 @@ render properly. See <code>setFixest_etable</code> to set the default values, an
 <span>  order <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dict <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  file <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  replace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  replace <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  create_dirs <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  convergence <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  signif.code <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  label <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -183,13 +183,12 @@ render properly. See <code>setFixest_etable</code> to set the default values, an
 <span>  se <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ssc <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  .vcov <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  .vcov_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  digits <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  digits.stats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  <span class="va">tex</span>,</span>
 <span>  fitstat <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  caption <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  coefstat <span class="op">=</span> <span class="st">"se"</span>,</span>
 <span>  ci <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  se.row <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -199,7 +198,8 @@ render properly. See <code>setFixest_etable</code> to set the default values, an
 <span>  order <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dict <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  file <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  replace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  replace <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  create_dirs <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  convergence <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  signif.code <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  label <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -251,7 +251,7 @@ render properly. See <code>setFixest_etable</code> to set the default values, an
 <span>  digits <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  digits.stats <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  <span class="va">fitstat</span>,</span>
-<span>  coefstat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"se"</span>, <span class="st">"tstat"</span>, <span class="st">"confint"</span><span class="op">)</span>,</span>
+<span>  coefstat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"se"</span>, <span class="st">"tstat"</span>, <span class="st">"confint"</span>, <span class="st">"pvalue"</span><span class="op">)</span>,</span>
 <span>  ci <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  se.below <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">keep</span>,</span>
@@ -275,8 +275,9 @@ render properly. See <code>setFixest_etable</code> to set the default values, an
 <span>  drop.section <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  view <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  markdown <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  view.cache <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  view.cache <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  page.width <span class="op">=</span> <span class="st">"fit"</span>,</span>
+<span>  div.class <span class="op">=</span> <span class="st">"etable"</span>,</span>
 <span>  postprocess.tex <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  postprocess.df <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fit_format <span class="op">=</span> <span class="st">"__var__"</span>,</span>
@@ -311,15 +312,19 @@ give a list of <code>fixest</code> objects.</p></dd>
 
 
 <dt id="arg-vcov">vcov<a class="anchor" aria-label="anchor" href="#arg-vcov"></a></dt>
-<dd><p>Versatile argument to specify the VCOV. In general, it is either a character
-scalar equal to a VCOV type, either a formula of the form: <code>vcov_type ~ variables</code>. The
-VCOV types implemented are: "iid", "hetero" (or "HC1"), "cluster", "twoway",
-"NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley". It also accepts
-object from <code><a href="vcov_cluster.html">vcov_cluster</a></code>, <code><a href="vcov_hac.html">vcov_NW</a></code>, <code><a href="vcov_hac.html">NW</a></code>,
-<code><a href="vcov_hac.html">vcov_DK</a></code>, <code><a href="vcov_hac.html">DK</a></code>, <code><a href="vcov_conley.html">vcov_conley</a></code> and
-<code><a href="vcov_conley.html">conley</a></code>. It also accepts covariance matrices computed externally.
-Finally it accepts functions to compute the covariances. See the <code>vcov</code> documentation
-in the <a href="https://lrberge.github.io/fixest/articles/fixest_walkthrough.html#the-vcov-argument-1">vignette</a>.</p></dd>
+<dd><p>Versatile argument to specify the VCOV.
+In general, it is either a character scalar equal to a VCOV type, either a formula of the form:
+vcov_type ~ variables. The VCOV types implemented are: "iid", "hetero" (or "HC1"),
+"cluster", "twoway", "NW" (or "newey_west"), "DK" (or "driscoll_kraay"), and "conley".
+It also accepts object from vcov_cluster, vcov_NW, NW, vcov_DK, DK, vcov_conley and conley.
+It also accepts covariance matrices computed externally.
+Finally it accepts functions to compute the covariances.
+See the vcov documentation in the vignette.
+You can pass several VCOVs (as above) if you nest them into a list.
+If the number of VCOVs equals the number of models, eahc VCOV is mapped to the appropriate model.
+If there is one model and several VCOVs, or if the first element of the list is equal to
+<code>"each"</code> or <code>"times"</code>, then the estimations will be replicated and the results
+for each estimation and each VCOV will be reported.</p></dd>
 
 
 <dt id="arg-stage">stage<a class="anchor" aria-label="anchor" href="#arg-stage"></a></dt>
@@ -353,8 +358,8 @@ you should use <code>vcov</code> instead.</p></dd>
 <dd><p>An object of class <code>ssc.type</code> obtained with the function <code><a href="ssc.html">ssc</a></code>. Represents
 how the degree of freedom correction should be done.You must use the function <code><a href="ssc.html">ssc</a></code>
 for this argument. The arguments and defaults of the function <code><a href="ssc.html">ssc</a></code> are:
-<code>adj = TRUE</code>, <code>fixef.K="nested"</code>, <code>cluster.adj = TRUE</code>, <code>cluster.df = "min"</code>,
-<code>t.df = "min"</code>, <code>fixef.force_exact=FALSE)</code>. See the help of the function <code><a href="ssc.html">ssc</a></code> for details.</p></dd>
+<code>K.adj = TRUE</code>, <code>K.fixef = "nonnested"</code>, <code>G.adj = TRUE</code>, <code>G.df = "min"</code>,
+<code>t.df = "min"</code>, <code>K.exact = FALSE)</code>. See the help of the function <code><a href="ssc.html">ssc</a></code> for details.</p></dd>
 
 
 <dt id="arg-cluster">cluster<a class="anchor" aria-label="anchor" href="#arg-cluster"></a></dt>
@@ -370,13 +375,8 @@ the 1st [resp. 2nd] fixed-effect). You can interact two variables using <code>^<
 the following syntax: <code>cluster = ~var1^var2</code> or <code>cluster = "var1^var2"</code>.</p></dd>
 
 
-<dt id="arg--vcov">.vcov<a class="anchor" aria-label="anchor" href="#arg--vcov"></a></dt>
-<dd><p>A function to be used to compute the standard-errors of each fixest object. You can
-pass extra arguments to this function using the argument <code>.vcov_args</code>. See the example.</p></dd>
-
-
 <dt id="arg--vcov-args">.vcov_args<a class="anchor" aria-label="anchor" href="#arg--vcov-args"></a></dt>
-<dd><p>A list containing arguments to be passed to the function <code>.vcov</code>.</p></dd>
+<dd><p>A list containing arguments to be passed to the function <code>vcov</code>.</p></dd>
 
 
 <dt id="arg-digits">digits<a class="anchor" aria-label="anchor" href="#arg-digits"></a></dt>
@@ -409,9 +409,9 @@ default fit statistics.</p></dd>
 
 
 <dt id="arg-coefstat">coefstat<a class="anchor" aria-label="anchor" href="#arg-coefstat"></a></dt>
-<dd><p>One of <code>"se"</code> (default), <code>"tstat"</code> or <code>"confint"</code>. The statistic to report for
-each coefficient: the standard-error, the t-statistics or the confidence interval. You can
-adjust the confidence interval with the argument <code>ci</code>.</p></dd>
+<dd><p>One of <code>"se"</code> (default), <code>"tstat"</code>, <code>"pvalue"</code>, or <code>"confint"</code>. The statistic to report for
+each coefficient: the standard-error, the t-statistics, the p-value,
+or the confidence interval. You can adjust the confidence interval with the argument <code>ci</code>.</p></dd>
 
 
 <dt id="arg-ci">ci<a class="anchor" aria-label="anchor" href="#arg-ci"></a></dt>
@@ -482,6 +482,14 @@ export a regular <code>data.frame</code>, use argument <code>tex = FALSE</code>.
 <dt id="arg-replace">replace<a class="anchor" aria-label="anchor" href="#arg-replace"></a></dt>
 <dd><p>Logical, default is <code>FALSE</code>. Only used if option <code>file</code> is used. Should the
 exported table be written in a new file that replaces any existing file?</p></dd>
+
+
+<dt id="arg-create-dirs">create_dirs<a class="anchor" aria-label="anchor" href="#arg-create-dirs"></a></dt>
+<dd><p>Logical, default is <code>FALSE</code>. Only used if when some file needs to be
+created (e;g. when <code>file</code> or <code>export</code> is used). By default, i.e. when <code>FALSE</code>,
+if the parent directory does not exist, the containing folders are created
+up to the grand parent.
+If <code>TRUE</code>, all containing folders are recursively created.</p></dd>
 
 
 <dt id="arg-convergence">convergence<a class="anchor" aria-label="anchor" href="#arg-convergence"></a></dt>
@@ -725,8 +733,8 @@ when <code>markdown = TRUE</code>. The table in an image format is embedded in a
 and that container is of class <code>div.class</code>.</p></dd>
 
 
-<dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
-<dd><p>(Tex only.) Character scalar. The title of the Latex table.</p></dd>
+<dt id="arg-caption">caption<a class="anchor" aria-label="anchor" href="#arg-caption"></a></dt>
+<dd><p>(Tex only.) Character scalar. The caption of the Latex table.</p></dd>
 
 
 <dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
@@ -734,8 +742,8 @@ and that container is of class <code>div.class</code>.</p></dd>
 
 
 <dt id="arg-float">float<a class="anchor" aria-label="anchor" href="#arg-float"></a></dt>
-<dd><p>(Tex only.) Logical. By default, if the argument <code>title</code> or <code>label</code> is provided, it
-is set to <code>TRUE</code>. Otherwise, it is set to <code>FALSE</code>.</p></dd>
+<dd><p>(Tex only.) Logical. By default, if the argument <code>caption</code> or <code>label</code> is provided,
+it is set to <code>TRUE</code>. Otherwise, it is set to <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-style-tex">style.tex<a class="anchor" aria-label="anchor" href="#arg-style-tex"></a></dt>
@@ -865,7 +873,7 @@ equal to <code>FALSE</code> otherwise.</p></dd>
 
 
 <dt id="arg-view-cache">view.cache<a class="anchor" aria-label="anchor" href="#arg-view-cache"></a></dt>
-<dd><p>Logical, default is <code>FALSE</code>. Only used when <code>view = TRUE</code>.
+<dd><p>Logical, default is <code>TRUE</code>. Only used when <code>view = TRUE</code>.
 Whether the PNGs of the tables should be cached.</p></dd>
 
 
@@ -1025,11 +1033,11 @@ Its default placement is at the top of the fixed-effects section.</p>
 
 
 <p>By default on all instances (with the notable exception of the elements of <code><a href="style.tex.html">style.tex</a></code>)
-special Latex characters are escaped. This means that <code>title="Exports in million $."</code> will be
+special Latex characters are escaped. This means that <code>caption="Exports in million $."</code> will be
 exported as <code>"Exports in million \\$."</code>: the dollar sign will be escaped. This is true for the
 following characters: &amp;, <code>$</code>, %, _, ^ and #.</p>
 <p>Note, importantly, that equations are NOT escaped. This means that
-<code>title="Functional form $a_i \\times x^b$, variation in %."</code> will be displayed as:
+<code>caption="Functional form $a_i \\times x^b$, variation in %."</code> will be displayed as:
 <code>"Functional form $a_i \\times x^b$, variation in \\%."</code>: only the
 last percentage will be escaped.</p>
 <p>If for some reason you don't want the escaping to take place, the arguments <code>headers</code> and
@@ -1073,67 +1081,67 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Displaying the two results in a single table</span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1               est2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6          -54.99* (26.34)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7           35.89. (18.37)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8           44.52* (18.05)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9           -11.78 (18.22)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042*** (0.3078)  2.042*** (0.2242)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)  -1.086** (0.1408)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)  2.046*** (0.0398)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (0.1554)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (0.2203)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)   -1.349* (0.3175)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- ------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No                Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID          by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116                116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106            0.68106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.58296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1              est2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone             Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6          -54.99* (26.34)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7           35.89. (18.37)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8           44.52* (18.05)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9           -11.78 (18.22)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042*** (0.3078) 2.042*** (0.3078)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)    -1.086 (1.127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)     2.046 (1.784)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (1.316)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (1.220)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)    -1.349 (1.147)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- -----------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No               Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ _________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID               IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116               116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106           0.68106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --           0.58296</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># keep/drop: keeping only interactions</span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span>, keep <span class="op">=</span> <span class="st">" x "</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1               est2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)  -1.086** (0.1408)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)  2.046*** (0.0398)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (0.1554)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (0.2203)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)   -1.349* (0.3175)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- ------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No                Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID          by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116                116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106            0.68106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.58296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1              est2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone             Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)    -1.086 (1.127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)     2.046 (1.784)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (1.316)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (1.220)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)    -1.349 (1.147)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- -----------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No               Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ _________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID               IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116               116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106           0.68106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --           0.58296</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span><span class="co"># or using drop  (see regexp help):</span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span>, drop <span class="op">=</span> <span class="st">"^(Month|Temp|\\()"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1               est2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)  -1.086** (0.1408)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)  2.046*** (0.0398)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (0.1554)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (0.2203)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)   -1.349* (0.3175)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- ------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No                Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID          by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116                116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106            0.68106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.58296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1              est2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone             Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)    -1.086 (1.127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)     2.046 (1.784)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (1.316)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (1.220)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)    -1.349 (1.147)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- -----------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No               Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ _________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID               IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116               116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106           0.68106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --           0.58296</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
@@ -1147,11 +1155,11 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7          35.89. (18.37)                  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8          44.52* (18.05)                  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9          -11.78 (18.22)                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp            2.042*** (0.3078) 2.042*** (0.2242)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp            2.042*** (0.3078) 2.042*** (0.3078)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ----------------- -----------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Month                          No               Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ _________________ _________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                     IID         by: Month</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                     IID               IID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Observations                  116               116</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> R2                        0.68106           0.68106</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                      --           0.58296</span>
@@ -1167,11 +1175,11 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7          35.89. (18.37)                  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8          44.52* (18.05)                  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9          -11.78 (18.22)                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp            2.042*** (0.3078) 2.042*** (0.2242)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp            2.042*** (0.3078) 2.042*** (0.3078)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ----------------- -----------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Month                          No               Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ _________________ _________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                     IID         by: Month</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                     IID               IID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Observations                  116               116</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> R2                        0.68106           0.68106</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                      --           0.58296</span>
@@ -1180,52 +1188,52 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># order: Wind variable first, intercept last (note the "!" to reverse the effect)</span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span>, order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Wind"</span>, <span class="st">"!Inter"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1               est2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)  -1.086** (0.1408)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)  2.046*** (0.0398)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (0.1554)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (0.2203)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)   -1.349* (0.3175)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6          -54.99* (26.34)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7           35.89. (18.37)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8           44.52* (18.05)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9           -11.78 (18.22)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042*** (0.3078)  2.042*** (0.2242)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- ------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No                Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID          by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116                116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106            0.68106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.58296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1              est2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone             Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)    -1.086 (1.127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)     2.046 (1.784)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (1.316)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (1.220)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)    -1.349 (1.147)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6          -54.99* (26.34)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7           35.89. (18.37)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8           44.52* (18.05)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9           -11.78 (18.22)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042*** (0.3078) 2.042*** (0.3078)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- -----------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No               Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ _________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID               IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116               116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106           0.68106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --           0.58296</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span><span class="co"># Month, then interactions, then the rest</span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span>, order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"^Month"</span>, <span class="st">" x "</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1               est2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6          -54.99* (26.34)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7           35.89. (18.37)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8           44.52* (18.05)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9           -11.78 (18.22)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)  -1.086** (0.1408)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)  2.046*** (0.0398)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (0.1554)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (0.2203)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)   -1.349* (0.3175)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042*** (0.3078)  2.042*** (0.2242)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- ------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No                Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID          by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116                116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106            0.68106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.58296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1              est2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone             Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6          -54.99* (26.34)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7           35.89. (18.37)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8           44.52* (18.05)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9           -11.78 (18.22)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)    -1.086 (1.127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)     2.046 (1.784)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (1.316)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (1.220)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)    -1.349 (1.147)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042*** (0.3078) 2.042*** (0.3078)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- -----------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No               Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ _________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID               IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116               116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106           0.68106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --           0.58296</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
@@ -1238,27 +1246,27 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span><span class="co"># Here's a full example:</span></span></span>
 <span class="r-in"><span><span class="va">dict</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Temp <span class="op">=</span> <span class="st">"Temperature"</span>, <span class="st">"Month::5"</span><span class="op">=</span><span class="st">"May"</span>, <span class="st">"6"</span><span class="op">=</span><span class="st">"Jun"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span>, dict <span class="op">=</span> <span class="va">dict</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                 est1               est2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                Ozone              Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant           -100.2*** (26.35)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = Jun          -54.99* (26.34)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7             35.89. (18.37)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8             44.52* (18.05)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9             -11.78 (18.22)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temperature        2.042*** (0.3078)  2.042*** (0.2242)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x May            -1.086 (1.127)  -1.086** (0.1408)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = Jun     2.046 (1.784)  2.046*** (0.0398)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7   -5.616*** (1.316) -5.616*** (0.1554)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8   -6.515*** (1.220) -6.515*** (0.2203)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9      -1.349 (1.147)   -1.349* (0.3175)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:     ----------------- ------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                             No                Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> __________________ _________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                        IID          by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                     116                116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                           0.68106            0.68106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                         --            0.58296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                 est1              est2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                Ozone             Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant           -100.2*** (26.35)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = Jun          -54.99* (26.34)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7             35.89. (18.37)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8             44.52* (18.05)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9             -11.78 (18.22)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temperature        2.042*** (0.3078) 2.042*** (0.3078)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x May            -1.086 (1.127)    -1.086 (1.127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = Jun     2.046 (1.784)     2.046 (1.784)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7   -5.616*** (1.316) -5.616*** (1.316)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8   -6.515*** (1.220) -6.515*** (1.220)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9      -1.349 (1.147)    -1.349 (1.147)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:     ----------------- -----------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                             No               Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> __________________ _________________ _________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                        IID               IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                     116               116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                           0.68106           0.68106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                         --           0.58296</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span><span class="co"># Note the difference of treatment between Jun and May</span></span></span>
@@ -1272,25 +1280,25 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span><span class="co"># We can use the special character '%' to make reference to the original names.</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span>, dict <span class="op">=</span> <span class="va">dict</span>, keep <span class="op">=</span> <span class="st">"%Month"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                              est1               est2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:             Ozone              Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Jun               -54.99* (26.34)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Jul                35.89. (18.37)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Aug                44.52* (18.05)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Sep                -11.78 (18.22)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x May         -1.086 (1.127)  -1.086** (0.1408)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Jun          2.046 (1.784)  2.046*** (0.0398)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Jul      -5.616*** (1.316) -5.616*** (0.1554)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Aug      -6.515*** (1.220) -6.515*** (0.2203)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Sep         -1.349 (1.147)   -1.349* (0.3175)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ----------------- ------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                          No                Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ _________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                     IID          by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                  116                116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                        0.68106            0.68106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                      --            0.58296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                              est1              est2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:             Ozone             Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Jun               -54.99* (26.34)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Jul                35.89. (18.37)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Aug                44.52* (18.05)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sep                -11.78 (18.22)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x May         -1.086 (1.127)    -1.086 (1.127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Jun          2.046 (1.784)     2.046 (1.784)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Jul      -5.616*** (1.316) -5.616*** (1.316)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Aug      -6.515*** (1.220) -6.515*** (1.220)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Sep         -1.349 (1.147)    -1.349 (1.147)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ----------------- -----------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                          No               Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ _________________ _________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                     IID               IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                  116               116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                        0.68106           0.68106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                      --           0.58296</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
@@ -1299,27 +1307,27 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span><span class="co">#</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span>, signif.code <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">" A"</span><span class="op">=</span><span class="fl">0.01</span>, <span class="st">" B"</span><span class="op">=</span><span class="fl">0.05</span>, <span class="st">" C"</span><span class="op">=</span><span class="fl">0.1</span>, <span class="st">" D"</span><span class="op">=</span><span class="fl">0.15</span>, <span class="st">" F"</span><span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                              est1              est2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:             Ozone             Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2 A (26.35)                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6        -54.99 B (26.34)                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7         35.89 C (18.37)                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8         44.52 B (18.05)                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9        -11.78 F (18.22)                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042 A (0.3078)  2.042 A (0.2242)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5 -1.086 F (1.127) -1.086 A (0.1408)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6  2.046 F (1.784)  2.046 A (0.0398)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616 A (1.316) -5.616 A (0.1554)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515 A (1.220) -6.515 A (0.2203)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9 -1.349 F (1.147) -1.349 B (0.3175)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ---------------- -----------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                          No               Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ ________________ _________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                     IID         by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                  116               116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                        0.68106           0.68106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                      --           0.58296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                              est1             est2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:             Ozone            Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2 A (26.35)                 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6        -54.99 B (26.34)                 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7         35.89 C (18.37)                 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8         44.52 B (18.05)                 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9        -11.78 F (18.22)                 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042 A (0.3078) 2.042 A (0.3078)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5 -1.086 F (1.127) -1.086 F (1.127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6  2.046 F (1.784)  2.046 F (1.784)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616 A (1.316) -5.616 A (1.316)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515 A (1.220) -6.515 A (1.220)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9 -1.349 F (1.147) -1.349 F (1.147)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ---------------- ----------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                          No              Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ ________________ ________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                     IID              IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                  116              116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                        0.68106          0.68106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                      --          0.58296</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 ' A' 0.01 ' B' 0.05 ' C' 0.1 ' D' 0.15 ' F' 1 ' ' 1</span>
 <span class="r-in"><span></span></span>
@@ -1351,23 +1359,24 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Sep                &amp; -11.78         &amp;   \\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (18.22)        &amp;   \\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Temp               &amp; 2.042$^{***}$  &amp; 2.042$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (0.3078)       &amp; (0.2242)\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ May  &amp; -1.086         &amp; -1.086$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.127)        &amp; (0.1408)\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Jun  &amp; 2.046          &amp; 2.046$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.784)        &amp; (0.0398)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (0.3078)       &amp; (0.3078)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ May  &amp; -1.086         &amp; -1.086\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.127)        &amp; (1.127)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Jun  &amp; 2.046          &amp; 2.046\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.784)        &amp; (1.784)\\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Jul  &amp; -5.616$^{***}$ &amp; -5.616$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.316)        &amp; (0.1554)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.316)        &amp; (1.316)\\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Aug  &amp; -6.515$^{***}$ &amp; -6.515$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.220)        &amp; (0.2203)\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Sep  &amp; -1.349         &amp; -1.349$^{**}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.147)        &amp; (0.3175)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.220)        &amp; (1.220)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Sep  &amp; -1.349         &amp; -1.349\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.147)        &amp; (1.147)\\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Month              &amp;                &amp; Yes\\  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     \\</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Observations       &amp; 116            &amp; 116\\  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    R$^2$              &amp; 0.68106        &amp; 0.68106\\  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Within R$^2$       &amp;                &amp; 0.58296\\  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    \midrule \midrule</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    \multicolumn{3}{l}{\emph{IID standard-errors in parentheses}}\\</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    \multicolumn{3}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> \end{tabular}</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> \par\endgroup</span>
@@ -1395,23 +1404,22 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Sep                &amp; -11.78         &amp;   \\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (18.22)        &amp;   \\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Temp               &amp; 2.042$^{***}$  &amp; 2.042$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (0.3078)       &amp; (0.2242)\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ May  &amp; -1.086         &amp; -1.086$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.127)        &amp; (0.1408)\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Jun  &amp; 2.046          &amp; 2.046$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.784)        &amp; (0.0398)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (0.3078)       &amp; (0.3078)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ May  &amp; -1.086         &amp; -1.086\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.127)        &amp; (1.127)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Jun  &amp; 2.046          &amp; 2.046\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.784)        &amp; (1.784)\\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Jul  &amp; -5.616$^{***}$ &amp; -5.616$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.316)        &amp; (0.1554)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.316)        &amp; (1.316)\\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Aug  &amp; -6.515$^{***}$ &amp; -6.515$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.220)        &amp; (0.2203)\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Sep  &amp; -1.349         &amp; -1.349$^{**}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.147)        &amp; (0.3175)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.220)        &amp; (1.220)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Sep  &amp; -1.349         &amp; -1.349\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       &amp; (1.147)        &amp; (1.147)\\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    \midrule</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    \emph{Fixed-effects}\\</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Month              &amp;                &amp; Yes\\  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    \midrule</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    \emph{Fit statistics}\\</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Standard-Errors    &amp; IID            &amp; Month \\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Observations       &amp; 116            &amp; 116\\  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    R$^2$              &amp; 0.68106        &amp; 0.68106\\  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Within R$^2$       &amp;                &amp; 0.58296\\  </span>
@@ -1439,19 +1447,18 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Sep                 &amp; -11.78         &amp;   \\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (18.22)        &amp;   \\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Temp                &amp; 2.042$^{***}$  &amp; 2.042$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (0.3078)       &amp; (0.2242)\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ May   &amp; -1.086         &amp; -1.086$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (1.127)        &amp; (0.1408)\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Jun   &amp; 2.046          &amp; 2.046$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (1.784)        &amp; (0.0398)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (0.3078)       &amp; (0.3078)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ May   &amp; -1.086         &amp; -1.086\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (1.127)        &amp; (1.127)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Jun   &amp; 2.046          &amp; 2.046\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (1.784)        &amp; (1.784)\\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Jul   &amp; -5.616$^{***}$ &amp; -5.616$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (1.316)        &amp; (0.1554)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (1.316)        &amp; (1.316)\\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Aug   &amp; -6.515$^{***}$ &amp; -6.515$^{***}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (1.220)        &amp; (0.2203)\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Sep   &amp; -1.349         &amp; -1.349$^{**}$\\   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (1.147)        &amp; (0.3175)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (1.220)        &amp; (1.220)\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Wind $\times$ Sep   &amp; -1.349         &amp; -1.349\\   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                        &amp; (1.147)        &amp; (1.147)\\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     \\</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Standard-Errors     &amp; IID            &amp; Month \\   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Observations        &amp; 116            &amp; 116\\  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    R$^2$               &amp; 0.68106        &amp; 0.68106\\  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Within R$^2$        &amp;                &amp; 0.58296\\  </span>
@@ -1762,20 +1769,20 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span><span class="co"># A) automatic way =&gt; simply use fixef.group = TRUE</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est_0fe</span>, <span class="va">est_2fe</span>, fixef.group <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe          est_2fe</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone            Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)  0.0509 (0.0428)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535) 2.052** (0.2390)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544)  -3.289* (1.051)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------ ----------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month and Day                   No              Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ ________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID        by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111              111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589          0.81604</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --          0.61471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe            est_2fe</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)   0.0509* (0.0240)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535)  2.052*** (0.3653)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544) -3.289*** (0.6740)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------ ------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month and Day                   No                Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
@@ -1783,41 +1790,41 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span><span class="co"># it is avoided</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est_0fe</span>, <span class="va">est_1fe</span>, <span class="va">est_2fe</span>, fixef.group <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe           est_1fe          est_2fe</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone             Ozone            Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)   0.0522 (0.0408)  0.0509 (0.0428)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535) 1.875*** (0.1816) 2.052** (0.2390)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544)   -3.109. (1.306)  -3.289* (1.051)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------ ----------------- ----------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No               Yes              Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Day                             No                No              Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ _________________ ________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID         by: Month        by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111               111              111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589           0.63686          0.81604</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --           0.53154          0.61471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe            est_1fe            est_2fe</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone              Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)   0.0522* (0.0237)   0.0509* (0.0240)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535)  1.875*** (0.3407)  2.052*** (0.3653)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544) -3.109*** (0.6601) -3.289*** (0.6740)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------ ------------------ ------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No                Yes                Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Day                             No                 No                Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________ __________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID                IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111                111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.63686            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.53154            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># B) customized way =&gt; use a list</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est_0fe</span>, <span class="va">est_2fe</span>, fixef.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"Dates"</span> <span class="op">=</span> <span class="st">"Month|Day"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe          est_2fe</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone            Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)  0.0509 (0.0428)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535) 2.052** (0.2390)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544)  -3.289* (1.051)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------ ----------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dates                           No              Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ ________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID        by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111              111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589          0.81604</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --          0.61471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe            est_2fe</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)   0.0509* (0.0240)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535)  2.052*** (0.3653)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544) -3.289*** (0.6740)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------ ------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dates                           No                Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
@@ -1830,22 +1837,22 @@ fixed-effects coefficients.</p></div>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> "Month|Day").</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> To create inconsistent rows: use drop.section = 'fixef' combined with the</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> arghument 'extralines'.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe           est_1fe          est_2fe</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone             Ozone            Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)   0.0522 (0.0408)  0.0509 (0.0428)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535) 1.875*** (0.1816) 2.052** (0.2390)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544)   -3.109. (1.306)  -3.289* (1.051)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------ ----------------- ----------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dates                           No           partial              Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No               Yes              Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Day                             No                No              Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ _________________ ________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID         by: Month        by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111               111              111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589           0.63686          0.81604</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --           0.53154          0.61471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe            est_1fe            est_2fe</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone              Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)   0.0522* (0.0237)   0.0509* (0.0240)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535)  1.875*** (0.3407)  2.052*** (0.3653)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544) -3.109*** (0.6601) -3.289*** (0.6740)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------ ------------------ ------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dates                           No            partial                Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No                Yes                Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Day                             No                 No                Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________ __________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID                IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111                111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.63686            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.53154            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
@@ -1855,37 +1862,37 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># On top of the coefficients:</span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est_0fe</span>, <span class="va">est_2fe</span>, fixef.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"^^Dates"</span> <span class="op">=</span> <span class="st">"Month|Day"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe          est_2fe</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone            Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dates                           No              Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)  0.0509 (0.0428)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535) 2.052** (0.2390)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544)  -3.289* (1.051)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ ________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID        by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111              111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589          0.81604</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --          0.61471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe            est_2fe</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dates                           No                Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)   0.0509* (0.0240)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535)  2.052*** (0.3653)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544) -3.289*** (0.6740)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Last line of the statistics</span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est_0fe</span>, <span class="va">est_2fe</span>, fixef.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"_Dates"</span> <span class="op">=</span> <span class="st">"Month|Day"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe          est_2fe</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone            Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)  0.0509 (0.0428)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535) 2.052** (0.2390)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544)  -3.289* (1.051)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ ________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID        by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111              111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589          0.81604</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --          0.61471</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dates                           No              Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                            est_0fe            est_2fe</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34** (23.05)                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598* (0.0232)   0.0509* (0.0240)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             1.652*** (0.2535)  2.052*** (0.3653)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544) -3.289*** (0.6740)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.61471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dates                           No                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
@@ -1946,54 +1953,54 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span><span class="co"># You can change the fit statistics with the argument fitstat</span></span></span>
 <span class="r-in"><span><span class="co"># and you can rename them with the dictionary</span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span>, fitstat <span class="op">=</span> <span class="op">~</span> <span class="va">r2</span> <span class="op">+</span> <span class="va">n</span> <span class="op">+</span> <span class="va">G</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1               est2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6          -54.99* (26.34)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7           35.89. (18.37)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8           44.52* (18.05)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9           -11.78 (18.22)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042*** (0.3078)  2.042*** (0.2242)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)  -1.086** (0.1408)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)  2.046*** (0.0398)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (0.1554)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (0.2203)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)   -1.349* (0.3175)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- ------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No                Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID          by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106            0.68106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116                116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> G                              105                  5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1              est2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone             Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6          -54.99* (26.34)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7           35.89. (18.37)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8           44.52* (18.05)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9           -11.78 (18.22)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042*** (0.3078) 2.042*** (0.3078)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)    -1.086 (1.127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)     2.046 (1.784)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (1.316)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (1.220)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)    -1.349 (1.147)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- -----------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No               Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ _________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID               IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106           0.68106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116               116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> G                              105               105</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># If you use a formula, '.' means the default:</span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span>, fitstat <span class="op">=</span> <span class="op">~</span> <span class="va">ll</span> <span class="op">+</span> <span class="va">.</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1               est2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone              Ozone</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6          -54.99* (26.34)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7           35.89. (18.37)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8           44.52* (18.05)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9           -11.78 (18.22)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042*** (0.3078)  2.042*** (0.2242)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)  -1.086** (0.1408)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)  2.046*** (0.0398)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (0.1554)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (0.2203)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)   -1.349* (0.3175)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- ------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No                Yes</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID          by: Month</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Log-Likelihood             -503.37            -503.37</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116                116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106            0.68106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.58296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                               est1              est2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:              Ozone             Ozone</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         -100.2*** (26.35)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 6          -54.99* (26.34)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 7           35.89. (18.37)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 8           44.52* (18.05)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month = 9           -11.78 (18.22)                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Temp             2.042*** (0.3078) 2.042*** (0.3078)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 5    -1.086 (1.127)    -1.086 (1.127)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 6     2.046 (1.784)     2.046 (1.784)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 7 -5.616*** (1.316) -5.616*** (1.316)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 8 -6.515*** (1.220) -6.515*** (1.220)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wind x Month = 9    -1.349 (1.147)    -1.349 (1.147)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:   ----------------- -----------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Month                           No               Yes</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ________________ _________________ _________________</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID               IID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Log-Likelihood             -503.37           -503.37</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   116               116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.68106           0.68106</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --           0.58296</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
@@ -2012,6 +2019,7 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span><span class="va">s2</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">est</span>, cluster <span class="op">=</span> <span class="op">~</span> <span class="va">Month</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">s3</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">est</span>, cluster <span class="op">=</span> <span class="op">~</span> <span class="va">Day</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">s4</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">est</span>, cluster <span class="op">=</span> <span class="op">~</span> <span class="va">Day</span> <span class="op">+</span> <span class="va">Month</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>The VCOV matrix is not positive semi-definite and was 'fixed' (see ?vcov).</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">etable</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">s1</span>, <span class="va">s2</span>, <span class="va">s3</span>, <span class="va">s4</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                            model 1           model 2            model 3</span>
@@ -2031,7 +2039,7 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:             Ozone</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Constant          -64.34* (19.66)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598 (0.0314)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Solar.R           0.0598 (0.0315)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Wind              -3.334* (1.135)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Temp            1.652*** (0.1386)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ _________________</span>

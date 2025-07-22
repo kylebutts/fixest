@@ -9,7 +9,7 @@ estimated with femlm, feols or feglm."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -114,8 +114,8 @@ the following syntax: <code>cluster = ~var1^var2</code> or <code>cluster = "var1
 <dd><p>An object of class <code>ssc.type</code> obtained with the function <code><a href="ssc.html">ssc</a></code>. Represents
 how the degree of freedom correction should be done.You must use the function <code><a href="ssc.html">ssc</a></code>
 for this argument. The arguments and defaults of the function <code><a href="ssc.html">ssc</a></code> are:
-<code>adj = TRUE</code>, <code>fixef.K="nested"</code>, <code>cluster.adj = TRUE</code>, <code>cluster.df = "min"</code>,
-<code>t.df = "min"</code>, <code>fixef.force_exact=FALSE)</code>. See the help of the function <code><a href="ssc.html">ssc</a></code> for details.</p></dd>
+<code>K.adj = TRUE</code>, <code>K.fixef = "nonnested"</code>, <code>G.adj = TRUE</code>, <code>G.df = "min"</code>,
+<code>t.df = "min"</code>, <code>K.exact = FALSE)</code>. See the help of the function <code><a href="ssc.html">ssc</a></code> for details.</p></dd>
 
 
 <dt id="arg-attr">attr<a class="anchor" aria-label="anchor" href="#arg-attr"></a></dt>
@@ -146,9 +146,12 @@ of threads used within this package using the function <code><a href="setFixest_
 
 
 <dt id="arg-vcov-fix">vcov_fix<a class="anchor" aria-label="anchor" href="#arg-vcov-fix"></a></dt>
-<dd><p>Logical scalar, default is <code>TRUE</code>. If the VCOV ends up not being
+<dd><p>Logical scalar, default is <code>FALSE</code>. If the VCOV ends up not being
 positive definite, whether to "fix" it using an eigenvalue decomposition
-(a la Cameron, Gelbach &amp; Miller 2011).</p></dd>
+(a la Cameron, Gelbach &amp; Miller 2011).
+Since the VCOV should be PSD asymptotically, this might be a sign of a problem
+with using the asymptotic approximation (e.g. too few units in clusters).
+If a problem is detected, the function will print a message to inform you.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -370,16 +373,16 @@ the arguments, please have a look at the dedicated vignette:
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># You can change the way the small sample corrections are done with the argument ssc.</span></span></span>
 <span class="r-in"><span><span class="co"># The argument ssc must be created by the ssc function</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="coeftable.html">se</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">est</span>, ssc <span class="op">=</span> <span class="fu"><a href="ssc.html">ssc</a></span><span class="op">(</span>adj <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="coeftable.html">se</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">est</span>, ssc <span class="op">=</span> <span class="fu"><a href="ssc.html">ssc</a></span><span class="op">(</span>K.adj <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)          x1 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  0.14908629  0.05009587 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># You can add directly the call to ssc in the vcov formula.</span></span></span>
 <span class="r-in"><span><span class="co"># You need to add it like a variable:</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="coeftable.html">se</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">est</span>, <span class="va">iid</span> <span class="op">~</span> <span class="fu"><a href="ssc.html">ssc</a></span><span class="op">(</span>adj <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="coeftable.html">se</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">est</span>, <span class="va">iid</span> <span class="op">~</span> <span class="fu"><a href="ssc.html">ssc</a></span><span class="op">(</span>K.adj <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)          x1 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  0.14908629  0.05009587 </span>
-<span class="r-in"><span><span class="fu"><a href="coeftable.html">se</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">est</span>, <span class="va">DK</span> <span class="op">~</span> <span class="va">period</span> <span class="op">+</span> <span class="fu"><a href="ssc.html">ssc</a></span><span class="op">(</span>adj <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="coeftable.html">se</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">est</span>, <span class="va">DK</span> <span class="op">~</span> <span class="va">period</span> <span class="op">+</span> <span class="fu"><a href="ssc.html">ssc</a></span><span class="op">(</span>K.adj <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)          x1 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  0.78917195  0.03609859 </span>
 <span class="r-in"><span></span></span>

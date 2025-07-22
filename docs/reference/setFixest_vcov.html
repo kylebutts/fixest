@@ -9,7 +9,7 @@ fixest summary, and vcov."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,9 +55,9 @@ fixest summary, and vcov."></head><body>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">setFixest_vcov</span><span class="op">(</span></span>
 <span>  no_FE <span class="op">=</span> <span class="st">"iid"</span>,</span>
-<span>  one_FE <span class="op">=</span> <span class="st">"cluster"</span>,</span>
-<span>  two_FE <span class="op">=</span> <span class="st">"cluster"</span>,</span>
-<span>  panel <span class="op">=</span> <span class="st">"cluster"</span>,</span>
+<span>  one_FE <span class="op">=</span> <span class="st">"iid"</span>,</span>
+<span>  two_FE <span class="op">=</span> <span class="st">"iid"</span>,</span>
+<span>  panel <span class="op">=</span> <span class="st">"iid"</span>,</span>
 <span>  all <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  reset <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
@@ -75,25 +75,26 @@ of standard-errors to use by default for estimations without fixed-effects.</p><
 
 
 <dt id="arg-one-fe">one_FE<a class="anchor" aria-label="anchor" href="#arg-one-fe"></a></dt>
-<dd><p>Character scalar equal to either: <code>"iid"</code>, <code>"hetero"</code>, or <code>"cluster"</code> (default).
+<dd><p>Character scalar equal to either: <code>"iid"</code> (default), <code>"hetero"</code>, or <code>"cluster"</code>.
 The type of standard-errors to use by default for estimations with <em>one</em> fixed-effect.</p></dd>
 
 
 <dt id="arg-two-fe">two_FE<a class="anchor" aria-label="anchor" href="#arg-two-fe"></a></dt>
-<dd><p>Character scalar equal to either: <code>"iid"</code>, <code>"hetero"</code>, <code>"cluster"</code> (default), or
+<dd><p>Character scalar equal to either: <code>"iid"</code> (default), <code>"hetero"</code>, <code>"cluster"</code>, or
 <code>"twoway"</code>. The type of standard-errors to use by default for estimations with <em>two or more</em>
 fixed-effects.</p></dd>
 
 
 <dt id="arg-panel">panel<a class="anchor" aria-label="anchor" href="#arg-panel"></a></dt>
-<dd><p>Character scalar equal to either: <code>"iid"</code>, <code>"hetero"</code>, <code>"cluster"</code> (default), or
+<dd><p>Character scalar equal to either: <code>"iid"</code> (default), <code>"hetero"</code>, <code>"cluster"</code>, or
 <code>"driscoll_kraaay"</code>. The type of standard-errors to use by default for estimations with the
 argument <code>panel.id</code> set up. Note that panel has precedence over the presence of fixed-effects.</p></dd>
 
 
 <dt id="arg-all">all<a class="anchor" aria-label="anchor" href="#arg-all"></a></dt>
-<dd><p>Character scalar equal to either: <code>"iid"</code>, or <code>"hetero"</code>. By default is is NULL. If
-provided, it sets all the SEs to that value.</p></dd>
+<dd><p>Character scalar equal to either: <code>"iid"</code>, or <code>"hetero"</code> (or <code>"cluster"</code> if
+the argument <code>no_FE</code> is provided).
+By default is is <code>NULL</code>. If provided, it sets all the SEs to that value.</p></dd>
 
 
 <dt id="arg-reset">reset<a class="anchor" aria-label="anchor" href="#arg-reset"></a></dt>
@@ -109,28 +110,25 @@ estimations i) without, ii) with one, or iii) with two or more fixed-effects.</p
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># By default:</span></span></span>
-<span class="r-in"><span><span class="co"># - no fixed-effect (FE): standard</span></span></span>
-<span class="r-in"><span><span class="co"># - one or more FEs: cluster</span></span></span>
-<span class="r-in"><span><span class="co"># - panel: cluster on panel id</span></span></span>
+<span class="r-in"><span><span class="co"># By default: 'standard' VCOVs</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">base_did</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">est_no_FE</span>  <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, <span class="va">base_did</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">est_one_FE</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span> <span class="va">id</span>, <span class="va">base_did</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">est_two_FE</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span> <span class="va">id</span> <span class="op">+</span> <span class="va">period</span>, <span class="va">base_did</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">est_panel</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span> <span class="va">id</span> <span class="op">+</span> <span class="va">period</span>, <span class="va">base_did</span>, panel.id <span class="op">=</span> <span class="op">~</span><span class="va">id</span> <span class="op">+</span> <span class="va">period</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">est_panel</span>  <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span> <span class="va">id</span> <span class="op">+</span> <span class="va">period</span>, <span class="va">base_did</span>, panel.id <span class="op">=</span> <span class="op">~</span><span class="va">id</span> <span class="op">+</span> <span class="va">period</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="etable.html">etable</a></span><span class="op">(</span><span class="va">est_no_FE</span>, <span class="va">est_one_FE</span>, <span class="va">est_two_FE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                          est_no_FE         est_one_FE         est_two_FE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                  y                  y                  y</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                                         </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Constant         1.989*** (0.1492)                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1              0.9831*** (0.0501) 0.9615*** (0.0481) 0.9779*** (0.0458)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1              0.9831*** (0.0501) 0.9615*** (0.0514) 0.9779*** (0.0473)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------ ------------------ ------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> id                              No                Yes                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> period                          No                 No                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID             by: id             by: id</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID                IID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Observations                 1,080              1,080              1,080</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.26304            0.38715            0.48696</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.26507            0.30776</span>
@@ -138,19 +136,19 @@ estimations i) without, ii) with one, or iii) with two or more fixed-effects.</p
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Changing the default standard-errors</span></span></span>
-<span class="r-in"><span><span class="fu">setFixest_vcov</span><span class="op">(</span>no_FE <span class="op">=</span> <span class="st">"hetero"</span>, one_FE <span class="op">=</span> <span class="st">"iid"</span>,</span></span>
+<span class="r-in"><span><span class="fu">setFixest_vcov</span><span class="op">(</span>no_FE <span class="op">=</span> <span class="st">"hetero"</span>, one_FE <span class="op">=</span> <span class="st">"cluster"</span>,</span></span>
 <span class="r-in"><span>               two_FE <span class="op">=</span> <span class="st">"twoway"</span>, panel <span class="op">=</span> <span class="st">"drisc"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="etable.html">etable</a></span><span class="op">(</span><span class="va">est_no_FE</span>, <span class="va">est_one_FE</span>, <span class="va">est_two_FE</span>, <span class="va">est_panel</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                          est_no_FE         est_one_FE         est_two_FE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                  y                  y                  y</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                                         </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Constant         1.989*** (0.1490)                                      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1              0.9831*** (0.0510) 0.9615*** (0.0514) 0.9779*** (0.0342)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1              0.9831*** (0.0510) 0.9615*** (0.0481) 0.9779*** (0.0342)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------ ------------------ ------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> id                              No                Yes                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> period                          No                 No                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type       Heteroskedas.-rob.                IID    by: id &amp; period</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type       Heteroskedas.-rob.             by: id    by: id &amp; period</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Observations                 1,080              1,080              1,080</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.26304            0.38715            0.48696</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.26507            0.30776</span>
@@ -159,7 +157,7 @@ estimations i) without, ii) with one, or iii) with two or more fixed-effects.</p
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                  y</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Constant                          </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1              0.9779*** (0.0241)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1              0.9779*** (0.0242)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Fixed-Effects:  ------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> id                             Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> period                         Yes</span>

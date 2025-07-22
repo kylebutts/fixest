@@ -11,7 +11,7 @@ was also a data.table::data.table."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,7 @@ was also a <code><a href="https://rdatatable.gitlab.io/data.table/reference/data
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">panel</span><span class="op">(</span><span class="va">data</span>, <span class="va">panel.id</span>, time.step <span class="op">=</span> <span class="cn">NULL</span>, duplicate.method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"first"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">panel</span><span class="op">(</span><span class="va">data</span>, <span class="va">panel.id</span>, time.step <span class="op">=</span> <span class="cn">NULL</span>, duplicate.method <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -143,14 +143,14 @@ and leads using the functions <code><a href="l.html">l</a></code> and <code><a h
 <span class="r-out co"><span class="r-pr">#&gt;</span>                               est1               est2               est3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                  y             f(y,1)             l(y,1)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                                         </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> f(x1,1)                            0.9940*** (0.0542)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1              0.9948*** (0.0487)    0.0081 (0.0592)   -0.0534 (0.0545)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         2.235*** (0.2032)  2.464*** (0.2233)  2.196*** (0.2110)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,1)            0.0410 (0.0558)    0.0157 (0.0640) 0.9871*** (0.0551)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,2)                                                  0.0220 (0.0580)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,3)                                                  0.0102 (0.0639)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> f(x1,1)                            0.9940*** (0.0579)                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1              0.9948*** (0.0532)    0.0081 (0.0584)   -0.0534 (0.0599)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Constant         2.235*** (0.1577)  2.464*** (0.1697)  2.196*** (0.1750)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,1)            0.0410 (0.0540)    0.0157 (0.0585) 0.9871*** (0.0613)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,2)                                                  0.0220 (0.0607)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,3)                                                  0.0102 (0.0598)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________ __________________</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> S.E.: Clustered             by: id             by: id             by: id</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID                IID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   972                864                756</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.26558            0.25697            0.25875</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Adj. R2                    0.26406            0.25438            0.25480</span>
@@ -161,12 +161,13 @@ and leads using the functions <code><a href="l.html">l</a></code> and <code><a h
 <span class="r-in"><span><span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="fu"><a href="l.html">f</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">~</span><span class="fu"><a href="l.html">l</a></span><span class="op">(</span><span class="va">x1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">:</span><span class="fl">1</span><span class="op">)</span>, <span class="va">base_did</span>, panel.id <span class="op">=</span> <span class="op">~</span><span class="va">id</span><span class="op">+</span><span class="va">period</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: 216 observations removed because of NA values (LHS: 108, RHS: 216).</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: f(y, 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 864Standard-errors: Clustered (id) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 864</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error   t value  Pr(&gt;|t|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.464313   0.223277 11.037009 &lt; 2.2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> f(x1, 1)    0.994018   0.054216 18.334504 &lt; 2.2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.008072   0.059247  0.136241   0.89189    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1, 1)    0.015693   0.063958  0.245360   0.80665    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.464313   0.169710 14.520756 &lt; 2.2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> f(x1, 1)    0.994018   0.057861 17.179278 &lt; 2.2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.008072   0.058400  0.138217   0.89010    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1, 1)    0.015693   0.058540  0.268068   0.78871    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> RMSE: 4.97418   Adj. R2: 0.254377</span>

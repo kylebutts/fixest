@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,7 +85,7 @@ representing the longitude. The longitude must be in [-180, 180], [0, 360] or [-
 <dt id="arg-cutoff">cutoff<a class="anchor" aria-label="anchor" href="#arg-cutoff"></a></dt>
 <dd><p>The distance cutoff, in km. You can express the cutoff in miles by writing the
 number in character form and adding "mi" as a suffix: cutoff = "100mi" would be 100 miles. If
-missing, a rule of thumb is used to deduce the cutoff.</p></dd>
+missing, a rule of thumb is used to deduce the cutoff, see details.</p></dd>
 
 
 <dt id="arg-pixel">pixel<a class="anchor" aria-label="anchor" href="#arg-pixel"></a></dt>
@@ -107,9 +107,12 @@ sample correction.</p></dd>
 
 
 <dt id="arg-vcov-fix">vcov_fix<a class="anchor" aria-label="anchor" href="#arg-vcov-fix"></a></dt>
-<dd><p>Logical scalar, default is <code>TRUE</code>. If the VCOV ends up not being
+<dd><p>Logical scalar, default is <code>FALSE</code>. If the VCOV ends up not being
 positive definite, whether to "fix" it using an eigenvalue decomposition
-(a la Cameron, Gelbach &amp; Miller 2011).</p></dd>
+(a la Cameron, Gelbach &amp; Miller 2011).
+Since the VCOV should be PSD asymptotically, this might be a sign of a problem
+with using the asymptotic approximation (e.g. too few units in clusters).
+If a problem is detected, the function will print a message to inform you.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -132,6 +135,13 @@ convenience, the most appropriate cutoff shall depend on the application and sha
 by the user.</p>
 <p>The function <code>conley</code> does not compute VCOVs directly but is meant to be used in the argument
 <code>vcov</code> of <code>fixest</code> functions (e.g. in <code><a href="vcov.fixest.html">vcov.fixest</a></code> or even in the estimation calls).</p>
+<p>If the cutoff is missing, a rule of thumb is used to deduce a sensible cutoff.
+The algorithm is as follows:</p><ul><li><p>all observations are sorted according to their latitude and their longitude (latitude major)</p></li>
+<li><p>for each observation we take the minimum distance across the three units with the closest latitude</p></li>
+<li><p>we do the same when sorting this time by longitude first and latitude second (longitude major)</p></li>
+<li><p>the cutoff is the sum of the median of these two distances (lat. major and lon. major)</p></li>
+</ul><p>This cutoff is provided only for convenience but should be an appropriate first guess.
+With this cutoff, about 50% of units should have at least around 8 neighbors.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -146,7 +156,8 @@ by the user.</p>
 <span class="r-in"><span><span class="co"># We use conley() in the vcov argument of the estimation</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">depth</span> <span class="op">~</span> <span class="va">mag</span>, <span class="va">quakes</span>, <span class="fu">conley</span><span class="op">(</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: depth</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 1,000Standard-errors: Conley (100km) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 1,000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: Conley (100km) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error  t value   Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  881.625   108.9005  8.09569 1.6480e-15 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> mag         -123.421    19.2323 -6.41737 2.1389e-10 ***</span>

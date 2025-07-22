@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,7 +67,7 @@
                         <h4 data-toc-skip class="author">Laurent
 Berge</h4>
             
-            <h4 data-toc-skip class="date">2025-04-18</h4>
+            <h4 data-toc-skip class="date">2025-07-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/lrberge/fixest/blob/HEAD/vignettes/multiple_estimations.Rmd" class="external-link"><code>vignettes/multiple_estimations.Rmd</code></a></small>
       <div class="d-none name"><code>multiple_estimations.Rmd</code></div>
@@ -232,6 +232,8 @@ function can be applied per part.</p>
 <p>Here is an example:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/etable.html">etable</a></span><span class="op">(</span><span class="fu"><a href="../reference/feols.html">feols</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">~</span> <span class="fu"><a href="../reference/stepwise.html">csw</a></span><span class="op">(</span><span class="va">x1</span>, <span class="va">x2</span><span class="op">)</span> <span class="op">|</span> <span class="fu"><a href="../reference/stepwise.html">sw0</a></span><span class="op">(</span><span class="va">species</span><span class="op">)</span>, <span class="va">base</span>, cluster <span class="op">=</span> <span class="op">~</span><span class="va">species</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: The VCOV matrix is not positive semi-definite and was 'fixed' (see</span></span>
+<span><span class="co">## ?vcov).</span></span></code></pre>
 <pre><code><span><span class="co">##                 feols(y1 ~ csw..1 feols(y1 ~ cs..2 feols(y1 ~ csw..3</span></span>
 <span><span class="co">## Dependent Var.:                y1               y1                y1</span></span>
 <span><span class="co">##                                                                     </span></span>
@@ -274,7 +276,7 @@ parts.</p>
 and an estimation will be performed for each sub-sample defined by each
 level of this variable. The argument <code>fsplit</code> is identical
 but first adds the full sample.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/etable.html">etable</a></span><span class="op">(</span><span class="fu"><a href="../reference/feols.html">feols</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, <span class="va">base</span>, fsplit <span class="op">=</span> <span class="op">~</span><span class="va">species</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                  feols(y1 ~ x1 +..1 feols(y1 ~ x1 ..2 feols(y1 ~ x1 +..3</span></span>
 <span><span class="co">## Sample (species)        Full sample            setosa         versicolor</span></span>
@@ -355,7 +357,7 @@ Then the sample and the LHS will follow.</p>
 <code>sample</code> as the last leaf.</p>
 <p>This subsetting can then be used to easily obtain the appropriate set
 of results and ordering:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/etable.html">etable</a></span><span class="op">(</span><span class="va">res_multi</span><span class="op">[</span>lhs <span class="op">=</span> <span class="fl">1</span>, fixef <span class="op">=</span> <span class="fl">1</span>, rhs <span class="op">=</span> <span class="cn">TRUE</span>, sample <span class="op">=</span> <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                  res_multi[lhs ..1 res_multi[lhs =..2 res_multi[lhs =..3</span></span>
 <span><span class="co">## Sample (species)            setosa         versicolor          virginica</span></span>
@@ -396,9 +398,7 @@ of results and ordering:</p>
 </h5>
 <p>Defining the standard-errors at estimation time, by using the
 arguments <code>vcov</code>, can be useful to obtain a coherent set of
-standard-errors across results, especially if the fixed-effects are
-modified (which will modify the default clustering of standard-errors
-across models).</p>
+standard-errors across results.</p>
 </div>
 <div class="section level5">
 <h5 id="note-on-ivs">Note on IVs<a class="anchor" aria-label="anchor" href="#note-on-ivs"></a>

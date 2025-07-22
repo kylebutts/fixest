@@ -9,7 +9,7 @@ difference-in-difference setups (see details)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -161,23 +161,23 @@ Event Studies with Heterogeneous Treatment Effects". Journal of Econometrics.</p
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># The ATT</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="va">res_cohort</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ATT"</span> <span class="op">=</span> <span class="st">"treatment::[^-]"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      Estimate Std. Error   t value     Pr(&gt;|t|)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ATT -1.133749  0.2050705 -5.528584 2.882038e-07</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      Estimate Std. Error  t value     Pr(&gt;|t|)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ATT -1.133749  0.1947645 -5.82113 8.602174e-09</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">base_stagg</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">treatment_effect_true</span><span class="op">[</span><span class="va">time_to_treatment</span> <span class="op">&gt;=</span> <span class="fl">0</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] -1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># The total effect for each cohort</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="va">res_cohort</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cohort"</span> <span class="op">=</span> <span class="st">"::[^-].*year_treated::([[:digit:]]+)"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error     t value     Pr(&gt;|t|)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::2   2.4347382  0.2860464   8.5116905 2.666655e-13</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::3   1.3766102  0.6197413   2.2212658 2.873387e-02</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::4   0.7543763  0.8054956   0.9365368 3.513968e-01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::5  -2.8079538  0.3865452  -7.2642310 1.080972e-10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::6  -2.7225787  0.5950041  -4.5757310 1.448581e-05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::7  -5.0751928  0.5676398  -8.9408692 3.282508e-14</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::8  -5.0928206  0.3505856 -14.5266109 9.239445e-26</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::9  -7.2367302  0.3288544 -22.0058788 7.398376e-39</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::10 -8.7115753  0.5128055 -16.9880706 2.100254e-30</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error    t value     Pr(&gt;|t|)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::2   2.4347382  0.5083476   4.789514 2.008333e-06</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::3   1.3766102  0.5118088   2.689696 7.307757e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::4   0.7543763  0.5155803   1.463159 1.438350e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::5  -2.8079538  0.5207696  -5.391931 9.298555e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::6  -2.7225787  0.5282164  -5.154286 3.244925e-07</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::7  -5.0751928  0.5391177  -9.413886 5.494331e-20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::8  -5.0928206  0.5567870  -9.146802 5.227091e-19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::9  -7.2367302  0.5913030 -12.238615 1.411158e-31</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cohort::10 -8.7115753  0.6819653 -12.774222 5.245008e-34</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

@@ -665,13 +665,13 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
       x_inter = gsub(":.+", "", x_labels_raw[qui])
       tx_inter = table(x_inter)
       qui_auto = names(tx_inter)[tx_inter >= 2]
-
+      
       group = list()
-
+      
       for(i in seq_along(qui_auto)){
         var_left = qui_auto[i]
         qui_select = substr(x_labels_raw, 1, nchar(var_left)) == var_left
-
+        
         # we require to be next to each other
         if(!all(diff(which(qui_select)) == 1)) next
 
@@ -786,7 +786,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
     # We just take care of the special group + cleaning case
     # when group starts with ^^
-
+    
     for(i in seq_along(group)){
       my_group = group[[i]]
       if(! (length(my_group) == 1 && is.character(my_group) && substr(my_group, 1, 2) == "^^") ) next

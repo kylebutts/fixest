@@ -13,7 +13,7 @@ instead (their design is simpler)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">fixest</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.13.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,6 +81,8 @@ instead (their design is simpler).</p>
 <span>  <span class="va">se</span>,</span>
 <span>  <span class="va">ssc</span>,</span>
 <span>  <span class="va">panel.id</span>,</span>
+<span>  panel.time.step <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  panel.duplicate.method <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  start <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  jacobian.method <span class="op">=</span> <span class="st">"simple"</span>,</span>
 <span>  useHessian <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -285,8 +287,8 @@ you should use <code>vcov</code> instead.</p></dd>
 <dd><p>An object of class <code>ssc.type</code> obtained with the function <code><a href="ssc.html">ssc</a></code>. Represents
 how the degree of freedom correction should be done.You must use the function <code><a href="ssc.html">ssc</a></code>
 for this argument. The arguments and defaults of the function <code><a href="ssc.html">ssc</a></code> are:
-<code>adj = TRUE</code>, <code>fixef.K="nested"</code>, <code>cluster.adj = TRUE</code>, <code>cluster.df = "min"</code>,
-<code>t.df = "min"</code>, <code>fixef.force_exact=FALSE)</code>. See the help of the function <code><a href="ssc.html">ssc</a></code> for details.</p></dd>
+<code>K.adj = TRUE</code>, <code>K.fixef = "nonnested"</code>, <code>G.adj = TRUE</code>, <code>G.df = "min"</code>,
+<code>t.df = "min"</code>, <code>K.exact = FALSE)</code>. See the help of the function <code><a href="ssc.html">ssc</a></code> for details.</p></dd>
 
 
 <dt id="arg-panel-id">panel.id<a class="anchor" aria-label="anchor" href="#arg-panel-id"></a></dt>
@@ -295,6 +297,26 @@ for this argument. The arguments and defaults of the function <code><a href="ssc
 (e.g. <code>panel.id=c('id', 'time')</code>, or iii) a character scalar of two variables
 separated by a comma (e.g. <code>panel.id='id,time'</code>). Note that you can combine variables
 with <code>^</code> only inside formulas (see the dedicated section in <code><a href="feols.html">feols</a></code>).</p></dd>
+
+
+<dt id="arg-panel-time-step">panel.time.step<a class="anchor" aria-label="anchor" href="#arg-panel-time-step"></a></dt>
+<dd><p>The method to compute the lags, default is <code>NULL</code> (which means
+automatically set). Can be equal to: <code>"unitary"</code>, <code>"consecutive"</code>, <code>"within.consecutive"</code>,
+or to a number. If <code>"unitary"</code>, then the largest common divisor between consecutive
+time periods is used (typically if the time variable represents years, it will be 1).
+This method can apply only to integer (or convertible to integer) variables.
+If <code>"consecutive"</code>, then the time variable can be of any type: two successive
+time periods represent a lag of 1. If <code>"witihn.consecutive"</code> then <strong>within a given id</strong>,
+two successive time periods represent a lag of 1. Finally, if the time variable is numeric,
+you can provide your own numeric time step.</p></dd>
+
+
+<dt id="arg-panel-duplicate-method">panel.duplicate.method<a class="anchor" aria-label="anchor" href="#arg-panel-duplicate-method"></a></dt>
+<dd><p>If several observations have the same id and time values,
+then the notion of lag is not defined for them. If <code>duplicate.method = "none"</code> (default)
+and duplicate values are found, this leads to an error. You can use
+<code>duplicate.method = "first"</code> so that the first occurrence of identical id/time
+observations will be used as lag.</p></dd>
 
 
 <dt id="arg-start">start<a class="anchor" aria-label="anchor" href="#arg-start"></a></dt>
@@ -636,8 +658,7 @@ in the section “Varying slopes”).</p>
 
 
 <p>Standard-errors can be computed in different ways, you can use the arguments <code>se</code> and <code>ssc</code>
-in <code><a href="summary.fixest.html">summary.fixest</a></code> to define how to compute them. By default, in the presence
-of fixed-effects, standard-errors are automatically clustered.</p>
+in <code><a href="summary.fixest.html">summary.fixest</a></code> to define how to compute them. By default, the VCOV is the "standard" one.</p>
 <p>The following vignette: <a href="https://lrberge.github.io/fixest/articles/standard_errors.html">On standard-errors</a> describes in details how the standard-errors are computed in
 <code>fixest</code> and how you can replicate standard-errors from other software.</p>
 <p>You can use the functions <code><a href="setFixest_vcov.html">setFixest_vcov</a></code> and <code><a href="ssc.html">setFixest_ssc</a></code> to
@@ -721,11 +742,16 @@ equivalent to using <code>feols(c(y1, y2) ~ x1, etc)</code>. Beware that this is
 unique to the <em>left-hand-side</em> of <code>fixest</code> estimations (the default behavior of the DSB
 operator is to aggregate with sums, see <code><a href="xpd.html">xpd</a></code>).</p>
 <p>Second, you can use a regular expression to grep the left-hand-sides on the fly. When the
-<code>..("regex")</code> feature is used naked on the LHS, the variables grepped are inserted into
+<code>..("regex")</code> (re <code>regex("regex")</code>) feature is used naked on the LHS,
+the variables grepped are inserted into
 <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code>. For example <code>..("Pe") ~ Sepal.Length, iris</code> is equivalent to
 <code>c(Petal.Length, Petal.Width) ~ Sepal.Length, iris</code>. Beware that this is a
 special feature unique to the <em>left-hand-side</em> of <code>fixest</code> estimations
 (the default behavior of <code>..("regex")</code> is to aggregate with sums, see <code><a href="xpd.html">xpd</a></code>).</p>
+<p>Note that if the dependent variable is also on the right-hand-side, it is automatically
+removed from the set of explanatory variable.
+For example, feols(y ~ y + x, base) works as feols(y ~ x, base).
+This is particulary useful to batch multiple estimations with multiple left hand sides.</p>
     </div>
     <div class="section level2">
     <h2 id="dot-square-bracket-operator-in-formulas">Dot square bracket operator in formulas<a class="anchor" aria-label="anchor" href="#dot-square-bracket-operator-in-formulas"></a></h2>

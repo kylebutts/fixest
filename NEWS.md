@@ -134,8 +134,6 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 ## Bugs
 
-- fix major bug when fixed-effect were passed as characters strings which could lead in some cases to the erroneous affectation of observations to the FEs. Big thanks to @YutaroKimata for reporting and providing a reproducible example, #555
-
 - fix bug in `predict` when the data of origin was missing. Thanks to @grantmcdermott, #544
 
 - fix bug when several scalars to be evaluated from the calling environment are included in the formula of the regression

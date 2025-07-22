@@ -7115,7 +7115,7 @@ fetch_arg_deparse = function(arg){
   if(n > 2){
     for(i in 2:length(sc)){
       mc = sc[[i]]
-      if(grepl("[tT]ry", mc[[1]])) next
+      if(grepl("[tT]ry", as.character(mc[[1]])[1])) next
       if(!arg %in% names(mc)) break
       arg_name = deparse_long(mc[[arg]])
     }

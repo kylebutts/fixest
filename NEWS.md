@@ -164,6 +164,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug in `predict.fixest` when `interval != "none"` and `sample = "estimation"`, now the prediction only applies to the estimation sample and not the original sample. Reported  by Alex Fisher, #549
 
+- fix bug when a custom `vcov` is passed to `fixest::feols` with the `fixest::` prefix. Thanks to Kyle Butts, #540
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

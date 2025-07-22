@@ -2654,7 +2654,7 @@ predict.fixest = function(object, newdata, type = c("response", "link"), se.fit 
     names(id_fixef) = fixef_vars
 
     # Value of the fixef coefficients // we don't show the notes, it's inelegant
-    fixef_coef = fixef(object, sorted = FALSE, notes = FALSE)
+    fixef_coef = fixef(object, sorted = FALSE, notes = FALSE, fixef.tol = 1e-6)
 
     # We create the DF to be returned
     if(fixef.return){

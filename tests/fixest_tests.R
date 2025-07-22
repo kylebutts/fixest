@@ -2238,6 +2238,10 @@ base = iris
 names(base) = c("y", "x1", "x2", "x3", "species")
 base$fe_bis = sample(letters, 150, TRUE)
 
+# predict without variable
+res = feols(y ~ 1, base)
+test(predict(res, newdata = base), predict(res))
+
 #
 # Same generative data
 #
@@ -2251,7 +2255,6 @@ test(predict(res), predict(res, base))
 
 res = femlm(y ~ x1 | species + fe_bis, base)
 test(predict(res), predict(res, base))
-
 
 # Predict with varying slopes -- That's normal that tolerance is high (because FEs are computed with low precision)
 res = feols(y ~ x1 | species + fe_bis[x3], base)

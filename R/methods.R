@@ -2770,8 +2770,12 @@ predict.fixest = function(object, newdata, type = c("response", "link"), se.fit 
   var_keep = NULL
   rhs_fml = fml_split(fml, 1)
   linear.varnames = all_vars_with_i_prefix(rhs_fml[[3]])
-
-  if(length(linear.varnames) > 0){
+  
+  if(length(linear.varnames) == 0 && "(Intercept)" %in% names(coef)){
+    # we need a specific branch
+    value_linear = rep(coef[["(Intercept)"]], nrow(newdata))
+    
+  } else if(length(linear.varnames) > 0){
     # Checking all variables are there
 
     if(isTRUE(object$iv) && object$iv_stage == 2){

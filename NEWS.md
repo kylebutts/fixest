@@ -160,6 +160,9 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug in `etable` preventing the user to modify the `fitstat` argument if it was previously set with `setFixest_etable`
 
+- fix bug in predict when there is an estimation with only the constant. Reported by @Oravishayrizi
+, #576
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

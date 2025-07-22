@@ -152,7 +152,7 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug in `etable` preventing the use of the argument `export` when `markdown = TRUE` within a Rmd document
 
-- fix bug regarding panels in estimations, the format `panel.id = "id,time"` did not work. Now fixed. 
+- fix bug regarding panels in estimations, the format `panel.id = "id,time"` did not work. Now fixed. Reported by @nataliamush, #537
 
 - fig bug preventing the use of the argument `vcov` in `fitstat` for the Wald statistics
 

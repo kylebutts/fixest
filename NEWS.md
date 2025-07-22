@@ -172,6 +172,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug which included the intercept in stepwise estimation even when the user asked for no intercept
 
+- fix various bugs in `coefplot`/`iplot`
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

@@ -670,9 +670,9 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
       all_vars_to_group = character()
       
       if(any(qui)){
-        names(tx_inter)[tx_inter >= 2]
         x_inter = gsub(":.+", "", x_labels_raw[qui])
         tx_inter = table(x_inter)
+        all_vars_to_group = names(tx_inter)[tx_inter >= 2]
       }
       
       group = list()
@@ -2077,7 +2077,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
 
         for(i in seq_along(mm_info)){
           info = mm_info[[i]]
-          ANY_TWO_FACTORS = ANY_TWO_FACTORS || info$is_inter_fact
+          ANY_TWO_FACTORS = ANY_TWO_FACTORS || isTRUE(info$is_inter_fact)
           if(isFALSE(info$is_inter_fact)){
 
             # Second case: interacted variable. species::setosa:x1 ou x1:species::setosa

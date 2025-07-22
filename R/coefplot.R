@@ -662,14 +662,23 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
     # we change the names of interactions
     qui = grepl(":", x_labels_raw)
     if(any(qui)){
-      x_inter = gsub(":.+", "", x_labels_raw[qui])
-      tx_inter = table(x_inter)
-      qui_auto = names(tx_inter)[tx_inter >= 2]
+      
+      # we only keep the ones with ':', or '::' or '::' and ':', no more
+      n_colons = lengths(strsplit(x_labels_raw, ':'))
+      qui = qui & n_colons <= 3
+      
+      all_vars_to_group = character()
+      
+      if(any(qui)){
+        names(tx_inter)[tx_inter >= 2]
+        x_inter = gsub(":.+", "", x_labels_raw[qui])
+        tx_inter = table(x_inter)
+      }
       
       group = list()
       
-      for(i in seq_along(qui_auto)){
-        var_left = qui_auto[i]
+      for(i in seq_along(all_vars_to_group)){
+        var_left = all_vars_to_group[i]
         qui_select = substr(x_labels_raw, 1, nchar(var_left)) == var_left
         
         # we require to be next to each other
@@ -723,7 +732,9 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
         if(is_inter){
           v_name = dict_apply(c(var_left, var_right), dict)
-          group_name = replace_and_make_callable("__x__ %*% (__y__ == ldots)", list(x = v_name[1], y = v_name[2]), text_as_expr = TRUE)
+          group_name = replace_and_make_callable("__x__ %*% (__y__ == ldots)", 
+                                                 list(x = v_name[1], y = v_name[2]), 
+                                                 text_as_expr = TRUE)
 
           if(is.null(group_regex)){
             group[[group_name]] = escape_regex(paste0("%", var_left, ":", var_right))
@@ -734,7 +745,8 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
         } else {
           v_name = dict_apply(var_left, dict)
-          group_name = replace_and_make_callable("__x__", list(x = v_name), text_as_expr = TRUE)
+          group_name = replace_and_make_callable("__x__", list(x = v_name), 
+                                                 text_as_expr = TRUE)
 
           group[[group_name]] = paste0("%^", escape_regex(var_left))
 

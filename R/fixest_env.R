@@ -1444,8 +1444,14 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
         fml_all_sw = rhs_info_stepwise$fml_all_sw
 
         linear_core = list()
-        linear_core$left = error_sender(fixest_model_matrix(fml_core_left, data, fake_intercept),
+        
+        if(identical(fml_core_left[[3]], 0)){
+          # this is the case where there is no intercept AND no variable
+          linear_core$left = 1
+        } else {
+          linear_core$left = error_sender(fixest_model_matrix(fml_core_left, data, fake_intercept),
                         "Evaluation of the right-hand-side of the formula, before the step-wise part, raises an error: ")
+        }
 
         linear_core$right = error_sender(fixest_model_matrix(fml_core_right, data, TRUE),
                         "Evaluation of the right-hand-side of the formula, after the step-wise part, raises an error: ")
@@ -4257,16 +4263,20 @@ extract_stepwise = function(fml, tms, all_vars = TRUE){
   # fml = ~ fe1 + csw(fe2, fe3)
 
   is_fml = !missing(fml)
+  is_intercept = TRUE
   if(is_fml){
     n_parts = length(fml)
     osf = n_parts == 2
     fml_txt = deparse_long(fml[[n_parts]])
     do_stepwise = grepl("(^|[^[:alnum:]_\\.])c?sw0?\\(", fml_txt)
-    tl = attr(terms(fml), "term.labels")
+    terms = terms(fml)
+    tl = attr(terms, "term.labels")
+    is_intercept = attr(terms, "intercept") == 1
 
   } else {
     osf = TRUE
     tl = attr(tms, "term.labels")
+    is_intercept = attr(tms, "intercept") == 1
     tl = gsub(" %^% ", "^", tl, fixed = TRUE)
     do_stepwise = any(grepl("(^|[^[:alnum:]_\\.])c?sw0?\\(", tl))
 
@@ -4365,6 +4375,10 @@ extract_stepwise = function(fml, tms, all_vars = TRUE){
 
       if(length(tl_left) == 0) tl_left = ""
       if(length(tl_right) == 0) tl_right = ""
+      
+      if(!is_intercept){
+        tl_left = if(identical(tl_left, "")) "0" else c("0", tl_left)
+      }
 
       if(osf){
         fml_core_left = .xpd(rhs = tl_left)
@@ -4396,7 +4410,7 @@ extract_stepwise = function(fml, tms, all_vars = TRUE){
           tl_new = 1
         }
       }
-
+      
       # => this is only useful to deduce fake_intercept
       if(osf){
         fml_new = .xpd(rhs = tl_new)
@@ -4415,7 +4429,8 @@ extract_stepwise = function(fml, tms, all_vars = TRUE){
 
   res = list(do_multi = TRUE, fml = fml_new, fml_all_full = fml_all_full,
              fml_all_sw = fml_all_sw, is_cumul = is_cumul, fml_core_left = fml_core_left,
-             fml_core_right = fml_core_right, sw_all_vars = sw_all_vars)
+             fml_core_right = fml_core_right, sw_all_vars = sw_all_vars,
+             is_intercept = is_intercept)
 
   return(res)
 }

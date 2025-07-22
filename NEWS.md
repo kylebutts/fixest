@@ -170,6 +170,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug R crashing when data set with 0-observation was provided by the user. Reported by @luciowasserman, #577
 
+- fix bug which included the intercept in stepwise estimation even when the user asked for no intercept
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

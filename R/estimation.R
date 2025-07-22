@@ -742,7 +742,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
 
       linear_core = get("linear_core", env)
       rhs = get("rhs_sw", env)
-
+      
       # Two schemes:
       #  - if cumulative: we take advantage of it => both in demeaning and in estimation
       #  - if regular stepwise => only in demeaning

@@ -38,14 +38,14 @@ debug_clear = function(){
   unlink("./../debug.RData")
 }
 
-debug_load = function(path = NULL, env = parent.frame(), new_env = FALSE){
+debug_load = function(path = NULL, env = parent.frame(), return_env = FALSE){
   
   check_arg(path, "NULL path create")
   if(is.null(path)){
     path = "./../debug.RData"
   }
   
-  if(new_env){
+  if(return_env){
     env = new.env(parent = emptyenv())
   }
   
@@ -54,7 +54,7 @@ debug_load = function(path = NULL, env = parent.frame(), new_env = FALSE){
   return(invisible(env))
 }
 
-debug_any_variable_different_from_saved = function(path = NULL){
+debug_any_variable_different_from_saved = function(path = NULL, ignore = character()){
   # checks if the variables from an environment (a closure) are the same
   # as the one which were previously saved
   # if there is no file => saving is done here
@@ -74,8 +74,12 @@ debug_any_variable_different_from_saved = function(path = NULL){
   
   env_new = parent.frame()
   
+  ignore = stringmagic::string_vec(ignore)
+  
+  all_vars = setdiff(names(env_old), ignore)
+  
   is_different = FALSE
-  for(v in names(env_old)){
+  for(v in all_vars){
     x = env_old[[v]]
     y = env_new[[v]]
     if(!is_similar(x, y, obj_name = v, msg = TRUE, do_all = TRUE)){

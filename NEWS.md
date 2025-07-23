@@ -120,6 +120,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - add explicit linkage to the `numDeriv` package in the manual to fix CRAN notes
 
+- add suggestions when some variables are misspelled in estimations
+
 ## etable
 
 - `setFixest_etable` now accepts the argument `div.class`
@@ -183,6 +185,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 - fix bug regarding the display of the x-axis in coefplot
 
 - fix bug preventing to jointly use the arguments `subset` and `fixef`. Reported by @MaelAstruc, #503
+
+- fix bug preventing the display of named custom vcov in `etable`
 
 # fixest 0.12.1
 

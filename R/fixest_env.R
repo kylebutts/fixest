@@ -747,7 +747,15 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
               if(!all(type[qui] == "var")){
                 extra = paste0(" (it concerns ", enumerate_items(var_pblm[qui][type[qui] == "var"]), ").")
               }
+              
               msg = paste0(msg, extra)
+            }
+            
+            sugg = unique(unlist(lapply(var_pblm[qui], 
+                                        function(x) suggest_item(x, items = dataNames))))
+            
+            if(length(sugg) > 0){
+              msg = sma("{msg}\nMaybe you meant: {enum.bq.or.10 ? sugg}?")
             }
 
             msg

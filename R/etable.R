@@ -1877,7 +1877,9 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   IS_EACH = FALSE
   if(!missnull(vcov) && identical(class(vcov), "list") && length(vcov) > 1){
     IS_MULTI_VCOV = TRUE
-
+    
+    vcov_names = names(vcov)
+    is_vcov_names = !is.null(vcov_names)
     vcov_1 = vcov[[1]]
 
     is_rep = identical(vcov_1, "times") || identical(vcov_1, "each")
@@ -1916,7 +1918,14 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
         }
 
         mega_models[[i]] = all_models[[id_mod[i]]]
-        mega_vcov[[i]] = vcov[[id_vcov[i]]]
+        
+        current_vcov = vcov[[id_vcov[i]]]
+        if(is_vcov_names && (is.function(current_vcov) || is.numeric(current_vcov))){
+          current_vcov = list(current_vcov)
+          names(current_vcov) = vcov_names[id_vcov[i]]
+        }
+        
+        mega_vcov[[i]] = current_vcov
       }
 
       if(length(auto_headers) > 0){

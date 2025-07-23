@@ -118,6 +118,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - in multiple estimations for which, after NA removal, the variables in the step-wise part are vectors of only 0s can now be estimated. The stepwise part is simply ignored. Feature request by @shoonlee, #483
 
+- add explicit linkage to the `numDeriv` package in the manual to fix CRAN notes
+
 ## etable
 
 - `setFixest_etable` now accepts the argument `div.class`

@@ -344,49 +344,50 @@ sunab = function(cohort, period, ref.c = NULL, ref.p = -1, bin, bin.rel,
 
 
   # We add the agg argument to GLOBAL_fixest_mm_info
-  if(!no_agg){
-    is_GLOBAL = FALSE
-    for(where in 1:min(8, sys.nframe())){
-      if(exists("GLOBAL_fixest_mm_info", parent.frame(where))){
-        GLOBAL_fixest_mm_info = get("GLOBAL_fixest_mm_info", parent.frame(where))
-        is_GLOBAL = TRUE
-        break
-      }
+  is_GLOBAL = FALSE
+  for(where in 1:min(8, sys.nframe())){
+    if(exists("GLOBAL_fixest_mm_info", parent.frame(where))){
+      GLOBAL_fixest_mm_info = get("GLOBAL_fixest_mm_info", parent.frame(where))
+      is_GLOBAL = TRUE
+      break
+    }
+  }
+
+  if(is_GLOBAL){
+    agg_att = c("ATT" = paste0("\\Q", period_name, "\\E::[[:digit:]]+:cohort"))
+    agg_period = paste0("(\\Q", period_name, "\\E)::(-?[[:digit:]]+):cohort")
+    
+    # We add the attribute containing the appropriate model_matrix_info
+    # for the period
+    info = list()
+    period_unik = sort(unique(c(period, ref.p)))
+    info$coef_names_full = paste0(period_name, "::", period_unik)
+    info$items = period_unik
+
+    if(length(ref.p) > 0){
+      info$ref_id = c(which(info$items %in% ref.p[1]), which(info$items %in% ref.p[-1]))
+      info$ref = info$items[info$ref_id]
     }
 
-    if(is_GLOBAL){
-      agg_att = c("ATT" = paste0("\\Q", period_name, "\\E::[[:digit:]]+:cohort"))
-      agg_period = paste0("(\\Q", period_name, "\\E)::(-?[[:digit:]]+):cohort")
+    info$f_name = period_name
 
-      if(att){
-        agg = agg_att
-      } else {
-        agg = agg_period
+    info$is_num = TRUE
+    info$is_inter_num = info$is_inter_fact = FALSE
 
-        # We add the attribute containing the appropriate model_matrix_info
-        info = list()
-        period_unik = sort(unique(c(period, ref.p)))
-        info$coef_names_full = paste0(period_name, "::", period_unik)
-        info$items = period_unik
-
-        if(length(ref.p) > 0){
-          info$ref_id = c(which(info$items %in% ref.p[1]), which(info$items %in% ref.p[-1]))
-          info$ref = info$items[info$ref_id]
-        }
-
-        info$f_name = period_name
-
-        info$is_num = TRUE
-        info$is_inter_num = info$is_inter_fact = FALSE
-
-        attr(agg, "model_matrix_info") = info
-      }
-
-      GLOBAL_fixest_mm_info$sunab = list(agg = agg, agg_att = agg_att, 
-                                         agg_period = agg_period, ref.p = ref.p)
-      # re assignment
-      assign("GLOBAL_fixest_mm_info", GLOBAL_fixest_mm_info, parent.frame(where))
+    attr(agg_period, "model_matrix_info") = info
+    
+    if(no_agg){
+      agg = NULL
+    } else if(att){
+      agg = agg_att
+    } else {
+      agg = agg_period
     }
+
+    GLOBAL_fixest_mm_info$sunab = list(agg = agg, agg_att = agg_att, 
+                                        agg_period = agg_period, ref.p = ref.p)
+    # re assignment
+    assign("GLOBAL_fixest_mm_info", GLOBAL_fixest_mm_info, parent.frame(where))
   }
 
   res

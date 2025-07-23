@@ -890,7 +890,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   } else {
     lab.cex = 1
   }
-
+  
   if(horiz){
     # we make the labels fit into the margin
 
@@ -977,15 +977,18 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
       # switch to multi lines
       if(any(is_collided) || lab.cex < lab.min.cex){
         lab.info = xaxis_labels(at = x_at, labels = x_labels, line.max = 1,
-                    minCex = lab.min.cex, trunc = Inf, only.params = TRUE)
+                                minCex = lab.min.cex, trunc = Inf, only.params = TRUE,
+                                xlim = my_xlim)
 
         if(lab.info$failed){
           # switch to tilted
           lab.fit = "tilted"
-          lab.info = xaxis_biased(at = x_at, labels = x_labels, line.min = LINE_MIN_TILTED,
-                      line.max = LINE_MAX_TILTED,
-                      cex = seq(lab.cex, lab.min.cex, length.out = 4),
-                      trunc = Inf, only.params = TRUE)
+          lab.info = xaxis_biased(at = x_at, labels = x_labels, 
+                                  line.min = LINE_MIN_TILTED,
+                                  line.max = LINE_MAX_TILTED,
+                                  cex = seq(lab.cex, lab.min.cex, length.out = 4),
+                                  trunc = Inf, only.params = TRUE, 
+                                  ylim = my_ylim)
           lab.cex = lab.info$cex
           nlines = lab.info$height_line + LINE_MIN_TILTED
 
@@ -999,9 +1002,11 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
         lab.fit = "simple"
         nlines = 2 * lab.cex
       }
+      
     } else if(lab.fit == "multi"){
       lab.info = xaxis_labels(at = x_at, labels = x_labels, line.max = 1,
-                  minCex = lab.min.cex, trunc = Inf, only.params = TRUE)
+                              minCex = lab.min.cex, trunc = Inf, 
+                              only.params = TRUE, xlim = my_xlim)
       lab.cex = lab.info$cex
       nlines = lab.info$height_line
 
@@ -1014,7 +1019,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
       lab.info = xaxis_biased(at = x_at, labels = x_labels, line.min = LINE_MIN_TILTED,
                               line.max = LINE_MAX_TILTED,
                               cex = seq(lab.cex, lab.min.cex, length.out = 4),
-                              trunc = Inf, only.params = TRUE)
+                              trunc = Inf, only.params = TRUE, ylim = my_ylim)
       lab.cex = lab.info$cex
       nlines = lab.info$height_line + LINE_MIN_TILTED
 
@@ -1191,7 +1196,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
       do.call("abline", ref.line.par)
     }
 
-    box()
+    box(bty = par("bty"))
 
     if(horiz){
       axis(1, lwd = 0, lwd.ticks = 1)
@@ -1225,6 +1230,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 
       if(AXIS_AS_NUM){
         axis(1, lwd = 0, lwd.ticks = 1)
+        
       } else {
         if(lab.fit == "simple"){
           if(any(grepl("^&", x_labels))){
@@ -1255,7 +1261,6 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
             qui_line = my_line == lab.info$line
             x_labels_current = x_labels[qui_line]
             x_at_current = x_at[qui_line]
-
             if(any(grepl("^&", x_labels_current))){
               qui = grepl("^&", x_labels_current)
               if(any(!qui)){
@@ -1271,7 +1276,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
             } else {
               # easy case: only character
               axis(1, at = x_at_current, labels = x_labels_current, cex.axis = lab.cex, 
-                   line = my_line, lwd = 0)
+                   line = my_line, lwd = 0, gap.axis = 0)
             }
           }
         } else if(lab.fit == "tilted"){
@@ -1711,7 +1716,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
     }
   }
 
-  res = list(prms=prms, is_iplot = is_iplot, at = x_at, labels = x_labels)
+  res = list(prms = prms, is_iplot = is_iplot, at = x_at, labels = x_labels)
   return(invisible(res))
 }
 

@@ -10,7 +10,7 @@
 # Beware: we return line => but in the axis sense! (input 0 is output -1)
 xaxis_labels = function(at, labels, line.min = 0, line.max = 2, minCex = 0.8, 
                         add_ticks = FALSE, trunc = 20, trunc.method = "auto", 
-                        only.params = FALSE, ...){
+                        only.params = FALSE, xlim = NULL, ...){
   # This function automates the placement of labels into the axis 1
   # It first put the cex to the appropritate level to insert the 1st
   # label into the frame, then
@@ -25,7 +25,7 @@ xaxis_labels = function(at, labels, line.min = 0, line.max = 2, minCex = 0.8,
       res = list(cex = 1, line = line.min - 1)
       return(res)
     }
-    axis(1, at=at, labels = labels, tick = add_ticks, line = line.min - 1)
+    axis(1, at = at, labels = labels, tick = add_ticks, line = line.min - 1)
     return(invisible(NULL))
   }
 
@@ -49,12 +49,18 @@ xaxis_labels = function(at, labels, line.min = 0, line.max = 2, minCex = 0.8,
   } else {
     myLabels = gsub(" *phantom\\([\\)]*\\) *", "", deparse(myLabels))
   }
-
+  
+  if(is.null(xlim)){
+    largeur = diff(par("usr")[1:2])
+    xmin = par("usr")[1]
+  } else {
+    largeur = diff(xlim) * 1.08
+    xmin = xlim[1]
+  }
 
   # We compute the space that is left to display the label
   # 1st into the plot
-  largeur = diff(par("usr")[1:2])
-  half_plotSpace_in = (myAt[1] - par("usr")[1]) / largeur * par("pin")[1]
+  half_plotSpace_in = (myAt[1] - xmin) / largeur * par("pin")[1]
   # 2nd using the margin
   total_half_space = half_plotSpace_in + min(par("mai")[c(2,4)])
 
@@ -191,7 +197,9 @@ xaxis_labels = function(at, labels, line.min = 0, line.max = 2, minCex = 0.8,
 }
 
 # line: goes from 0 to 4 in a standard plot
-xaxis_biased = function(at, labels, angle, cex, line.min = 0, line.max = 2, yadj = 0.5, trunc = 20, trunc.method = "auto", only.params = FALSE, ...){
+xaxis_biased = function(at, labels, angle, cex, line.min = 0, line.max = 2, 
+                        yadj = 0.5, trunc = 20, trunc.method = "auto", 
+                        only.params = FALSE, ylim = NULL, ...){
 
   check_arg(angle, "null numeric vector no na")
   check_arg(cex, "null numeric vector no na")
@@ -273,12 +281,22 @@ xaxis_biased = function(at, labels, angle, cex, line.min = 0, line.max = 2, yadj
 
     height_in = longueur_cote
   }
+  
+  if(is.null(ylim)){
+    height_usr = diff(par("usr")[3:4])
+    ymin = par("usr")[3]
+  } else {
+    height_usr = diff(ylim) * 1.08
+    ymin = ylim[1]
+  }
 
-  line_height_usr = line_height / par("pin")[2] * diff(par("usr")[3:4])
+  line_height_usr = line_height / par("pin")[2] * height_usr
 
   if(only.params){
-    res = list(cex = cex, angle = angle, height_in = height_in + strheight("W", units = "in", cex = cex))
-    res$height_usr = height_in / par("pin")[2] * diff(par("usr")[3:4])
+    res = list(cex = cex, angle = angle, 
+               height_in = height_in + strheight("W", units = "in", cex = cex))
+    
+    res$height_usr = height_in / par("pin")[2] * height_usr
     res$height_line = height_in / line_height
     return(res)
   }

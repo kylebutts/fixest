@@ -583,7 +583,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
                        x = x, x.shift = x.shift, dict = dict, keep = keep, drop = drop,
                        order = order, ci_level = ci_level, df.t = df.t, ref = ref, 
                        i.select = i.select, 
-                       only.i = is_iplot, sep = sep, as.multiple = as.multiple)
+                       is_iplot = is_iplot, sep = sep, as.multiple = as.multiple)
 
   prms = info$prms
   AXIS_AS_NUM = info$num_axis
@@ -1721,7 +1721,7 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
 coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shift = 0, 
                          dict, i.select = NULL, 
                          keep, drop, order, ci_level = 0.95, df.t = NULL, ref = "auto",
-                         only.i = TRUE, sep, as.multiple = FALSE, is_root = TRUE){
+                         is_iplot = TRUE, sep, as.multiple = FALSE, is_root = TRUE){
 
   # get the default for:
   # dict, ci.level, ref
@@ -1732,7 +1732,6 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
   suggest_ref_line = FALSE
   multiple_est = FALSE
   NO_NAMES = FALSE
-  is_iplot = only.i
   
   set_up(1 + is_iplot + !is_root)
   
@@ -1766,7 +1765,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
                                  x.shift = x.shift, dict = dict, i.select = i.select,
                                  keep = keep, drop = drop, order = order, 
                                  ci_level = ci_level, df.t = df.t, ref = ref,
-                                 only.i = only.i, sep = sep, as.multiple = as.multiple), 
+                                 is_iplot = is_iplot, sep = sep, as.multiple = as.multiple), 
                    silent = TRUE)
 
         if("try-error" %in% class(prms)){
@@ -1877,8 +1876,23 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
     object = all_models
 
     if(inherits(object, "fixest")){
-
+      
       mat = coeftable(object, vcov = vcov)
+      
+      # special case: sunab
+      if(is_iplot && isTRUE(object$is_sunab)){
+        info_sunab = object$model_matrix_info$sunab
+        info_period = attr(info_sunab$agg_period, "model_matrix_info")
+        if(mean(info_period$coef_names_full %in% rownames(mat)) >= 0.5){
+          # we check that the period agg coefficients are in the coef matrix
+          # note that some coefs can be removed due to collin
+          # => we're OK
+        } else {
+          mat = coeftable(summary(object, agg = "period"), vcov = vcov)
+        }
+        
+        object$model_matrix_info = append(list(info_period), object$model_matrix_info)
+      }
 
       sd = mat[, 2]
       estimate = mat[, 1]

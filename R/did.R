@@ -496,7 +496,7 @@ aggregate.fixest = function(x, agg, full = FALSE, use_weights = TRUE, ...){
 
   check_arg(x, "class(fixest) mbt")
   if(isTRUE(x$is_sunab)){
-    check_arg(agg, "scalar(character, logical)")
+    check_set_arg(agg, "match(att, period, cohort) | scalar(character, logical)")
   } else {
     check_arg(agg, "character scalar")
   }

@@ -77,8 +77,7 @@ if(is.factor(data.frame(x = "bonjour")$x)){
 
 .onLoad = function(libname, pkgname){
   # setting some options
-
-  options("fixest_dict" = c("(Intercept)" = "Constant"))
+  
   options("fixest_notes" = TRUE)
   options("fixest_print" = list(type = "table"))
   options("fixest_fl_authorized" = FALSE)
@@ -86,7 +85,8 @@ if(is.factor(data.frame(x = "bonjour")$x)){
   setFixest_coefplot("all", reset = TRUE)
   setFixest_ssc()
   setFixest_etable()
-  setFixest_vcov(no_FE = "iid", one_FE = "iid", two_FE = "iid", panel = "iid")
+  setFixest_vcov(all = "iid")
+  setFixest_dict(c("(Intercept)" = "Constant"))
 
   # nthreads
   if(is_r_check()){

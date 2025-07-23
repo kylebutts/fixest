@@ -96,9 +96,9 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
   - `cluster.adj` => `G.adj`
   - `cluster.df` => `G.df`
   
-  Retro compatibility is ensured. Thanls to Kyle Butts and Grant McDermott for the brainstorm!
+  Retro compatibility is ensured. Thanks to Kyle Butts and Grant McDermott for the brainstorm!
 
-- in the functions `coefplot` and `iplot`: the argument `object` is removed, now all models need to be passed in `...`. The dots do not accept arguments to summary methods any more. Retro-compatibility ensured.
+- in the functions `coefplot` and `iplot`: the argument `object` is removed, now all models need to be passed in `...`. The dots do not accept arguments to summary methods any more. Retro-compatibility partly ensured.
 
 ## Other changes
 

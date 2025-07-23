@@ -180,6 +180,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug regarding the display of the x-axis in coefplot
 
+- fix bug preventing to jointly use the arguments `subset` and `fixef`. Reported by @MaelAstruc, #503
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

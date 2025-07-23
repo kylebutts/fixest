@@ -885,6 +885,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
                     .message = "Argument 'fixef', when provided, must be a character vector of variable names.")
 
       # we transform it into a formula
+      complete_vars = c(complete_vars, fixef)
       fml_fixef = .xpd(rhs = fixef)
     }
 
@@ -1145,6 +1146,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
         if(missnull(split)) split = NULL
         if(missnull(fsplit)) fsplit = NULL
         if(missnull(NL.fml)) NL.fml = NULL
+        browser()
 
         additional_vars = collect_vars(NL.fml, offset, weights, split, fsplit)
         complete_vars = c(complete_vars, additional_vars)

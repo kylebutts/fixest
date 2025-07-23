@@ -70,6 +70,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - use perl regular expressions (instead of standard RE) in all instances of the arguments `keep`, `drop`, `order`
 
+- when using `feols` estimations with `sunab(att = TRUE)`, now `iplot` reports the graph of the treatment effect aggregated by periods (i.e. as if `att = FALSE`)
+
 ## New vignette and data set
 
 - add a new vignette on collinearity
@@ -173,6 +175,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 - fix bug which included the intercept in stepwise estimation even when the user asked for no intercept
 
 - fix various bugs in `coefplot`/`iplot`
+
+- fix bug regarding the display of the x-axis in coefplot
 
 # fixest 0.12.1
 

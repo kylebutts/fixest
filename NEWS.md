@@ -72,6 +72,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - when using `feols` estimations with `sunab(att = TRUE)`, now `iplot` reports the graph of the treatment effect aggregated by periods (i.e. as if `att = FALSE`)
 
+- in estimations, allow `subset` to accept negative integers
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

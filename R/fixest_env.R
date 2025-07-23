@@ -1089,10 +1089,9 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       } else {
 
         if(isFit){
-          check_value(subset, "integer vmatrix ncol(1) gt{0} | logical vector len(data)", 
-                      .data = lhs)
+          check_value(subset, "integer vmatrix ncol(1) gt{0} | integer vmatrix ncol(1) lt{0} |logical vector len(data)", .data = lhs)
         } else {
-          check_value(subset, "integer vmatrix ncol(1) gt{0} | logical vector len(data)",
+          check_value(subset, "integer vmatrix ncol(1) gt{0} | integer vmatrix ncol(1) lt{0} | logical vector len(data)",
                       .prefix = "If not a formula, argument 'subset'", .data = data)
         }
 

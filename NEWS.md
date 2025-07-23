@@ -118,6 +118,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - in multiple estimations for which, after NA removal, the variables in the step-wise part are vectors of only 0s can now be estimated. The stepwise part is simply ignored. Feature request by @shoonlee, #483
 
+- add explicit linkage to the `numDeriv` package in the manual to fix CRAN notes
+
 ## etable
 
 - `setFixest_etable` now accepts the argument `div.class`
@@ -176,7 +178,7 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug which included the intercept in stepwise estimation even when the user asked for no intercept
 
-- fix various bugs in `coefplot`/`iplot`
+- fix various bugs in `coefplot`/`iplot`. Among others, the one reported by @raffaem, #546
 
 - fix bug regarding the display of the x-axis in coefplot
 

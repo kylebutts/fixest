@@ -214,6 +214,7 @@ setFixest_etable(
   order,
   dict,
   float,
+  signif.code = NULL,
   fixef_sizes = FALSE,
   fixef_sizes.simplify = TRUE,
   family,

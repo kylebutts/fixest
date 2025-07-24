@@ -124,7 +124,7 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 ## etable
 
-- `setFixest_etable` now accepts the argument `div.class`
+- `setFixest_etable` now accepts the arguments `div.class` and `signif.code`
 
 - when a file is created and the containing folders do not exist:
   - the new default is to create up to the grand parent folder

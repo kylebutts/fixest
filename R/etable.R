@@ -1391,7 +1391,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   #
   # Setting the default
   #
-
+  
   opts = getOption("fixest_etable")
   sysOrigin = sys.parent(.up)
   if(length(opts) > 0){
@@ -1408,13 +1408,13 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   # Getting the default style values
   if(tex){
     if(!"style.tex" %in% names(opts)){
-      style = fixest::style.tex(main = "base")
+      style = style.tex(main = "base")
     } else {
       style = style.tex
     }
   } else if(!tex){
     if(!"style.df" %in% names(opts)){
-      style = fixest::style.df(default = TRUE)
+      style = style.df(default = TRUE)
     } else {
       # We rename style.df into style
       style = style.df
@@ -1429,11 +1429,18 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
 
   # Arguments both in style AND in etable
   args_dual = c("tpt", "arraystretch", "fontsize", "adjustbox",
-          "tabular", "signif.code")
+                "tabular", "signif.code")
   for(arg in setdiff(args_dual, names(mc))){
     # We set to the default in style (only if NOT user-provided)
     if(arg %in% names(style)){
-      assign(arg, style[[arg]])
+      if(arg == "signif.code"){
+        # signif code can be modified either in setFixest_etable or in style.tex/df
+        if((tex && "style.tex" %in% names(opts)) || (!tex && "style.df" %in% names(opts))){
+          assign(arg, style[[arg]])
+        }
+      } else {
+        assign(arg, style[[arg]])
+      }
     }
   }
 
@@ -4598,7 +4605,7 @@ etable_internal_df = function(info){
 setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
                             coefstat = c("se", "tstat", "confint", "pvalue"),
                             ci = 0.95, se.below = TRUE, keep, drop, order, dict,
-                            float,
+                            float, signif.code = NULL,
                             fixef_sizes = FALSE, fixef_sizes.simplify = TRUE,
                             family, powerBelow = -5,
                             interaction.order = NULL, depvar, style.tex = NULL,
@@ -4635,6 +4642,8 @@ setFixest_etable = function(digits = 4, digits.stats = 5, fitstat,
 
   check_arg(keep, drop, order, "character vector no na NULL",
             .message = "The arg. '__ARG__' must be a vector of regular expressions (see help(regex)).")
+  
+  check_set_arg(signif.code, "NULL NA | match(letters) | named numeric vector no na GE{0} LE{1}")
 
   check_arg(interaction.order, "NULL character scalar")
 

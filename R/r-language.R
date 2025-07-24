@@ -6,6 +6,44 @@
 
 
 
+
+get_all_vars = function(expr, is_root = TRUE, ignore_formula = FALSE, interpol = FALSE){
+  
+  if(length(expr) == 1){
+    if(is.name(expr)){
+      return(as.character(expr))
+      
+    } else if(interpol && is.character(expr)){
+      vars = stringmagic::get_interpolated_vars(expr)
+      return(vars)
+    }
+    
+    return(NULL)
+  }
+  
+  if(ignore_formula && is_formula(expr)){
+    return(NULL)
+  }
+  
+  res = character(0)
+  i_start = if(is.expression(expr)) 1 else 2
+  for(i in i_start:length(expr)){
+    vars = get_all_vars(expr[[i]], is_root = FALSE, 
+                        ignore_formula = ignore_formula, interpol = interpol)
+    if(length(vars) > 0){
+      res = c(res, vars)
+    }
+  }
+  
+  if(is_root && length(res) > 1){
+    return(unique(sort(res)))
+  }
+  
+  res
+}
+
+
+
 ####
 #### formula ####
 ####

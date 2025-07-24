@@ -466,28 +466,32 @@ to manipulate character strings (and it exists across most programming languages
 
 For example drop = "Wind" would drop any variable whose name contains "Wind". Note that
 variables such as "Temp:Wind" or "StrongWind" do contain "Wind", so would be dropped.
-To drop only the variable named "Wind", you need to use \code{drop = "^Wind$"} (with "^" meaning
-beginning, resp. "$" meaning end, of the string => this is the language of regular expressions).
+To drop only the variable named "Wind", you need to use
+\code{drop = "^Wind$"} (with "^" meaning beginning, resp. "$" meaning end,
+of the string => this is the language of regular expressions).
 
-Although you can combine several regular expressions in a single character string using pipes,
-\code{drop} also accepts a vector of regular expressions.
+Although you can combine several regular expressions in a single character
+string using pipes, \code{drop} also accepts a vector of regular expressions.
 
-You can use the special character "!" (exclamation mark) to reverse the effect of the regular
-expression (this feature is specific to this function). For example \code{drop = "!Wind"} would drop
-any variable that does not contain "Wind".
+You can use the special character "!" (exclamation mark) to reverse the effect
+of the regular expression (this feature is specific to this function).
+For example \code{drop = "!Wind"} would drop any variable that does not contain "Wind".
 
-You can use the special character "\%" (percentage) to make reference to the original variable
-name instead of the aliased name. For example, you have a variable named \code{"Month6"}, and use a
-dictionary \code{dict = c(Month6="June")}. Thus the variable will be displayed as \code{"June"}. If you
-want to delete that variable, you can use either \code{drop="June"}, or \code{drop="\%Month6"} (which makes
-reference to its original name).
+You can use the special character "\%" (percentage) to make reference to the
+original variable name instead of the aliased name. For example, you have a
+variable named \code{"Month6"}, and use a dictionary \code{dict = c(Month6="June")}.
+Thus the variable will be displayed as \code{"June"}.
+If you want to delete that variable, you can use either \code{drop="June"},
+or \code{drop="\%Month6"} (which makes reference to its original name).
 
 The argument \code{order} takes in a vector of regular expressions, the order will follow the
-elements of this vector. The vector gives a list of priorities, on the left the elements with
-highest priority. For example, order = c("Wind", "!Inter", "!Temp") would give highest
-priorities to the variables containing "Wind" (which would then appear first), second highest
-priority is the variables not containing "Inter", last, with lowest priority, the variables not
-containing "Temp". If you had the following variables: (Intercept), Temp:Wind, Wind, Temp you
+elements of this vector. The vector gives a list of priorities,
+on the left the elements with highest priority.
+For example, order = c("Wind", "!Inter", "!Temp") would give highest priorities to
+the variables containing "Wind" (which would then appear first),
+second highest priority is the variables not containing "Inter", last,
+with lowest priority, the variables not containing "Temp".
+If you had the following variables: (Intercept), Temp:Wind, Wind, Temp you
 would end up with the following order: Wind, Temp:Wind, Temp, (Intercept).
 }
 

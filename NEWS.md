@@ -124,6 +124,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 ## etable
 
+- add a section in the documentation documenting the Latex depdencies
+
 - `setFixest_etable` now accepts the arguments `div.class` and `signif.code`
 
 - when a file is created and the containing folders do not exist:

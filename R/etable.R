@@ -308,7 +308,8 @@
 #' @param highlight List containing coefficients to highlight. 
 #' Highlighting is of the form `.("options1" = "coefs1", "options2" = "coefs2", etc)`.
 #' The coefficients to be highlighted can be written in three forms: 1) row, eg `"x1"` will 
-#' highlight the full row of the variable `x1`; 2) cells, use `'@'` after the coefficient name to 
+#' highlight the full row of the variable `x1`; 
+#' 2) cells, use `'@'` after the coefficient name to 
 #' give the column, it accepts ranges, eg `"x1@2, 4-6, 8"` will highlight only the columns 
 #' 2, 4, 5, 6, and 8 of the variable `x1`; 3) range, by giving the top-left and 
 #' bottom-right values separated with a semi-colon, eg `"x1@2 ; x3@5"` will highlight 
@@ -323,6 +324,10 @@
 #' Finally the remaining option is the color: simply add an R color (it must be a valid R color!).
 #'  You can use `"color!alpha"` with "alpha" a number between 0 to 100 to change 
 #' the alpha channel of the color.
+#' 
+#' To be able to use use the highlighting feature, you need the 
+#' following lines in your latex preamble: `\\usepackage{tikz}` and 
+#' `\\usetikzlibrary{matrix, shapes, arrows, fit, tikzmark}`
 #' @param coef.style Named list containing styles to be applied to the coefficients. It must be of 
 #' the form `.("style1" = "coefs1", "style2" = "coefs2", etc)`. The style must contain the 
 #' string `":coef:"` (or `":coef_se:"` to style both the coefficient and its standard-error). 
@@ -363,27 +368,66 @@
 #' The following vignette gives an example as well as illustrates how to use the `style` and 
 #' postprocessing functions: [Exporting estimation tables](https://lrberge.github.io/fixest/articles/exporting_tables.html).
 #'
-#' When the argument `postprocess.tex` is not missing, two additional tags will be included in the 
-#' character vector returned by `etable`: `"%start:tab\\n"` and `"%end:tab\\n"`. These can be used 
-#' to identify the start and end of the tabular and are useful to insert code within the `table` 
-#' environment.
+#' When the argument `postprocess.tex` is not missing, two additional tags will 
+#' be included in the character vector returned by `etable`: 
+#' `"%start:tab\\n"` and `"%end:tab\\n"`. These can be used 
+#' to identify the start and end of the tabular and are useful to insert code 
+#' within the `table` environment.
+#' 
+#' @section Latex dependencies:
+#' 
+#' Some features require specific Latex dependencies, these are:
+#' 
+#' - always needed: `\\usepackage{booktabs}`, `\\usepackage{array}`, 
+#' `\\usepackage{multirow}`, `\\usepackage{amsmath}`, `\\usepackage{amssymb}`
+#' - if there are line break within cells: `\\usepackage{makecell}`
+#' - if the tabularx environment is used: `\\usepackage{tabularx}`
+#' - if threeparttable notes are used: `\\usepackage[flushleft]{threeparttable}`
+#' - if you use adjustbox: `\\usepackage{adjustbox}`
+#' - if you use any kind of colors in the table: `\\usepackage[dvipsnames,table]{xcolor}`
+#' - if you highlight cells with a box: `\\usepackage{tikz}` and
+#'  `\\usetikzlibrary{matrix, shapes, arrows, fit, tikzmark}`
+#' - if you highlight rows using the background color: `\\usepackage{colortbl}`
+#' 
+#' Here is a summary:
+#' 
+#' \preformatted{
+#' \% required
+#' \\usepackage{booktabs}
+#' \\usepackage{array}
+#' \\usepackage{multirow}
+#' \\usepackage{amsmath}
+#' \\usepackage{amssymb}
+#' 
+#' \% optionnal, dependent on context
+#' \\usepackage{makecell}
+#' \\usepackage{tabularx}
+#' \\usepackage[flushleft]{threeparttable}
+#' \\usepackage{adjustbox}
+#' \\usepackage[dvipsnames,table]{xcolor}
+#' \\usepackage{tikz}
+#' \\usetikzlibrary{matrix, shapes, arrows, fit, tikzmark}
+#' \\usepackage{colortbl}
+#' }
 #'
 #' @section How does `digits` handle the number of decimals displayed?:
 #'
 #' The default display of decimals is the outcome of an algorithm. Let's take the example 
 #' of `digits = 3` which "kind of" requires 3 significant digits to be displayed.
 #'
-#' For numbers greater than 1 (in absolute terms), their integral part is always displayed and 
-#' the number of decimals shown is equal to `digits` minus the number of digits in the integral 
-#' part. This means that `12.345` will be displayed as `12.3`. If the number of decimals should
-#'  be 0, then a single decimal is displayed to suggest that the number is not whole. This means
-#'  that `1234.56` will be displayed as `1234.5`. Note that if the number is whole, no decimals 
-#' are shown.
+#' For numbers greater than 1 (in absolute terms), their integral part is 
+#' always displayed and the number of decimals shown is equal to `digits` 
+#' minus the number of digits in the integral part. 
+#' This means that `12.345` will be displayed as `12.3`. 
+#' If the number of decimals should be 0, then a single decimal is displayed 
+#' to suggest that the number is not whole. This means that `1234.56` will 
+#' be displayed as `1234.5`. Note that if the number is whole, no decimals are shown.
 #'
 #' For numbers lower than 1 (in absolute terms), the number of decimals displayed is equal 
-#' to `digits` except if there are only 0s in which case the first significant digit is shown. 
-#' This means that `0.01234` will be displayed as `0.012` (first rule), and that 0.000123 will 
-#' be displayed as `0.0001` (second rule).
+#' to `digits` except if there are only 0s in which case the first significant 
+#' digit is shown. 
+#' This means that `0.01234` will be displayed as `0.012` (first rule), 
+#' and that 0.000123 will be displayed as `0.0001` (second rule).
 #'
 #' @section Arguments keep, drop and order:
 #' The arguments `keep`, `drop` and `order` use regular expressions. If you are not aware 
@@ -392,94 +436,108 @@
 #'
 #' For example drop = "Wind" would drop any variable whose name contains "Wind". Note that 
 #' variables such as "Temp:Wind" or "StrongWind" do contain "Wind", so would be dropped. 
-#' To drop only the variable named "Wind", you need to use `drop = "^Wind$"` (with "^" meaning 
-#' beginning, resp. "$" meaning end, of the string => this is the language of regular expressions).
+#' To drop only the variable named "Wind", you need to use 
+#' `drop = "^Wind$"` (with "^" meaning beginning, resp. "$" meaning end, 
+#' of the string => this is the language of regular expressions).
 #'
-#' Although you can combine several regular expressions in a single character string using pipes, 
-#' `drop` also accepts a vector of regular expressions.
+#' Although you can combine several regular expressions in a single character 
+#' string using pipes, `drop` also accepts a vector of regular expressions.
 #'
-#' You can use the special character "!" (exclamation mark) to reverse the effect of the regular 
-#' expression (this feature is specific to this function). For example `drop = "!Wind"` would drop 
-#' any variable that does not contain "Wind".
+#' You can use the special character "!" (exclamation mark) to reverse the effect 
+#' of the regular expression (this feature is specific to this function). 
+#' For example `drop = "!Wind"` would drop any variable that does not contain "Wind".
 #'
-#' You can use the special character "%" (percentage) to make reference to the original variable 
-#' name instead of the aliased name. For example, you have a variable named `"Month6"`, and use a 
-#' dictionary `dict = c(Month6="June")`. Thus the variable will be displayed as `"June"`. If you 
-#' want to delete that variable, you can use either `drop="June"`, or `drop="%Month6"` (which makes 
-#' reference to its original name).
+#' You can use the special character "%" (percentage) to make reference to the 
+#' original variable name instead of the aliased name. For example, you have a 
+#' variable named `"Month6"`, and use a dictionary `dict = c(Month6="June")`. 
+#' Thus the variable will be displayed as `"June"`. 
+#' If you want to delete that variable, you can use either `drop="June"`, 
+#' or `drop="%Month6"` (which makes reference to its original name).
 #'
 #' The argument `order` takes in a vector of regular expressions, the order will follow the 
-#' elements of this vector. The vector gives a list of priorities, on the left the elements with 
-#' highest priority. For example, order = c("Wind", "!Inter", "!Temp") would give highest 
-#' priorities to the variables containing "Wind" (which would then appear first), second highest 
-#' priority is the variables not containing "Inter", last, with lowest priority, the variables not 
-#' containing "Temp". If you had the following variables: (Intercept), Temp:Wind, Wind, Temp you 
+#' elements of this vector. The vector gives a list of priorities, 
+#' on the left the elements with highest priority. 
+#' For example, order = c("Wind", "!Inter", "!Temp") would give highest priorities to 
+#' the variables containing "Wind" (which would then appear first), 
+#' second highest priority is the variables not containing "Inter", last, 
+#' with lowest priority, the variables not containing "Temp". 
+#' If you had the following variables: (Intercept), Temp:Wind, Wind, Temp you 
 #' would end up with the following order: Wind, Temp:Wind, Temp, (Intercept).
 #'
 #' @section The argument `extralines`:
 #'
-#' The argument `extralines` adds well... extra lines to the table. It accepts either a list, or a 
-#' one-sided formula.
+#' The argument `extralines` adds well... extra lines to the table. 
+#' It accepts either a list, or a one-sided formula.
 #'
-#' For each line, you can define the values taken by each cell using 4 different ways: a) a vector, 
-#' b) a list, c) a function, and d) a formula.
+#' For each line, you can define the values taken by each cell using 4 different ways: 
+#' a) a vector, b) a list, c) a function, and d) a formula.
 #'
-#' If a vector, it should represent the values taken by each cell. Note that if the length of the 
-#' vector is smaller than the number of models, its values are recycled across models, but the 
-#' length of the vector is required to be a divisor of the number of models.
+#' If a vector, it should represent the values taken by each cell. Note that if the 
+#' length of the vector is smaller than the number of models, its values are 
+#' recycled across models, but the length of the vector is required to be a 
+#' divisor of the number of models.
 #'
-#' If a list, it should be of the form `list("item1" = #item1, "item2" = #item2, etc)`. For example 
-#' `list("A"=2, "B"=3)` leads to `c("A", "A", "B", "B", "B")`. Note that if the number of items is 
-#' 1, you don't need to add `= 1`. For example `list("A"=2, "B")` is valid and leads to 
+#' If a list, it should be of the form `list("item1" = #item1, "item2" = #item2, etc)`. 
+#' For example `list("A"=2, "B"=3)` leads to `c("A", "A", "B", "B", "B")`. 
+#' Note that if the number of items is 1, you don't need to add `= 1`. 
+#' For example `list("A"=2, "B")` is valid and leads to 
 #' `c("A", "A", "B"`. As for the vector the values are recycled if necessary.
 #'
 #' If a function, it will be applied to each model and should return a scalar (`NA` values 
 #' returned are accepted).
 #'
 #' If a formula, it must be one-sided and the elements in the formula must represent either 
-#' `extralines` macros, either fit statistics (i.e. valid types of the function [`fitstat`]). One 
-#' new line will be added for each element of the formula. To register `extralines` macros, you 
-#' must first register them in [`extralines_register`].
+#' `extralines` macros, either fit statistics (i.e. valid types of 
+#' the function [`fitstat`]). 
+#' One new line will be added for each element of the formula. 
+#' To register `extralines` macros, you must first register them in [`extralines_register`].
 #'
-#' Finally, you can combine as many lines as wished by nesting them in a list. The names of the 
-#' nesting list are the row titles (values in the leftmost cell). For example 
-#' `extralines = list(~r2, Controls = TRUE, Group = list("A"=2, "B"))` will add three lines, 
-#' the titles of which are "R2", "Controls" and "Group".
+#' Finally, you can combine as many lines as wished by nesting them in a list. 
+#' The names of the nesting list are the row titles (values in the leftmost cell). 
+#' For example `extralines = list(~r2, Controls = TRUE, Group = list("A"=2, "B"))` will
+#'  add three lines, the titles of which are "R2", "Controls" and "Group".
 #'
 #'
 #' @section Controlling the placement of extra lines:
 #'
 #' The arguments `group`, `extralines` and `fixef.group` allow to add customized lines in the 
-#' table. They can be defined via a list where the list name will be the row name. By default, the 
-#' placement of the extra line is right after the coefficients (except for `fixef.group`, covered 
-#' in the last paragraph). For instance, `group = list("Controls" = "x[[:digit:]]")` will create a 
+#' table. They can be defined via a list where the list name will be the row name. 
+#' By default, the placement of the extra line is right after the coefficients 
+#' (except for `fixef.group`, covered in the last paragraph). 
+#' For instance, `group = list("Controls" = "x[[:digit:]]")` will create a 
 #' line right after the coefficients telling which models contain the control variables.
 #'
-#' But the placement can be customized. The previous example (of the controls) will be used for 
-#' illustration (the mechanism for `extralines` and `fixef.group` is identical).
+#' But the placement can be customized. The previous example (of the controls) will 
+#' be used for illustration (the mechanism for `extralines` and `fixef.group` is identical).
 #'
-#' The row names accept 2 special characters at the very start. The first character tells in which 
-#' section the line should appear: it can be equal to `"^"`, `"-"`, or `"_"`, meaning respectively 
-#' the coefficients, the fixed-effects and the statistics section (which typically appear at the 
-#' top, mid and bottom of the table). The second one governs the placement of the new line within 
+#' The row names accept 2 special characters at the very start. 
+#' The first character tells in which section the line should appear: 
+#' it can be equal to `"^"`, `"-"`, or `"_"`, meaning respectively 
+#' the coefficients, the fixed-effects and the statistics section 
+#' (which typically appear at the top, mid and bottom of the table). 
+#' The second one governs the placement of the new line within 
 #' the section: it can be equal to `"^"`, meaning first line, or `"_"`, meaning last line.
 #'
-#' Let's have some examples. Using the previous example, writing `"_^Controls"` would place the new 
-#' line at the top of the statistics section. Writing `"-_Controls"` places it as the last row of 
-#' the fixed-effects section; `"^^Controls"` at the top row of the coefficients section; etc...
+#' Let's have some examples. Using the previous example, writing `"_^Controls"` 
+#' would place the new line at the top of the statistics section. 
+#' Writing `"-_Controls"` places it as the last row of 
+#' the fixed-effects section; `"^^Controls"` at the top row of 
+#' the coefficients section; etc...
 #'
-#' The second character is optional, the default placement being in the bottom. This means that 
-#' `"_Controls"` would place it at the bottom of the statistics section.
+#' The second character is optional, the default placement being in the bottom. 
+#' This means that `"_Controls"` would place it at the bottom of the statistics section.
 #'
-#' The placement in `fixef.group` is defined similarly, only the default placement is different. 
+#' The placement in `fixef.group` is defined similarly, only the default 
+#' placement is different. 
 #' Its default placement is at the top of the fixed-effects section.
 #'
 #' @section Escaping special Latex characters:
 #'
 #' By default on all instances (with the notable exception of the elements of [`style.tex`]) 
-#' special Latex characters are escaped. This means that `caption="Exports in million $."` will be 
-#' exported as `"Exports in million \\$."`: the dollar sign will be escaped. This is true for the 
-#' following characters: &, `$`, %, _, ^ and #.
+#' special Latex characters are escaped. This means that 
+#' `caption="Exports in million $."` will be exported as 
+#' `"Exports in million \\$."`: the dollar sign will be escaped. 
+#' This is true for the following characters: &, `$`, %, _, ^ and #.
 #'
 #' Note, importantly, that equations are NOT escaped. This means that 
 #' `caption="Functional form $a_i \\times x^b$, variation in %."` will be displayed as: 
@@ -497,17 +555,18 @@
 #'
 #' Within anything that is Latex-escaped (see previous section), you can use a markdown-style 
 #' markup to put the text in italic and/or bold. Use `*text*`, `**text**` or `***text***` to 
-#' put some text in, respectively, italic (with `\\textit`), bold (with `\\textbf`) and italic-bold.
+#' put some text in, respectively, italic (with `\\textit`), 
+#' bold (with `\\textbf`) and italic-bold.
 #'
 #' The markup can be escaped by using an backslash first. For example `"***This: \\***, are 
 #' three stars***"` will leave the three stars in the middle untouched.
 #'
 #' @return
-#' If `tex = TRUE`, the lines composing the Latex table are returned invisibly while the table 
-#' is directly prompted on the console.
+#' If `tex = TRUE`, the lines composing the Latex table are returned invisibly while 
+#' the table is directly prompted on the console.
 #'
-#' If `tex = FALSE`, the data.frame is directly returned. If the argument `file` is not missing,
-#'  the `data.frame` is printed and returned invisibly.
+#' If `tex = FALSE`, the data.frame is directly returned. If the argument `file` is 
+#' not missing, the `data.frame` is printed and returned invisibly.
 #'
 #' @seealso
 #' For styling the table: [`setFixest_etable`], [`style.tex`], [`style.df`].
@@ -5457,7 +5516,6 @@ build_tex_png = function(x, view = FALSE, export = NULL, markdown = NULL, create
     #
 
     # packages increase build time, so we load them sparingly
-    # p: package ; pn: package name ; x: tex vector ; y: tex packages
     add_pkg = function(p, x, y, pn = p, opt = "", fixed = TRUE){
       if(any(grepl(p, x, fixed = fixed))){
         c(y, .dsb("\\usepackage.[opt]{.[pn]}"))

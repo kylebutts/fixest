@@ -3564,6 +3564,31 @@ formula.fixest = function(x, type = "full", fml.update = NULL,
   
 }
 
+#' @rdname formula.fixest
+formula.fixest_multi = function(x, type = "full", fml.update = NULL, 
+                                fml.build = NULL, ...){
+  
+  est_first = x[[1]]
+  fml_full = est_first$call$fml
+  fml_parts = fml_split(fml_full, raw = TRUE)
+  n_parts = length(fml_parts)
+  is_fe = n_parts > 1 && !is_fml_inside(fml_parts[[2]])
+
+  fml_all = est_first$fml_all
+  # linear 
+  fml_all$linear = est_first$fml = fml_parts[[1]]
+
+  # fixef
+  if(is_fe){
+    fml_fixef = ~1
+    fml_fixef[[2]] = fml_parts[[2]]
+    fml_all$fixef = fml_fixef
+  }
+  est_first$fml_all = fml_all
+  
+  formula(est_first, type = type, fml.update = fml.update, fml.build = fml.build)
+}
+
 
 #' Design matrix of a `fixest` object
 #'

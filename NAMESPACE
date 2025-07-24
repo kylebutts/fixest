@@ -132,6 +132,7 @@ S3method(coefficients, fixest_multi)
 S3method(resid, fixest_multi)
 S3method(residuals, fixest_multi)
 S3method(update, fixest_multi)
+S3method(formula, fixest_multi)
 
 # nlme method
 S3method(fixef, fixest)

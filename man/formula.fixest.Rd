@@ -2,9 +2,12 @@
 % Please edit documentation in R/methods.R
 \name{formula.fixest}
 \alias{formula.fixest}
+\alias{formula.fixest_multi}
 \title{Extract the formula of a \code{fixest} fit}
 \usage{
 \method{formula}{fixest}(x, type = "full", fml.update = NULL, fml.build = NULL, ...)
+
+\method{formula}{fixest_multi}(x, type = "full", fml.update = NULL, fml.build = NULL, ...)
 }
 \arguments{
 \item{x}{An object of class \code{fixest}. Typically the result of a \code{\link{femlm}}, \code{\link{feols}}

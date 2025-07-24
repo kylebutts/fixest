@@ -3331,12 +3331,24 @@ update.fixest_multi = function(object, fml.update = NULL, fml = NULL, nframes = 
 #' or [`feglm`] estimation.
 #' @param type A character scalar. Default is `type = "full"` which gives back a formula 
 #' containing the linear part of the model along with the fixed-effects (if any) and the 
-#' IV part (if any). If `type = "linear"` then only the linear formula is returned. 
-#' If `type = "NL"` then only the non linear in parameters part is returned.
+#' IV part (if any). Here is a description of the other types:
+#' - `full.noiv`: the full formula without the IV part
+#' - `full.nofixef.noiv`: the full formula without the IV nor the fixed-effects part
+#' - `lhs`: a one-sided formula with the dependent variable
+#' - `rhs`: a one-sided formula of the right hand side without the IVs (if any)
+#' - `rhs.nofixef`: a one-sided formula of the right hand side without the 
+#' fixed-effects nor IVs (if any)
+#' - `NL`: a one-sided formula with the non-linear part (if any)
+#' - `fixef`: a one-sided formula containing the fixed-effects
+#' - `iv`: a two-sided formula containing the endogenous variables (left) and the
+#' instruments (right)
+#' - `iv.endo`: a one-sided formula of the endogenous variables
+#' - `iv.inst`: a one-sided formula of the instruments
+#' - `iv.reduced`: a two-sided formula representing the reduced form, that is `y ~ exo + inst`
 #' @param ... Not currently used.
 #'
 #' @return
-#' It returns a formula.
+#' It returns either a one-sided formula, either a two-sided formula.
 #'
 #' @seealso
 #' See also the main estimation functions [`femlm`], [`feols`] or [`feglm`]. 
@@ -3347,18 +3359,27 @@ update.fixest_multi = function(object, fml.update = NULL, fml = NULL, nframes = 
 #'
 #' @examples
 #'
-#' # simple estimation on iris data, using "Species" fixed-effects
-#' res = femlm(Sepal.Length ~ Sepal.Width + Petal.Length +
-#'             Petal.Width | Species, iris)
+#' # example estimation with IVS and FEs
+#' base = setNames(iris, c("y", "x1", "endo", "instr", "species"))
+#' est = feols(y ~ x1 | species | endo ~ instr, base)
+#' 
+#' # the full formula
+#' formula(est)
+#' 
+#' # idem without the IVs nor the FEs
+#' formula(est, "full.nofixef.noiv")
+#' 
+#' # the reduced form
+#' formula(est, "iv.reduced")
+#' 
+#' # the IV relation only
+#' formula(est, "iv")
+#' 
+#' # the dependent variable => onse-sided formula
+#' formula(est, "lhs")
 #'
-#' # formula with the fixed-effect variable
-#' formula(res)
 #'
-#' # linear part without the fixed-effects
-#' formula(res, "linear")
-#'
-#'
-formula.fixest = function(x, type = c("full", "linear", "iv", "NL"), ...){
+formula.fixest = function(x, type = "full", ...){
   # Extract the formula from the object
   # we add the clusters in the formula if needed
 
@@ -3370,14 +3391,37 @@ formula.fixest = function(x, type = c("full", "linear", "iv", "NL"), ...){
   if(isTRUE(x$is_fit)){
     stop("formula method not available for fixest estimations obtained from fit methods.")
   }
-
-  check_set_arg(type, "match")
-
+  
+  check_set_arg(type, "match(full, full.noiv, full.nofixef.noiv, lhs, rhs, rhs.nofixef, NL, fixef, iv, iv.endo, iv.inst, iv.reduced, linear)", 
+                .message = "The argument `type` must be one of: `full`, `full.noiv`, `full.nofixef.noiv`, `lhs`, `rhs`, `rhs.nofixef`, `NL`, `fixef`, `iv`, `iv.endo`, `iv.inst`, `iv.reduced`")
+  
   if(type == "linear"){
-    return(x$fml)
+    type = "full.nofixef.noiv"
+  }
+  
+  if(type == "full"){
+    res = merge_fml(x$fml_all$linear, x$fml_all$fixef, x$fml_all$iv)
+    return(res)
+    
+  } else if(type == "full.noiv"){
+    res = merge_fml(x$fml_all$linear, x$fml_all$fixef, NULL)
+    return(res)
+    
+  } else if(type == "full.nofixef.noiv"){
+    res = merge_fml(x$fml_all$linear, NULL, NULL)
+    return(res)
+    
+  } else if(type == "lhs"){
+    return(x$fml[1:2])
+
+  } else if(type == "rhs"){
+    rhs = merge_fml(x$fml_all$linear, x$fml_all$fixef)
+    return(rhs[c(1, 3)])
+
+  } else if(type == "rhs.nofixef"){
+    return(x$fml[c(1, 3)])
 
   } else if(type == "NL"){
-
     if(!x$method == "feNmlm"){
       stop("type = 'NL' is not valid for a ", x$method, " estimation.")
     }
@@ -3389,16 +3433,41 @@ formula.fixest = function(x, type = c("full", "linear", "iv", "NL"), ...){
 
     return(NL.fml)
 
-  } else if(type == "iv"){
+  } else if(type == "fixef"){
+    
+    if(is.null(x$fml_all$fixef)){
+      res = ~0
+    } else {
+      res = x$fml_all$fixef
+    }
+    
+    return(res)
+
+  } else {
+    
     if(is.null(x$fml_all$iv)){
-      stop("type = 'iv' is only available for feols estimations with IV.")
+      stopi("Argument `type = '{type}'` is only available for feols estimations with IVs.")
+    }
+    
+    fml_iv = x$fml_all$iv
+    
+    if(type == "iv"){
+      return(fml_iv)
+
+    } else if(type == "iv.endo"){
+      return(fml_iv[1:2])
+
+    } else if(type == "iv.inst"){
+      return(fml_iv[c(1, 3)])
+
+    } else if(type == "iv.reduced"){
+      rhs = xpd(x$fml, add = fml_iv[[3]])
+      res = merge_fml(rhs, x$fml_all$fixef)
+      return(res)
+
     }
   }
-
-  # Shall I add LHS ~ RHS + NL(NL fml) | fe | iv ???
-  res = merge_fml(x$fml_all$linear, x$fml_all$fixef, x$fml_all$iv)
-
-  res
+  
 }
 
 

@@ -138,6 +138,19 @@ test = function(x, y, type = "=", tol = 1e-6){
   } else if(length(x) == 0){
     stop("Argument 'x' is of length 0. This is not allowed.")
 
+  } else if(IS_Y && inherits(y, "formula")){
+    x_clean = x
+    attributes(x_clean) = NULL
+    
+    y_clean = y
+    attributes(y_clean) = NULL
+    
+    if(!identical(x_clean, y_clean)){
+      stop("The two formulas differ:\n",
+           "EXPECTED: ", deparse_long(y), "\n",
+           "..ACTUAL: ", deparse_long(x))
+    }
+    
   } else if(type %in% c("equal", "=")){
     if(length(x) != length(y)){
       stop("Lengths differ: ", 

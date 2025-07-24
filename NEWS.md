@@ -82,6 +82,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - `update.(fixest|fixest_multi)` gain the new argument `use_calling_env` which default to `TRUE`, so that `fixest` objects created within a function can be updated without problem even outside of the function
 
+- greatly improve the `formula.fixest` method, with now a wide range of possibilities to compose the resulting formula
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

@@ -4,7 +4,7 @@
 \alias{formula.fixest}
 \title{Extract the formula of a \code{fixest} fit}
 \usage{
-\method{formula}{fixest}(x, type = c("full", "linear", "iv", "NL"), ...)
+\method{formula}{fixest}(x, type = "full", ...)
 }
 \arguments{
 \item{x}{An object of class \code{fixest}. Typically the result of a \code{\link{femlm}}, \code{\link{feols}}
@@ -12,13 +12,27 @@ or \code{\link{feglm}} estimation.}
 
 \item{type}{A character scalar. Default is \code{type = "full"} which gives back a formula
 containing the linear part of the model along with the fixed-effects (if any) and the
-IV part (if any). If \code{type = "linear"} then only the linear formula is returned.
-If \code{type = "NL"} then only the non linear in parameters part is returned.}
+IV part (if any). Here is a description of the other types:
+\itemize{
+\item \code{full.noiv}: the full formula without the IV part
+\item \code{full.nofixef.noiv}: the full formula without the IV nor the fixed-effects part
+\item \code{lhs}: a one-sided formula with the dependent variable
+\item \code{rhs}: a one-sided formula of the right hand side without the IVs (if any)
+\item \code{rhs.nofixef}: a one-sided formula of the right hand side without the
+fixed-effects nor IVs (if any)
+\item \code{NL}: a one-sided formula with the non-linear part (if any)
+\item \code{fixef}: a one-sided formula containing the fixed-effects
+\item \code{iv}: a two-sided formula containing the endogenous variables (left) and the
+instruments (right)
+\item \code{iv.endo}: a one-sided formula of the endogenous variables
+\item \code{iv.inst}: a one-sided formula of the instruments
+\item \code{iv.reduced}: a two-sided formula representing the reduced form, that is \code{y ~ exo + inst}
+}}
 
 \item{...}{Not currently used.}
 }
 \value{
-It returns a formula.
+It returns either a one-sided formula, either a two-sided formula.
 }
 \description{
 This function extracts the formula from a \code{fixest} estimation (obtained with \code{\link{femlm}},
@@ -28,15 +42,24 @@ linear in parameters part, then this will be added in the formula in between \co
 }
 \examples{
 
-# simple estimation on iris data, using "Species" fixed-effects
-res = femlm(Sepal.Length ~ Sepal.Width + Petal.Length +
-            Petal.Width | Species, iris)
+# example estimation with IVS and FEs
+base = setNames(iris, c("y", "x1", "endo", "instr", "species"))
+est = feols(y ~ x1 | species | endo ~ instr, base)
 
-# formula with the fixed-effect variable
-formula(res)
+# the full formula
+formula(est)
 
-# linear part without the fixed-effects
-formula(res, "linear")
+# idem without the IVs nor the FEs
+formula(est, "full.nofixef.noiv")
+
+# the reduced form
+formula(est, "iv.reduced")
+
+# the IV relation only
+formula(est, "iv")
+
+# the dependent variable => onse-sided formula
+formula(est, "lhs")
 
 
 }

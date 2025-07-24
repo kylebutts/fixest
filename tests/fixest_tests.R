@@ -2877,6 +2877,29 @@ est_fe = update(est_mult, . ~ . | fe)
 est_fe_noup = feols(c(y1, y2) ~ x1 | fe, base_mult)
 test(unlist(coef(est_fe)), unlist(coef(est_fe_noup)))
 
+
+####
+#### formula ####
+####
+
+chunk("formula")
+
+base = setNames(iris, c("y", "x1", "x2", "x3", "species"))
+est = feols(y ~ x1 | species | x2 ~ x3, base)
+
+test(formula(est), y ~ x1 | species | x2 ~ x3)
+test(formula(est, "full.noiv"), y ~ x1 | species)
+test(formula(est, "full.nofixef.noiv"), y ~ x1)
+test(formula(est, "lhs"), ~ y)
+test(formula(est, "rhs"), ~ x1 | species)
+test(formula(est, "rhs.nofixef"), ~ x1)
+test(formula(est, "fixef"), ~ species)
+test(formula(est, "iv"), x2 ~ x3)
+test(formula(est, "iv.endo"), ~ x2)
+test(formula(est, "iv.inst"), ~ x3)
+test(formula(est, "iv.reduced"), y ~ x1 + x3 | species)
+
+
 ####
 #### fitstat ####
 ####

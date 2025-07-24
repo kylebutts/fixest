@@ -1,0 +1,457 @@
+#------------------------------------------------------------------------------#
+# Author: Laurent R. Bergé
+# Created: 2025-07-24
+# ~: functions related to R-langage manipulation
+#------------------------------------------------------------------------------#
+
+
+
+####
+#### formula ####
+####
+
+is_operator = function(x, op){
+  if(length(x) <= 1) FALSE else x[[1]] == op
+}
+
+fml_breaker = function(fml, op){
+  res = list()
+  k = 1
+  while(is_operator(fml, op)){
+    res[[k]] = fml[[3]]
+    k = k + 1
+    fml = fml[[2]]
+  }
+  res[[k]] = fml
+
+  res
+}
+
+fml_maker = function(lhs, rhs){
+
+  while(is_operator(lhs, "(")){
+    lhs = lhs[[2]]
+  }
+
+  if(missing(rhs)){
+    if(is_operator(lhs, "~")){
+      return(lhs)
+    }
+    res = ~ .
+    res[[2]] = lhs
+  } else {
+
+    while(is_operator(rhs, "(")){
+      rhs = rhs[[2]]
+    }
+
+    res = . ~ .
+    res[[2]] = lhs
+    res[[3]] = rhs
+  }
+
+  res
+}
+
+fml_split_internal = function(fml, split.lhs = FALSE){
+
+  fml_split_tilde = fml_breaker(fml, "~")
+  k = length(fml_split_tilde)
+
+  # NOTA in fml_breaker: to avoid copies, the order of elements returned is reversed
+
+  # currently res is the LHS
+  res = list(fml_split_tilde[[k]])
+
+  if(k == 2){
+    rhs = fml_breaker(fml_split_tilde[[1]], "|")
+    l = length(rhs)
+
+  } else if(k == 3){
+    rhs  = fml_breaker(fml_split_tilde[[2]], "|")
+    l = length(rhs)
+    rhs_right = fml_breaker(fml_split_tilde[[1]], "|")
+
+    if(length(rhs_right) > 1){
+      stop_up("Problem in the formula: the formula in the RHS (expressing the IVs) cannot be multipart.")
+    }
+
+    # The rightmost element of the RHS is in position 1!!!!
+    iv_fml = fml_maker(rhs[[1]], rhs_right[[1]])
+
+    rhs[[1]] = iv_fml
+
+  } else {
+    # This is an error
+    stop_up("Problem in the formula: you cannot have more than one RHS part containing a formula.")
+  }
+
+  if(!split.lhs){
+    new_fml = fml_maker(res[[1]], rhs[[l]])
+
+    res[[1]] = new_fml
+    if(l == 1) return(res)
+    res[2:l] = rhs[(l - 1):1]
+
+  } else {
+    res[1 + (1:l)] = rhs[l:1]
+  }
+
+  res
+}
+
+
+fml_split = function(fml, i, split.lhs = FALSE, text = FALSE, raw = FALSE){
+  # I had to create that fonction to cope with the following formula:
+  #
+  #                       y ~ x1 | fe1 | u ~ z
+  #
+  # For Formula to work well, one would need to write insstead: y | x1 | fe1 | (u ~ z)
+  # that set of parentheses are superfluous
+
+  my_split = fml_split_internal(fml, split.lhs)
+
+  if(raw){
+    return(my_split)
+  } else if(text){
+
+    if(!missing(i)){
+      return(deparse_long(my_split[[i]]))
+    } else {
+      return(sapply(my_split, deparse_long))
+    }
+
+  } else if(!missing(i)) {
+    return(fml_maker(my_split[[i]]))
+
+  } else {
+    res = lapply(my_split, fml_maker)
+
+    return(res)
+  }
+
+}
+
+
+# fml_char = "x + y + u^factor(v1, v2) + x5"
+fml_combine = function(fml_char, fastCombine, vars = FALSE){
+  # function that transforms "hat" interactions into a proper function call:
+  # Origin^Destination^Product + Year becomes ~combine_clusters(Origin, Destination, Product) + Year
+
+  fun2combine = ifelse(fastCombine, "combine_clusters_fast", "combine_clusters")
+
+  # we need to change ^ into %^% otherwise terms sends error
+  labels = attr(terms(.xpd(rhs = gsub("\\^(?=[^0-9])", "%^%", fml_char, perl = TRUE))), 
+                "term.labels")
+
+  # now we work this out
+  for(i in seq_along(labels)){
+    lab = labels[i]
+    if(grepl("^", lab, fixed = TRUE)){
+      lab_split = trimws(strsplit(lab, "%^%", fixed = TRUE)[[1]])
+      if(grepl("(", lab, fixed = TRUE)){
+        # we add some error control -- imperfect, but... it's enough
+        lab_collapsed = gsub("\\([^\\)]+\\)", "", lab)
+        if(length(lab_split) != length(strsplit(lab_collapsed, "%^%", fixed = TRUE)[[1]])){
+          msg = "Wrong formatting of the fixed-effects interactions. The `^` operator should not be within parentheses."
+          stop(msg)
+        }
+      }
+      labels[i] = paste0(fun2combine, "(", paste0(lab_split, collapse = ", "), ")")
+    }
+  }
+
+  if(vars){
+    return(labels)
+  }
+
+  fml = .xpd(rhs = labels)
+
+  fml
+}
+
+# x = c('combine_clusters(bin(fe1, "!bin::2"), fe2)', 'fe3')
+rename_hat = function(x){
+
+  qui = grepl("combine_clusters", x, fixed = TRUE)
+  if(!any(qui)) return(x)
+
+  for(i in which(qui)){
+    xi_new = gsub("combine_clusters(_fast)?", "sw", x[i])
+    sw_only = extract_fun(xi_new, "sw")
+    sw_eval = eval(str2lang(sw_only$fun))
+    new_var = paste0(sw_only$before, paste0(sw_eval, collapse = "^"), sw_only$after)
+    x[i] = new_var
+  }
+
+  x
+}
+
+
+fml2varnames = function(fml, combine_fun = FALSE){
+  # This function transforms a one sided formula into a
+  # character vector for each variable
+
+  # In theory, I could just use terms.formula to extract the variable.
+  # But I can't!!!! Because of this damn ^ argument.
+  # I need to apply a trick
+
+  # combine_fun: whether to add a call to combine_clusters_fast
+
+  # Only the ^ users "pay the price"
+
+  if("^" %in% all.vars(fml, functions = TRUE)){
+    # new algo using fml_combine, more robust
+    fml_char = as.character(fml)[2]
+    all_var_names = fml_combine(fml_char, TRUE, vars = TRUE)
+    if(!combine_fun){
+      all_var_names = rename_hat(all_var_names)
+    }
+
+  } else {
+    t = terms(fml)
+    all_var_names = attr(t, "term.labels")
+    # => maybe I should be more cautious below???? Sometimes `:` really means stuff like 1:5
+    all_var_names = gsub(":", "*", all_var_names) # for very special cases
+  }
+
+
+  all_var_names
+}
+
+
+is_fml_inside = function(fml){
+  # we remove parentheses first
+
+  while(is_operator(fml, "(")){
+    fml = fml[[2]]
+  }
+
+  is_operator(fml, "~")
+}
+
+
+merge_fml = function(fml_linear, fml_fixef = NULL, fml_iv = NULL){
+
+  is_fe = length(fml_fixef) > 0
+  is_iv = length(fml_iv) > 0
+
+  if(!is_fe && !is_iv){
+    res = fml_linear
+  } else {
+    fml_all = deparse_long(fml_linear)
+
+    if(is_fe){
+      # we add parentheses if necessary
+      if(is_operator(fml_fixef[[2]], "|")){
+        fml_all[[2]] = paste0("(", as.character(fml_fixef)[2], ")")
+      } else {
+        fml_all[[2]] = as.character(fml_fixef)[2]
+      }
+    }
+
+    if(is_iv) fml_all[[length(fml_all) + 1]] = deparse_long(fml_iv)
+
+     res = as.formula(paste(fml_all, collapse = "|"), .GlobalEnv)
+  }
+
+  res
+}
+
+
+fixest_fml_rewriter = function(fml){
+  # Currently performs the following
+  # - expands lags
+  # - protects powers: x^3 => I(x^3)
+  #
+  # fml = sw(f(y, 1:2)) ~ x1 + l(x2, 1:2) + x2^2 | fe1 | y ~ z::e + g^3
+  # fml = y ~ 1 | id + period | l(x_endo, -1:1) ~ l(x_exo, -1:1)
+
+  fml_text = deparse_long(fml)
+
+  isPanel = grepl("(^|[^\\._[:alnum:]])(f|d|l)\\(", fml_text)
+  isPower = grepl("^", fml_text, fixed = TRUE)
+
+  if(isPanel){
+    # We rewrite term-wise
+
+    fml_parts = fml_split(fml, raw = TRUE)
+    n_parts = length(fml_parts)
+
+    #
+    # LHS
+    #
+
+    # only panel: no power (bc no need), no interact
+
+    # We tolerate multiple LHS and expansion
+    lhs_text = fml_split(fml, 1, text = TRUE, split.lhs = TRUE)
+
+    if(grepl("^(c|c?sw0?|list)\\(", lhs_text)){
+      lhs_text2eval = gsub("^(c|c?sw0?|list)\\(", "sw(", lhs_text)
+      lhs_names = eval(str2lang(lhs_text2eval))
+    } else {
+      lhs_names = lhs_text
+    }
+
+    lhs_all = error_sender(expand_lags_internal(lhs_names),
+                           "Problem in the formula regarding lag/leads: ", 
+                           clean = "__expand")
+
+    if(length(lhs_all) > 1){
+      lhs_fml = paste("c(", paste(lhs_all, collapse = ","), ")")
+    } else {
+      lhs_fml = lhs_all
+    }
+
+    lhs_text = lhs_fml
+
+    #
+    # RHS
+    #
+
+    # power + panel + interact
+
+    if(isPower){
+      # rhs actually also contains the LHS
+      rhs_text = deparse_long(fml_parts[[1]])
+      rhs_text = gsub("(?<!I\\()(\\b(\\.[[:alpha:]]|[[:alpha:]])[[:alnum:]\\._]*\\^[[:digit:]]+)", 
+                      "I(\\1)", rhs_text, perl = TRUE)
+
+      if(grepl("\\^[[:alpha:]]", rhs_text)){
+        stop_up("The operator `^` between variables can be used only in the fixed-effects part of the formula. Otherwise, please use `:` instead.")
+      }
+
+      fml_rhs = as.formula(rhs_text)
+    } else {
+      fml_rhs = fml_maker(fml_parts[[1]])
+    }
+
+    rhs_terms = get_vars(fml_rhs)
+
+    if(length(rhs_terms) == 0){
+      rhs_text = "1"
+    } else {
+      rhs_terms = error_sender(expand_lags_internal(rhs_terms),
+                               "Problem in the formula regarding lag/leads: ", 
+                               clean = "__expand")
+
+      if(attr(terms(fml_rhs), "intercept") == 0){
+        rhs_terms = c("-1", rhs_terms)
+      }
+
+      rhs_text = paste(rhs_terms, collapse = "+")
+    }
+
+    fml_linear = as.formula(paste0(lhs_text, "~", rhs_text))
+
+    #
+    # FE + IV
+    #
+
+    fml_fixef = fml_iv = NULL
+
+    if(n_parts > 1){
+
+      #
+      # FE
+      #
+
+      # Only isPanel (although odd....)
+
+      is_fe = !is_fml_inside(fml_parts[[2]])
+      if(is_fe){
+
+        if(identical(fml_parts[[2]], 0)){
+          fml_fixef = NULL
+
+        } else {
+
+          fml_fixef = fml_maker(fml_parts[[2]])
+          fml_fixef_text = deparse_long(fml_fixef)
+
+          if(grepl("(l|d|f)\\(", fml_fixef_text)){
+            # We need to make changes
+            # 1st: for terms to work => we change ^ if present (sigh)
+
+            do_sub = grepl("^", fml_fixef_text, fixed = TRUE)
+
+            if(do_sub){
+              fml_fixef = as.formula(gsub("^", "%^%", fml_fixef_text, fixed = TRUE))
+            }
+
+            fixef_terms = attr(terms(fml_fixef), "term.labels")
+            fixef_text = error_sender(expand_lags_internal(fixef_terms),
+                                      "Problem in the formula regarding lag/leads: ", 
+                                      clean = "__expand")
+
+            if(do_sub){
+              fixef_text = gsub(" %^% ", "^", fixef_text, fixed = TRUE)
+            }
+
+            fml_fixef = as.formula(paste("~", paste(fixef_text, collapse = "+")))
+
+          }
+        }
+      }
+
+      #
+      # IV
+      #
+
+      if(n_parts == 3 || !is_fe){
+        fml_iv = fml_maker(fml_parts[[n_parts]])
+
+        fml_endo = .xpd(lhs = ~y, rhs = fml_iv[[2]])
+        fml_inst = .xpd(lhs = ~y, rhs = fml_iv[[3]])
+
+        endo_lag_expand = fixest_fml_rewriter(fml_endo)$fml
+        inst_lag_expand = fixest_fml_rewriter(fml_inst)$fml
+
+        fml_iv = .xpd(lhs = endo_lag_expand[[3]], rhs = inst_lag_expand[[3]])
+      }
+    }
+
+    fml_new = merge_fml(fml_linear, fml_fixef, fml_iv)
+
+  } else if(isPower){
+    # This is damn costly.... but I have to deal with corner cases....
+    # I think I should do that at the C level, this will be much faster I guess
+
+    # We only take care of the RHS (we don't care about the LHS)
+    no_lhs_text = gsub("^[^~]+~", "", fml_text)
+    no_lhs_text = gsub("(?<!I\\()(\\b(\\.[[:alpha:]]|[[:alpha:]])[[:alnum:]\\._]*\\^[[:digit:]]+)", 
+                       "I(\\1)", no_lhs_text, perl = TRUE)
+
+    if(grepl("\\^[[:alpha:]]", no_lhs_text)){
+      # We check if there is one ^ specifically in the RHS or in the IV part
+      fml_parts = fml_split(fml, raw = TRUE)
+      n_parts = length(fml_parts)
+
+      rhs_txt = fml_split(fml, i = 1, text = TRUE)
+
+      if(grepl("\\^[[:alpha:]]", rhs_txt)){
+        stop_up("The operator `^` between variables can be used only in the fixed-effects part of the formula. Otherwise, please use `:` instead.")
+      }
+
+      if(is_fml_inside(fml_parts[[n_parts]])){
+        iv_txt = fml_split(fml, i = n_parts, text = TRUE)
+
+        if(grepl("\\^[[:alpha:]]", iv_txt)){
+          stop_up("The operator `^` between variables can be used only in the fixed-effects part of the formula. Otherwise, please use `:` instead.")
+        }
+      }
+
+    }
+
+    fml_new = as.formula(paste0(gsub("~.+", "", fml_text), "~", no_lhs_text))
+
+  } else {
+    res = list(fml = fml, isPanel = FALSE)
+    return(res)
+  }
+
+  res = list(fml = fml_new, isPanel = isPanel)
+
+  return(res)
+}

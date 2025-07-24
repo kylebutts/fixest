@@ -4308,7 +4308,7 @@ etable_internal_df = function(info){
     # we clean possible tex markup
     el_name = gsub(":tex:", "", el_name, fixed = TRUE)
 
-    my_line = c(el_name, el_format)
+    my_line = head(c(el_name, el_format), ncol(res))
 
     if(el_top){
       if(el_where == "coef"){

@@ -2817,6 +2817,24 @@ est_no_fe_noup = feols(y ~ x1, base)
 test(coef(est_no_fe), coef(est_no_fe_noup))
 
 #
+# IVs
+#
+
+est = feols(y ~ x1 | species | x2 ~ x3, base)
+
+# remove IV
+upd_no_iv = update(est, . ~ . | . | 0)
+est_no_iv = feols(y ~ x1 | species, base)
+test(coef(upd_no_iv), coef(est_no_iv))
+
+# add instr
+upd_add_inst = update(est, . ~ . | . | . ~ . + I(.^2))
+est_add_inst = feols(y ~ x1 | species| x2 ~ x3 + x3^2, base)
+test(coef(upd_add_inst), coef(est_add_inst))
+
+update(est, . ~ . + I(.^2) | . | 0)
+
+#
 # Single estimation from multiple estimation
 #
 

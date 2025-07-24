@@ -548,7 +548,7 @@ fixest_upadte_formula = function(fml_new, fml_old){
     if(identical(iv_new[[2]], 0)){
       # y ~ . | . | 0
       fml_iv = NULL
-    } else if(identical(iv_new[[2]], quote(.))){
+    } else if(length(iv_new) == 2 && identical(iv_new[[2]], quote(.))){
       fml_iv = iv_old
     } else {
       if(is.null(iv_old)){

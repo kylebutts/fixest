@@ -76,6 +76,10 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - function `xpd` gains the argument `add.after_pipe` to add components to the formula after a pipe (`|`)
 
+- the `update.fixest` and `update.fixest_multi` now handle the formula updates much better, in particular for IVs 
+
+- `update.(fixest|fixest_multi)` gain the new argument `fml` which can override the `fml.update` argument
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

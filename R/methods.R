@@ -3163,16 +3163,12 @@ update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1,
   # If 1) SAME DATA and 2) SAME dep.var, then we make initialisation
 
 
-  if(missing(fml.update)){
-    fml.update = . ~ .
-  } else {
-    check_arg(fml.update, "formula")
-  }
+  check_arg(fml.update, fml, "NULL ts formula")
 
   check_arg(evaluate, "logical scalar")
 
   if(isTRUE(object$is_fit)){
-    stop("update method not available for fixest estimations obtained from fit methods.")
+    stop("update method not available for `fixest` estimations obtained from fit methods.")
   }
 
   if(!isScalar(nframes) || nframes < 1 || nframes %% 1 != 0){
@@ -3191,7 +3187,7 @@ update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1,
 
   dot_names = names(dots)
   if("fixef" %in% dot_names){
-    stop("Argument 'fixef' is not accepted in the 'update.fixest' method. Please make modifications to fixed-effects directly in the argument 'fml.update'. (E.g. .~.|.+v5 to add variable v5 as a fixed-effect.)")
+    stop("Argument 'fixef' is not accepted in the 'update.fixest' method. Please make modifications to fixed-effects directly in the argument 'fml.update'. \n(E.g. `. ~ . | . + v5` to add variable `v5` as a fixed-effect.)")
   }
 
   if(any(dot_names == "")){
@@ -3199,14 +3195,7 @@ update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1,
     problems = call_new[call_new_names == ""][-1]
     stop("In 'update.fixest' the arguments of '...' are passed to the function ", object$method, ", and must be named. Currently there are un-named arguments (e.g. '", deparse_long(problems[[1]]), "').")
   }
-
-  #
-  # I) Linear formula update
-  #
-
-  fml_old = object$fml_all$linear
-  fml_linear = update(fml_old, fml_split(fml.update, 1))
-
+  
   # Family information
   if(!is.null(dots$family)){
     if(object$method_type == "feols"){
@@ -3215,98 +3204,17 @@ update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1,
       family_new = match.arg(dots$family, c("poisson", "negbin", "gaussian", "logit"))
     }
   }
-
+  
   #
-  # II) fixed-effects updates
+  # the formula
   #
-
-  fml_fixef = NULL
-
-  update_fml_parts = fml_split(fml.update, raw = TRUE)
-  n_parts = length(update_fml_parts)
-
-  if(n_parts > 2 + (object$method_type == "feols")){
-    stop("The update formula cannot have more than ", 2 + (object$method_type == "feols"), " parts for the method ", object$method, ".")
+  
+  fml_new = formula(object)
+  if(!is.null(fml)){
+    fml_new = fml
+  } else if(!is.null(fml.update)){
+    fml_new = fixest_upadte_formula(fml.update, fml_new)
   }
-
-  is_fe = n_parts > 1 && !is_fml_inside(update_fml_parts[[2]])
-
-  fixef_vars = object$fixef_vars
-
-  if(is_fe){
-
-    fixef_old = object$fml_all$fixef
-
-    # I use it as text to catch the var1^var2 FEs (update does not work)
-    if(is.null(fixef_old)){
-      fixef_old = ~1
-      fixef_old_text = "~ 1"
-    } else {
-      fixef_old_text = deparse_long(fixef_old)
-    }
-
-    fixef_new_fml = fml_maker(update_fml_parts[[2]])
-    fixef_new_text = deparse_long(fixef_new_fml)
-
-    if(fixef_new_text == "~."){
-      # nothing happens
-      fixef_new = fixef_old
-
-    } else if(fixef_new_text %in% c("~0", "~1")){
-      fixef_new = ~1
-
-    } else if(grepl("\\^", fixef_old_text) || grepl("\\^", fixef_new_text)){
-      # we update manually.... dammmit
-      # Note that what follows does not work ONLY when you have number^var or number^number
-      # and both cases don't make much sense -- I need not control for them
-      fml_text_old = gsub("\\^", "__666__", fixef_old_text)
-      fml_text_new = gsub("\\^", "__666__", fixef_new_text)
-
-      fixef_new_wip = update(as.formula(fml_text_old), as.formula(fml_text_new))
-
-      fixef_new = as.formula(gsub("__666__", "^", fixef_new_wip))
-    } else {
-      fixef_new = update(fixef_old, fixef_new_fml)
-    }
-
-    if(length(all.vars(fixef_new)) > 0){
-      # means there is a fixed-effect
-      fml_fixef = fixef_new
-    }
-
-  } else if(!is.null(fixef_vars)){
-    # the formula updated:
-    fml_fixef = object$fml_all$fixef
-
-  }
-
-  #
-  # III) IV updates
-  #
-
-  if(n_parts > 2 || (n_parts == 2 && !is_fe)){
-
-    iv_new_fml = fml_maker(update_fml_parts[[n_parts]])
-
-    if(!is_fml_inside(iv_new_fml)){
-      stop("The third part of the update formula in 'feols' must be a formula.")
-    }
-
-    iv_old = object$fml_all$iv
-
-    if(is.null(iv_old)){
-      fml_iv = iv_new_fml
-
-    } else {
-      fml_iv = update(iv_old, iv_new_fml)
-    }
-
-  } else {
-    fml_iv = object$fml_all$iv
-  }
-
-
-  fml_new = merge_fml(fml_linear, fml_fixef, fml_iv)
 
   #
   # The call
@@ -3366,7 +3274,8 @@ update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1,
 
 
 #' @rdname update.fixest
-update.fixest_multi = function(object, fml.update, nframes = 1, evaluate = TRUE, ...){
+update.fixest_multi = function(object, fml.update = NULL, fml = NULL, nframes = 1, 
+                               evaluate = TRUE, ...){
   # We use update.fixest
   # We just need to rewrite the formula since the call in the object is the one 
   # of the main estimation.
@@ -3391,7 +3300,7 @@ update.fixest_multi = function(object, fml.update, nframes = 1, evaluate = TRUE,
   
   call_new = match.call()
 
-  update(est_first, fml.update = fml.update, nframes = nframes + 1, 
+  update(est_first, fml.update = fml.update, fml = fml, nframes = nframes + 1, 
          evaluate = evaluate, is_multiple = TRUE, call = call_new, ...)
 }
 

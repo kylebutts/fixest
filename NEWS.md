@@ -84,6 +84,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - greatly improve the `formula.fixest` method, with now a wide range of possibilities to compose the resulting formula
 
+- in `formula.fixest`, add the new arguments `fml.update` and `fml.build` to easily modify the formula of the original object
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

@@ -3326,7 +3326,8 @@ update.fixest_multi = function(object, fml.update = NULL, fml = NULL, nframes = 
 #' in the formula after a pipe (\dQuote{|}). If the estimation was done with a non 
 #' linear in parameters part, then this will be added in the formula in between `I()`.
 #'
-#'
+#' @inheritParams update.fixest
+#' 
 #' @param x An object of class `fixest`. Typically the result of a [`femlm`], [`feols`] 
 #' or [`feglm`] estimation.
 #' @param type A character scalar. Default is `type = "full"` which gives back a formula 
@@ -3336,16 +3337,34 @@ update.fixest_multi = function(object, fml.update = NULL, fml = NULL, nframes = 
 #' - `full.nofixef.noiv`: the full formula without the IV nor the fixed-effects part
 #' - `lhs`: a one-sided formula with the dependent variable
 #' - `rhs`: a one-sided formula of the right hand side without the IVs (if any)
-#' - `rhs.nofixef`: a one-sided formula of the right hand side without the 
-#' fixed-effects nor IVs (if any)
+#' - `rhs.nofixef` or `indep`: a one-sided formula of the right hand side without the 
+#' fixed-effects nor IVs (if any), it is equivalent to the 
+#' independent variables
 #' - `NL`: a one-sided formula with the non-linear part (if any)
 #' - `fixef`: a one-sided formula containing the fixed-effects
 #' - `iv`: a two-sided formula containing the endogenous variables (left) and the
 #' instruments (right)
 #' - `iv.endo`: a one-sided formula of the endogenous variables
 #' - `iv.inst`: a one-sided formula of the instruments
-#' - `iv.reduced`: a two-sided formula representing the reduced form, that is `y ~ exo + inst`
+#' - `iv.reduced`: a two-sided formula representing the reduced form, 
+#' that is `y ~ exo + inst`
+#' @param fml.build A formula or `NULL` (default). You can create a new formula based 
+#' on the parts of the formula of the object in `x`. In this argument you have access
+#' to these specific variables:
+#' - `.`: to refer to the part of the original formula
+#' - `.lhs`: to refer to the dependent variable
+#' - `.indep`: to refer to the independent variables (excluding the fixed-effects)
+#' - `.fixef`: to refer to the fixed-effects
+#' - `.endo`: to refer to endogenous variables in an IV estimation
+#' - `.inst`: to refer to instruments in an IV estimation
+#' 
+#' Example, the original estimation was `y ~ x1 | z ~ inst`. Then 
+#' `fml.build = . ~ .endo + .` leads to `y ~ z + x1`.
 #' @param ... Not currently used.
+#' 
+#' @details 
+#' The arguments `type`, `fml.update` and `fml.build` are exclusive: they 
+#' cannot be used at the same time.
 #'
 #' @return
 #' It returns either a one-sided formula, either a two-sided formula.
@@ -3377,27 +3396,102 @@ update.fixest_multi = function(object, fml.update = NULL, fml = NULL, nframes = 
 #' 
 #' # the dependent variable => onse-sided formula
 #' formula(est, "lhs")
+#' 
+#' # using update, we add x1^2 as an independent variable:
+#' formula(est, fml.update = . ~ . + x1^2)
+#' 
+#' # using build, see the difference => the FEs and the IVs are not inherited
+#' formula(est, fml.build = . ~ . + x1^2)
+#' 
+#' # we can use some special variables
+#' formula(est, fml.build = . ~ .endo + .indep)
 #'
 #'
-formula.fixest = function(x, type = "full", ...){
+formula.fixest = function(x, type = "full", fml.update = NULL, 
+                          fml.build = NULL, ...){
   # Extract the formula from the object
   # we add the clusters in the formula if needed
-
+  
   # Checking the arguments
   if(is_user_level_call()){
     validate_dots(suggest_args = "type")
   }
-
+  
+  check_arg(fml.update, fml.build, "NULL ts formula")
+  
   if(isTRUE(x$is_fit)){
     stop("formula method not available for fixest estimations obtained from fit methods.")
   }
   
-  check_set_arg(type, "match(full, full.noiv, full.nofixef.noiv, lhs, rhs, rhs.nofixef, NL, fixef, iv, iv.endo, iv.inst, iv.reduced, linear)", 
-                .message = "The argument `type` must be one of: `full`, `full.noiv`, `full.nofixef.noiv`, `lhs`, `rhs`, `rhs.nofixef`, `NL`, `fixef`, `iv`, `iv.endo`, `iv.inst`, `iv.reduced`")
+  check_set_arg(type, "match(full, full.noiv, full.nofixef.noiv, lhs, indep, rhs, rhs.nofixef, NL, fixef, iv, iv.endo, iv.inst, iv.reduced, linear)", 
+                .message = "The argument `type` must be one of: `full`, `full.noiv`, `full.nofixef.noiv`, `lhs`, `rhs`, `indep`, `rhs.nofixef`, `NL`, `fixef`, `iv`, `iv.endo`, `iv.inst`, `iv.reduced`")
   
-  if(type == "linear"){
-    type = "full.nofixef.noiv"
+  if(!is.null(fml.update)){
+    fml_old = merge_fml(x$fml_all$linear, x$fml_all$fixef, x$fml_all$iv)
+    res = fixest_upadte_formula(fml.update, fml_old)
+    
+    return(res)
+    
   }
+  
+  if(!is.null(fml.build)){
+    
+    fml_main = x$fml_all$linear
+    fml_fixef = x$fml_all$fixef
+    fml_iv = x$fml_all$iv
+    
+    fml_parts_new = fml_split(fml.build)
+    
+    if(length(fml_parts_new) == 1){
+      fml_fixef = NULL
+      fml_iv = NULL
+    } else if(length(fml_parts_new) == 2){
+      if(length(fml_parts_new[[2]]) == 2){
+        # no iv
+        fml_iv = NULL
+      } else {
+        # no FE
+        fml_fixef = NULL
+      }
+    }
+    
+    fml_old = merge_fml(fml_main, fml_fixef, fml_iv)
+    res = fixest_upadte_formula(fml.build, fml_old)
+    
+    vars = all.vars(res)
+    if(".lhs" %in% vars){
+      res = replace_target_with_expr(res, quote(.lhs), formula(x, "lhs")[[2]])
+    }
+    
+    if(".indep" %in% vars){
+      res = replace_target_with_expr(res, quote(.indep), formula(x, "indep")[[2]])
+    }
+    
+    if(".fixef" %in% vars){
+      res = replace_target_with_expr(res, quote(.fixef), formula(x, "fixef")[[2]])
+    }
+    
+    if(".endo" %in% vars){
+      if(!isTRUE(x$iv)){
+        stop("In the argument `fml.update`, the variable `.endo` is only accessible when `x` is an IV estimation, which is not the case here.")
+      }
+      res = replace_target_with_expr(res, quote(.endo), formula(x, "iv.endo")[[2]])
+    }
+    
+    if(".inst" %in% vars){
+      if(!isTRUE(x$iv)){
+        stop("In the argument `fml.update`, the variable `.inst` is only accessible when `x` is an IV estimation, which is not the case here.")
+      }
+      res = replace_target_with_expr(res, quote(.inst), formula(x, "iv.inst")[[2]])
+    }
+    
+    return(res)
+    
+  }
+  
+  
+  if(type == "linear") type = "full.nofixef.noiv"
+  if(type == "indep") type = "rhs.nofixef"
   
   if(type == "full"){
     res = merge_fml(x$fml_all$linear, x$fml_all$fixef, x$fml_all$iv)

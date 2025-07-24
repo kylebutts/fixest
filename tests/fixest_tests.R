@@ -2899,6 +2899,15 @@ test(formula(est, "iv.endo"), ~ x2)
 test(formula(est, "iv.inst"), ~ x3)
 test(formula(est, "iv.reduced"), y ~ x1 + x3 | species)
 
+# update
+test(formula(est, fml.update = . ~ . + I(x1^2)), 
+     y ~ x1 + I(x1^2)| species | x2 ~ x3)
+
+test(formula(est, fml.update = . ~ . + I(x1^2) | 0 | 0), 
+     y ~ x1 + I(x1^2))
+
+# build
+test(formula(est, fml.build = . ~ .endo + .inst), y ~ x2 + x3)
 
 ####
 #### fitstat ####

@@ -4,7 +4,7 @@
 \alias{formula.fixest}
 \title{Extract the formula of a \code{fixest} fit}
 \usage{
-\method{formula}{fixest}(x, type = "full", ...)
+\method{formula}{fixest}(x, type = "full", fml.update = NULL, fml.build = NULL, ...)
 }
 \arguments{
 \item{x}{An object of class \code{fixest}. Typically the result of a \code{\link{femlm}}, \code{\link{feols}}
@@ -18,16 +18,44 @@ IV part (if any). Here is a description of the other types:
 \item \code{full.nofixef.noiv}: the full formula without the IV nor the fixed-effects part
 \item \code{lhs}: a one-sided formula with the dependent variable
 \item \code{rhs}: a one-sided formula of the right hand side without the IVs (if any)
-\item \code{rhs.nofixef}: a one-sided formula of the right hand side without the
-fixed-effects nor IVs (if any)
+\item \code{rhs.nofixef} or \code{indep}: a one-sided formula of the right hand side without the
+fixed-effects nor IVs (if any), it is equivalent to the
+independent variables
 \item \code{NL}: a one-sided formula with the non-linear part (if any)
 \item \code{fixef}: a one-sided formula containing the fixed-effects
 \item \code{iv}: a two-sided formula containing the endogenous variables (left) and the
 instruments (right)
 \item \code{iv.endo}: a one-sided formula of the endogenous variables
 \item \code{iv.inst}: a one-sided formula of the instruments
-\item \code{iv.reduced}: a two-sided formula representing the reduced form, that is \code{y ~ exo + inst}
+\item \code{iv.reduced}: a two-sided formula representing the reduced form,
+that is \code{y ~ exo + inst}
 }}
+
+\item{fml.update}{A formula representing the changes to be made to the original
+formula. By default it is \code{NULL}.
+Use a dot to refer to the previous variables in the current part.
+For example: \code{. ~ . + xnew} will add the variable \code{xnew} as an explanatory variable.
+Note that the previous fixed-effects (FEs) and IVs are implicitly forwarded.
+To rerun without the FEs or the IVs, you need to set them to 0 in their respective slot.
+Ex, assume the original formula is: \code{y ~ x | fe | endo ~ inst}, passing \code{. ~ . + xnew}
+to fml.update leads to \code{y ~ x + xnew | fe | endo ~ inst} (FEs and IVs are forwarded).
+To add xnew and remove the IV part: use \code{. ~ . + xnew | . | 0} which leads to
+\code{y ~ x + xnew | fe}.}
+
+\item{fml.build}{A formula or \code{NULL} (default). You can create a new formula based
+on the parts of the formula of the object in \code{x}. In this argument you have access
+to these specific variables:
+\itemize{
+\item \code{.}: to refer to the part of the original formula
+\item \code{.lhs}: to refer to the dependent variable
+\item \code{.indep}: to refer to the independent variables (excluding the fixed-effects)
+\item \code{.fixef}: to refer to the fixed-effects
+\item \code{.endo}: to refer to endogenous variables in an IV estimation
+\item \code{.inst}: to refer to instruments in an IV estimation
+}
+
+Example, the original estimation was \code{y ~ x1 | z ~ inst}. Then
+\code{fml.build = . ~ .endo + .} leads to \code{y ~ z + x1}.}
 
 \item{...}{Not currently used.}
 }
@@ -39,6 +67,10 @@ This function extracts the formula from a \code{fixest} estimation (obtained wit
 \code{\link{feols}} or \code{\link{feglm}}). If the estimation was done with fixed-effects, they are added
 in the formula after a pipe (\dQuote{|}). If the estimation was done with a non
 linear in parameters part, then this will be added in the formula in between \code{I()}.
+}
+\details{
+The arguments \code{type}, \code{fml.update} and \code{fml.build} are exclusive: they
+cannot be used at the same time.
 }
 \examples{
 
@@ -60,6 +92,15 @@ formula(est, "iv")
 
 # the dependent variable => onse-sided formula
 formula(est, "lhs")
+
+# using update, we add x1^2 as an independent variable:
+formula(est, fml.update = . ~ . + x1^2)
+
+# using build, see the difference => the FEs and the IVs are not inherited
+formula(est, fml.build = . ~ . + x1^2)
+
+# we can use some special variables
+formula(est, fml.build = . ~ .endo + .indep)
 
 
 }

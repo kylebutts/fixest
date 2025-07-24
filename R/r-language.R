@@ -455,3 +455,134 @@ fixest_fml_rewriter = function(fml){
 
   return(res)
 }
+
+
+replace_dot_with_expr = function(expr, replacement){
+  
+  if(!'.' %in% all.vars(expr)){
+    return(expr)
+  }
+  
+  replace_target_with_expr(expr, quote(.), replacement)
+}
+
+replace_target_with_expr = function(expr, target, replacement){
+  
+  if(length(expr) == 1){
+    if(is.name(expr) && expr == target){
+      return(replacement)
+    } else {
+      return(expr)
+    }
+  }
+  
+  for(i in 2:length(expr)){
+    expr[[i]] = replace_target_with_expr(expr[[i]], target, replacement)
+  }
+  
+  return(expr)
+}
+
+fixest_upadte_formula = function(fml_new, fml_old){
+  
+  all_parts_old = fml_split(fml_old)
+  all_parts_new = fml_split(fml_new)
+  
+  #
+  # linear no FE
+  #
+  
+  linear_old = all_parts_old[[1]]
+  linear_new = all_parts_new[[1]]
+  
+  lhs_old = linear_old[[2]]
+  lhs_new = linear_new[[2]]
+  
+  rhs_old = linear_old[[3]]
+  rhs_new = linear_new[[3]]
+  
+  fml_main = xpd(lhs = replace_dot_with_expr(lhs_new, lhs_old),
+                 rhs = replace_dot_with_expr(rhs_new, rhs_old))
+  
+  #
+  # fe
+  #
+  
+  fe_old = NULL
+  if(length(all_parts_old) > 1 && length(all_parts_old[[2]]) == 2){
+    fe_old = all_parts_old[[2]][[2]]
+  }
+  
+  fe_new = NULL
+  if(length(all_parts_new) > 1 && length(all_parts_new[[2]]) == 2){
+    fe_new = all_parts_new[[2]][[2]]
+  }
+  
+  fml_fe = fe_old
+  if(!is.null(fe_new)){
+    if(identical(fe_new, 0)){
+      fml_fe = NULL
+    } else {
+      fml_fe = replace_dot_with_expr(fe_new, fe_old)
+    }
+  }
+  
+  #
+  # iv
+  #
+  
+  iv_old = NULL
+  if(length(all_parts_old) > 1 && length(all_parts_old[[length(all_parts_old)]]) == 3){
+    iv_old = all_parts_old[[length(all_parts_old)]]
+  }
+  
+  iv_new = NULL
+  if((length(all_parts_new) > 1 && length(all_parts_new[[length(all_parts_new)]]) == 3) || 
+     length(all_parts_new) == 3){
+    iv_new = all_parts_new[[length(all_parts_new)]]
+    
+  }
+  
+  fml_iv = iv_old
+  if(!is.null(iv_new)){
+    if(identical(iv_new[[2]], 0)){
+      # y ~ . | . | 0
+      fml_iv = NULL
+    } else if(identical(iv_new[[2]], quote(.))){
+      fml_iv = iv_old
+    } else {
+      if(is.null(iv_old)){
+        fml_iv = iv_new
+      } else {
+        
+        endo_old = iv_old[[2]]
+        endo_new = iv_new[[2]]
+        
+        inst_old = iv_old[[3]]
+        inst_new = iv_new[[3]]
+        
+        fml_iv = xpd(lhs = replace_dot_with_expr(endo_new, endo_old),
+                     rhs = replace_dot_with_expr(inst_new, inst_old))
+        
+      }
+    }
+  }
+  
+  #
+  # combining
+  #
+  
+  res = fml_main
+  
+  if(!is.null(fml_fe)){
+    res = xpd(res, add.after_pipe = fml_fe)
+  }
+  
+  if(!is.null(fml_iv)){
+    res = xpd(res, add.after_pipe = fml_iv)
+  }
+  
+  res
+  
+}
+

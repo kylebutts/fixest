@@ -3108,10 +3108,19 @@ confint.fixest = function(object, parm, level = 0.95, vcov, se, cluster,
 #' 
 #' @param object A `fixest` or `fixest_multi` object. These are obtained from [`feols`], or
 #' [`feglm`] estimations, for example.
-#' @param fml.update Changes to be made to the original argument `fml`. See more information 
-#' on [`update.formula`][stats::update.formula]. You can add/withdraw both variables 
-#' and fixed-effects. E.g. `. ~ . + x2 | . + z2` would add the variable `x2` and the 
-#' fixed-effect `z2` to the former estimation.
+#' @param fml.update A formula representing the changes to be made to the original 
+#' formula. By default it is `NULL`. 
+#' Use a dot to refer to the previous variables in the current part. 
+#' For example: `. ~ . + xnew` will add the variable `xnew` as an explanatory variable.
+#' Note that the previous fixed-effects (FEs) and IVs are implicitly forwarded. 
+#' To rerun without the FEs or the IVs, you need to set them to 0 in their respective slot.
+#' Ex, assume the original formula is: `y ~ x | fe | endo ~ inst`, passing `. ~ . + xnew`
+#' to fml.update leads to `y ~ x + xnew | fe | endo ~ inst` (FEs and IVs are forwarded).
+#' To add xnew and remove the IV part: use `. ~ . + xnew | . | 0` which leads to
+#' `y ~ x + xnew | fe`.
+#' @param fml A formula, default is `NULL`. If provided, it will completely override
+#' the value in `fml.update`, which will be ignored. Note that this formula will be 
+#' used for the new estimation, without any modification.
 #' @param nframes (Advanced users.) Defaults to 1. Number of frames up the stack where 
 #' to perform the evaluation of the updated call. By default, this is the parent frame.
 #' @param evaluate Logical, default is `TRUE`. If `FALSE`, only the updated call is returned.
@@ -3121,7 +3130,8 @@ confint.fixest = function(object, parm, level = 0.95, vcov, se, cluster,
 #' It returns a `fixest` object (see details in [`femlm`], [`feols`] or [`feglm`]).
 #'
 #' @seealso
-#' See also the main estimation functions [`femlm`], [`feols`] or [`feglm`]. [`predict.fixest`], [`summary.fixest`], [`vcov.fixest`], [`fixef.fixest`].
+#' See also the main estimation functions [`femlm`], [`feols`] or [`feglm`]. 
+#' [`predict.fixest`], [`summary.fixest`], [`vcov.fixest`], [`fixef.fixest`].
 #'
 #' @author
 #' Laurent Berge
@@ -3146,7 +3156,8 @@ confint.fixest = function(object, parm, level = 0.95, vcov, se, cluster,
 #' # Quick look at the 4 estimations
 #' etable(est_pois, est_2, est_3, est_4)
 #'
-update.fixest = function(object, fml.update, nframes = 1, evaluate = TRUE, ...){
+update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1, 
+                         evaluate = TRUE, ...){
   # Update method
   # fml.update: update the formula
   # If 1) SAME DATA and 2) SAME dep.var, then we make initialisation

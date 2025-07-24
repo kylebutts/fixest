@@ -2124,7 +2124,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
   if(length(headers) == 0){
     isHeaders = FALSE
   } else {
-
+    
     n_all = lengths(headers)
 
     if(any(n_models %% n_all != 0)){
@@ -3103,7 +3103,8 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
              is_fe = is_fe, nb_fe = nb_fe, slope_flag_list = slope_flag_list,
              slope_names = slope_names, useSummary = useSummary, model_names = model_names,
              family_list = family_list, fitstat_list = fitstat_list, headers = headers,
-             isHeaders = isHeaders, caption = caption, convergence = convergence, family = family,
+             isHeaders = isHeaders, caption = caption, convergence = convergence, 
+             family = family,
              keep = keep, drop = drop, order = order, file = file, label = label, 
              se.below = se.below,
              signif.code = signif.code, fixef_sizes = fixef_sizes, 
@@ -3113,8 +3114,10 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
              float = float, coefstat = coefstat, ci = ci, style = style, 
              notes = notes, group = group,
              extralines = extralines, placement = placement, drop.section = drop.section,
-             tex_tag = tex_tag, fun_format = fun_format, coef.just = coef.just, meta = meta_txt,
-             tpt = tpt, arraystretch = arraystretch, adjustbox = adjustbox, fontsize = fontsize,
+             tex_tag = tex_tag, fun_format = fun_format, coef.just = coef.just, 
+             meta = meta_txt,
+             tpt = tpt, arraystretch = arraystretch, adjustbox = adjustbox, 
+             fontsize = fontsize,
              tabular = tabular, highlight = highlight, coef.style = coef.style,
              caption.number = caption.number)
 
@@ -6898,6 +6901,10 @@ expand_list_vector = function(x){
         x_new = c(x_new, rep(x_names[j], x[j]))
       }
     }
+  }
+  
+  if(is.list(x_new)){
+    x_new = as.character(x_new)
   }
 
   return(x_new)

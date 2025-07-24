@@ -188,6 +188,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug preventing the display of named custom vcov in `etable`
 
+- fix bug in `etable` when `headers`/`extralines` receive a list of numeric and character values at the same time. Reported by @Oravishayrizi, #574
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

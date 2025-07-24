@@ -1584,36 +1584,48 @@ i_noref = function(factor_var, var, ref, bin, keep, ref2, keep2, bin2){
 #'
 #' @inheritParams setFixest_fml
 #'
-#' @param fml A formula containing macros variables. Each macro variable must start with two dots. 
+#' @param fml A formula containing macros variables. Each macro variable must start 
+#' with two dots. 
 #' The macro variables can be set globally using `setFixest_fml`, or can be defined in `...`. 
 #' Special macros of the form `..("regex")` can be used to fetch, through a regular expression, 
-#' variables directly in a character vector (or in column names) given in the argument `data` (note 
-#' that the algorithm tries to "guess" the argument data when nested in function calls \[see 
-#' example\]). You can negate the regex by starting with a `"!"`. Square brackets have a special 
-#' meaning: Values in them are evaluated and parsed accordingly. Example: `y~x.[1:2] + z.[i]` will 
-#' lead to `y~x1+x2+z3` if `i==3`. You can trigger the auto-completion of variables by using the 
-#' `'..'` suffix, like in `y ~ x..` which would include `x1` and `x2`, etc. See examples.
-#' @param add Either a character scalar or a one-sided formula. The elements will be added to the 
-#' right-hand-side of the formula, before any macro expansion is applied.
-#' @param lhs If present then a formula will be constructed with `lhs` as the full left-hand-side. 
+#' variables directly in a character vector (or in column names) given in the 
+#' argument `data` (note that the algorithm tries to "guess" the argument data when 
+#' nested in function calls \[see example\]). 
+#' You can negate the regex by starting with a `"!"`. Square brackets have a special 
+#' meaning: Values in them are evaluated and parsed accordingly. 
+#' Example: `y~x.[1:2] + z.[i]` will 
+#' lead to `y~x1+x2+z3` if `i==3`. You can trigger the auto-completion of variables 
+#' by using the `'..'` suffix, like in `y ~ x..` 
+#' which would include `x1` and `x2`, etc. See examples.
+#' @param add A character vector or a one-sided formula. 
+#' The elements will be added to the right-hand-side of the formula, 
+#' before any macro expansion is applied.
+#' @param add.after_pipe A character vector or a one-sided or two-sided formula. 
+#' The elements will be added to the right-hand-side of the formula, just after a pipe (`|`), 
+#' before any macro expansion is applied.
+#' @param lhs If present then a formula will be constructed with `lhs` as 
+#' the full left-hand-side. 
 #' The value of `lhs` can be a one-sided formula, a call, or a character vector. Note that the 
 #' macro variables wont be applied. You can use it in combination with the argument `rhs`. Note 
 #' that if `fml` is not missing, its LHS will be replaced by `lhs`.
 #' @param rhs If present, then a formula will be constructed with `rhs` as the full 
-#' right-hand-side. The value of `rhs` can be a one-sided formula, a call, or a character vector. 
-#' Note that the macro variables wont be applied. You can use it in combination with the argument 
+#' right-hand-side. The value of `rhs` can be a one-sided formula, a call, 
+#' or a character vector. 
+#' Note that the macro variables wont be applied. You can use it in combination 
+#' with the argument 
 #' `lhs`. Note that if `fml` is not missing, its RHS will be replaced by `rhs`.
 #' @param data Either a character vector or a data.frame. This argument will only be used if a 
 #' macro of the type `..("regex")` is used in the formula of the argument `fml`. If so, any 
 #' variable name from `data` that matches the regular expression will be added to the formula.
-#' @param frame The environment containing the values to be expanded with the dot square bracket 
-#' operator. Default is `parent.frame()`.
+#' @param frame The environment containing the values to be expanded with the 
+#' dot square bracket operator. Default is `parent.frame()`.
 #'
 #' @details
 #' In `xpd`, the default macro variables are taken from `getFixest_fml`. Any value in the `...` 
 #' argument of `xpd` will replace these default values.
 #'
-#' The definitions of the macro variables will replace in verbatim the macro variables. Therefore, 
+#' The definitions of the macro variables will replace in verbatim the macro variables. 
+#' Therefore, 
 #' you can include multi-part formulas if you wish but then beware of the order of the macros 
 #' variable in the formula. For example, using the `airquality` data, say you want to set as 
 #' controls the variable `Temp` and `Day` fixed-effects, you can do 
@@ -1623,26 +1635,29 @@ i_noref = function(factor_var, var, ref, bin, keep, ref2, keep2, bin2){
 #'
 #' @section Dot square bracket operator in formulas:
 #'
-#' In a formula, the dot square bracket (DSB) operator can: i) create manifold variables at once, 
-#' or ii) capture values from the current environment and put them verbatim in the formula.
+#' In a formula, the dot square bracket (DSB) operator can: i) create manifold variables 
+#' at once, or ii) capture values from the current environment and put them 
+#' verbatim in the formula.
 #'
 #' Say you want to include the variables `x1` to `x3` in your formula. You can use 
 #' `xpd(y ~ x.[1:3])` and you'll get `y ~ x1 + x2 + x3`.
 #'
-#' To summon values from the environment, simply put the variable in square brackets. For example: 
-#' `for(i in 1:3) xpd(y.[i] ~ x)` will create the formulas `y1 ~ x` to `y3 ~ x` depending on the 
-#' value of `i`.
+#' To summon values from the environment, simply put the variable in square brackets. 
+#' For example: 
+#' `for(i in 1:3) xpd(y.[i] ~ x)` will create the formulas `y1 ~ x` to `y3 ~ x` 
+#' depending on the value of `i`.
 #'
 #' You can include a full variable from the environment in the same way: 
 #' `for(y in c("a", "b")) xpd(.[y] ~ x)` will create the two formulas `a ~ x` and `b ~ x`.
 #'
 #' The DSB can even be used within variable names, but then the variable must be nested in 
 #' character form. For example `y ~ .["x.[1:2]_sq"]` will create `y ~ x1_sq + x2_sq`. Using the 
-#' character form is important to avoid a formula parsing error. Double quotes must be used. Note 
-#' that the character string that is nested will be parsed with the function [`dsb`], and thus it 
-#' will return a vector.
+#' character form is important to avoid a formula parsing error. 
+#' Double quotes must be used. Note that the character string that is nested will 
+#' be parsed with the function [`dsb`], and thus it will return a vector.
 #'
-#' By default, the DSB operator expands vectors into sums. You can add a comma, like in `.[, x]`, 
+#' By default, the DSB operator expands vectors into sums. You can add a comma, 
+#' like in `.[, x]`, 
 #' to expand with commas--the content can then be used within functions. For instance: 
 #' `c(x.[, 1:2])` will create `c(x1, x2)` (and *not* `c(x1 + x2)`).
 #'
@@ -1651,33 +1666,36 @@ i_noref = function(factor_var, var, ref, bin, keep, ref2, keep2, bin2){
 #' One-sided formulas can be expanded with the DSB operator: let `x = ~sepal + petal`, then 
 #' `xpd(y ~ .[x])` leads to `color ~ sepal + petal`.
 #'
-#' You can even use multiple square brackets within a single variable, but then the use of nesting 
-#' is required. For example, the following `xpd(y ~ .[".[letters[1:2]]_.[1:2]"])` will create
+#' You can even use multiple square brackets within a single variable, 
+#' but then the use of nesting is required. 
+#' For example, the following `xpd(y ~ .[".[letters[1:2]]_.[1:2]"])` will create
 #'  `y ~ a_1 + b_2`. Remember that the nested character string is parsed with [`dsb`], 
 #' which explains this behavior.
 #'
-#' When the element to be expanded i) is equal to the empty string or, ii) is of length 0, it is 
-#' replaced with a neutral element, namely `1`. For example, `x = "" ; xpd(y ~ .[x])` leads to
-#'  `y ~ 1`.
+#' When the element to be expanded i) is equal to the empty string or, 
+#' ii) is of length 0, it is replaced with a neutral element, namely `1`. 
+#' For example, `x = "" ; xpd(y ~ .[x])` leads to `y ~ 1`.
 #'
 #' @section Regular expressions:
 #'
 #' You can catch several variable names at once by using regular expressions. To use regular 
 #' expressions, you need to enclose it in the dot-dot or the regex function: `..("regex")` or 
-#' `regex("regex")`. For example, `regex("Sepal")` will catch both the variables `Sepal.Length` and 
-#' `Sepal.Width` from the `iris` data set. In a `fixest` estimation, the variables names from which 
-#' the regex will be applied come from the data set. If you use `xpd`, you need to provide either a 
-#' data set or a vector of names in the argument `data`.
+#' `regex("regex")`. For example, `regex("Sepal")` will catch both the variables 
+#' `Sepal.Length` and `Sepal.Width` from the `iris` data set. 
+#' In a `fixest` estimation, the variables names from which the regex will 
+#' be applied come from the data set. If you use `xpd`, you need to provide 
+#' either a data set or a vector of names in the argument `data`.
 #'
-#' By default the variables are aggregated with a sum. For example in a data set with the variables 
-#' x1 to x10, `regex("x(1|2)"` will yield `x1 + x2 + x10`. You can instead ask for "comma" 
+#' By default the variables are aggregated with a sum. For example in a data set 
+#' with the variables x1 to x10, `regex("x(1|2)"` will yield 
+#' `x1 + x2 + x10`. You can instead ask for "comma" 
 #' aggregation by using a comma first, just before the regular expression: 
 #' `y ~ sw(regex(,"x(1|2)"))` would lead to `y ~ sw(x1, x2, x10)`.
 #'
 #' Note that the dot square bracket operator (DSB, see before) is applied before the regular 
-#' expression is evaluated. This means that `regex("x.[3:4]_sq")` will lead, after evaluation of 
-#' the DSB, to `regex("x3_sq|x4_sq")`. It is a handy way to insert range of numbers in a regular 
-#' expression.
+#' expression is evaluated. This means that `regex("x.[3:4]_sq")` will lead, 
+#' after evaluation of the DSB, to `regex("x3_sq|x4_sq")`. 
+#' It is a handy way to insert range of numbers in a regular expression.
 #'
 #'
 #' @return
@@ -1808,6 +1826,16 @@ i_noref = function(factor_var, var, ref, bin, keep, ref2, keep2, bin2){
 #'
 #' # only adds to the RHS
 #' xpd(y ~ x, add = ~bon + jour)
+#' 
+#' #
+#' # argument add.after_pipe
+#' #
+#' 
+#' xpd(~x1, add.after_pipe = ~ x2 + x3)
+#' 
+#' # we can add a two sided formula
+#' xpd(~x1, add.after_pipe = x2 ~ x3)
+#' 
 #'
 #' #
 #' # Dot square bracket operator
@@ -1890,7 +1918,8 @@ i_noref = function(factor_var, var, ref, bin, keep, ref2, keep2, bin2){
 #' lm(xpd(Armed.Forces ~ Population + GN..), longley)
 #'
 #'
-xpd = function(fml, ..., add = NULL, lhs, rhs, data = NULL, frame = parent.frame()){
+xpd = function(fml, ..., add = NULL, lhs = NULL, rhs = NULL, add.after_pipe = NULL, 
+               data = NULL, frame = parent.frame()){
 
   if(MISSNULL(data)){
     # We "guess" the data
@@ -1904,15 +1933,17 @@ xpd = function(fml, ..., add = NULL, lhs, rhs, data = NULL, frame = parent.frame
     }
   }
 
-  .xpd(fml = fml, ..., add = add, lhs = lhs, rhs = rhs, data = data, 
+  .xpd(fml = fml, ..., add = add, lhs = lhs, rhs = rhs, 
+       add.after_pipe = add.after_pipe, data = data, 
        check = TRUE, macro = TRUE, frame = frame)
 }
 
-.xpd = function(fml, ..., add = NULL, lhs, rhs, data = NULL, check = FALSE, 
+.xpd = function(fml, ..., add = NULL, lhs = NULL, rhs = NULL, 
+                add.after_pipe = NULL, data = NULL, check = FALSE, 
                 macro = FALSE, frame = .GlobalEnv){
 
-  is_lhs = !missing(lhs)
-  is_rhs = !missing(rhs)
+  is_lhs = !missnull(lhs)
+  is_rhs = !missnull(rhs)
   if(is_lhs || is_rhs){
 
     if(check) check_arg(fml, .type = "formula", .up = 1)
@@ -1951,7 +1982,7 @@ xpd = function(fml, ..., add = NULL, lhs, rhs, data = NULL, frame = parent.frame
     # Now, without macro variables, speed is at 30us while it was 20us before
     # so in .xpd => macro argument
 
-  } else if(!missing(add)){
+  } else if(!missnull(add) || !missnull(add.after_pipe)){
 
     if(check){
       check_arg(fml, .type = "NULL formula", .up = 1)
@@ -1959,8 +1990,11 @@ xpd = function(fml, ..., add = NULL, lhs, rhs, data = NULL, frame = parent.frame
 
     if(missnull(fml)){
       fml = ~ 1
-      fml[[2]] = value2stringCall(add, call = TRUE, check = check)
-      add = NULL
+      
+      if(!missnull(add)){
+        fml[[2]] = value2stringCall(add, call = TRUE, check = check)
+        add = NULL
+      }
 
       attr(fml, ".Environment") = frame
     }
@@ -1970,15 +2004,34 @@ xpd = function(fml, ..., add = NULL, lhs, rhs, data = NULL, frame = parent.frame
   }
 
 
-  if(!missnull(add)){
+  if(!missnull(add) || !missnull(add.after_pipe)){
     # Direct formula manipulation is too complicated (and I want to avoid ugly parentheses)
     # by string it's easy
     fml_dp = deparse_long(fml)
-
-    add_txt = value2stringCall(add, call = FALSE, check = check)
-    add_txt = gsub("^~", "", add_txt)
-
-    fml = as.formula(paste0(fml_dp, "+", add_txt), frame)
+    
+    add_txt = ""
+    if(!missnull(add)){
+      add = value2stringCall(add, call = FALSE, check = check)
+      if(grepl("^~", add)){
+        add = gsub("^~", "", add)
+      }
+      
+      add_txt = paste0(" + ", add)
+    }
+    
+    if(!missnull(add.after_pipe)){
+      if(inherits(add.after_pipe, "formula") && length(add.after_pipe) == 3){
+        add.after_pipe = deparse_long(add.after_pipe)
+      } else {
+        add.after_pipe = value2stringCall(add.after_pipe, call = FALSE, check = check)
+      }
+      
+      add_txt = paste0(add_txt, " | ", add.after_pipe)
+    }
+    
+    
+    fml = as.formula(paste0(fml_dp, add_txt), frame)
+    
   }
 
   macros = parse_macros(..., from_xpd = TRUE, check = check, frame = frame)
@@ -3390,7 +3443,7 @@ demeaning_algo = function(extraProj = 0, iter_warmup = 15, iter_projAfterAcc = 4
 ####
 
 
-
+# to avoid issues with packages redefining as.character.formula
 as.character.formula = function(x, ...) as.character.default(x, ...)
 
 
@@ -3439,11 +3492,11 @@ parse_macros = function(..., reset = FALSE, from_xpd = FALSE, check = TRUE, fram
 
 value2stringCall = function(value_raw, call = FALSE, check = FALSE, frame = NULL){
 
-  if(any(c("call", "name") %in% class(value_raw))){
-    res = if(call) value_raw else deparse_long(value_raw)
-
-  } else if(inherits(value_raw, "formula")){
+  if(inherits(value_raw, "formula")){
     res = if(call) value_raw[[2]] else as.character(value_raw)[[2]]
+
+  } else if(any(c("call", "name") %in% class(value_raw))){
+    res = if(call) value_raw else deparse_long(value_raw)
 
   } else {
 
@@ -3458,8 +3511,10 @@ value2stringCall = function(value_raw, call = FALSE, check = FALSE, frame = NULL
 
         value_raw = paste(value_raw, collapse = " + ")
 
-        my_call = error_sender(str2lang(value_raw), "The value '", value_raw, 
-                               "' does not lead to a valid formula: ", up = 2)
+        my_call = error_sender(str2lang(value_raw), 
+                               "Text values should form a valid R expression.\n",
+                               "Problem: the value '", value_raw, 
+                               "' is not a valid expression. See error: ", up = 2)
         res = if(call) my_call else value_raw
 
       } else {

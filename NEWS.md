@@ -74,6 +74,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - in estimations, allow `subset` to accept negative integers
 
+- function `xpd` gains the argument `add.after_pipe` to add components to the formula after a pipe (`|`)
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

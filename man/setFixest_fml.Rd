@@ -162,6 +162,16 @@ xpd(~x1, add = c("x2", "x3"))
 xpd(y ~ x, add = ~bon + jour)
 
 #
+# argument add.after_pipe
+#
+
+xpd(~x1, add.after_pipe = ~ x2 + x3)
+
+# we can add a two sided formula
+xpd(~x1, add.after_pipe = x2 ~ x3)
+
+
+#
 # Dot square bracket operator
 #
 

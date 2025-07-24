@@ -3121,8 +3121,15 @@ confint.fixest = function(object, parm, level = 0.95, vcov, se, cluster,
 #' @param fml A formula, default is `NULL`. If provided, it will completely override
 #' the value in `fml.update`, which will be ignored. Note that this formula will be 
 #' used for the new estimation, without any modification.
-#' @param nframes (Advanced users.) Defaults to 1. Number of frames up the stack where 
-#' to perform the evaluation of the updated call. By default, this is the parent frame.
+#' @param nframes (Advanced users.) Defaults to 1. Only used if the argument 
+#' `use_calling_env` is `FALSE`. 
+#' Number of frames up the stack where to perform the evaluation of the updated call. 
+#' By default, this is the parent frame.
+#' @param use_calling_env Logical scalar, default is `TRUE`. If `TRUE` then the evaluation 
+#' of the call will be done within the environment that called the initial estimation.
+#' This is mostly useful when the `fixest` object has been created through a custom 
+#' function, so that the new evaluation can use the variables within the enclosure of
+#' the function.
 #' @param evaluate Logical, default is `TRUE`. If `FALSE`, only the updated call is returned.
 #' @param ... Other arguments to be passed to the functions [`femlm`], [`feols`] or [`feglm`].
 #'
@@ -3157,7 +3164,7 @@ confint.fixest = function(object, parm, level = 0.95, vcov, se, cluster,
 #' etable(est_pois, est_2, est_3, est_4)
 #'
 update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1, 
-                         evaluate = TRUE, ...){
+                         use_calling_env = TRUE, evaluate = TRUE, ...){
   # Update method
   # fml.update: update the formula
   # If 1) SAME DATA and 2) SAME dep.var, then we make initialisation
@@ -3165,7 +3172,7 @@ update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1,
 
   check_arg(fml.update, fml, "NULL ts formula")
 
-  check_arg(evaluate, "logical scalar")
+  check_arg(use_calling_env, evaluate, "logical scalar")
 
   if(isTRUE(object$is_fit)){
     stop("update method not available for `fixest` estimations obtained from fit methods.")
@@ -3261,12 +3268,18 @@ update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1,
   # Data: if the data has been saved AND isn't provided in input, the new estimation
   # will be within the saved data set
   
+  if(use_calling_env && !is.null(object$call_env)){
+    env = object$call_env
+  } else {
+    env = parent.frame(nframes)
+  }
+  
   if(!is.null(object$data) && !"data" %in% dot_names){
     prms = list(DATA_SAVED = object$data)
     call_clear[["data"]] = quote(DATA_SAVED)
-    res = eval(call_clear, prms, parent.frame(nframes))
+    res = eval(call_clear, prms, env)
   } else {
-    res = eval(call_clear, parent.frame(nframes))
+    res = eval(call_clear, env)
   }
 
   res
@@ -3275,7 +3288,7 @@ update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1,
 
 #' @rdname update.fixest
 update.fixest_multi = function(object, fml.update = NULL, fml = NULL, nframes = 1, 
-                               evaluate = TRUE, ...){
+                               use_calling_env = TRUE, evaluate = TRUE, ...){
   # We use update.fixest
   # We just need to rewrite the formula since the call in the object is the one 
   # of the main estimation.
@@ -3301,7 +3314,8 @@ update.fixest_multi = function(object, fml.update = NULL, fml = NULL, nframes = 
   call_new = match.call()
 
   update(est_first, fml.update = fml.update, fml = fml, nframes = nframes + 1, 
-         evaluate = evaluate, is_multiple = TRUE, call = call_new, ...)
+         use_calling_env = use_calling_env, evaluate = evaluate, 
+         is_multiple = TRUE, call = call_new, ...)
 }
 
 

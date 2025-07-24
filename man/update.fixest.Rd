@@ -10,6 +10,7 @@
   fml.update = NULL,
   fml = NULL,
   nframes = 1,
+  use_calling_env = TRUE,
   evaluate = TRUE,
   ...
 )
@@ -19,6 +20,7 @@
   fml.update = NULL,
   fml = NULL,
   nframes = 1,
+  use_calling_env = TRUE,
   evaluate = TRUE,
   ...
 )
@@ -42,8 +44,16 @@ To add xnew and remove the IV part: use \code{. ~ . + xnew | . | 0} which leads 
 the value in \code{fml.update}, which will be ignored. Note that this formula will be
 used for the new estimation, without any modification.}
 
-\item{nframes}{(Advanced users.) Defaults to 1. Number of frames up the stack where
-to perform the evaluation of the updated call. By default, this is the parent frame.}
+\item{nframes}{(Advanced users.) Defaults to 1. Only used if the argument
+\code{use_calling_env} is \code{FALSE}.
+Number of frames up the stack where to perform the evaluation of the updated call.
+By default, this is the parent frame.}
+
+\item{use_calling_env}{Logical scalar, default is \code{TRUE}. If \code{TRUE} then the evaluation
+of the call will be done within the environment that called the initial estimation.
+This is mostly useful when the \code{fixest} object has been created through a custom
+function, so that the new evaluation can use the variables within the enclosure of
+the function.}
 
 \item{evaluate}{Logical, default is \code{TRUE}. If \code{FALSE}, only the updated call is returned.}
 

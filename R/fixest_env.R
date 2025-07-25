@@ -617,7 +617,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     }
 
     # Checking the presence
-    complete_vars = all_vars_with_i_prefix(fml)
+    complete_vars = get_all_vars_from_formula(fml)
     if(any(!complete_vars %in% c(dataNames, ".F", ".L"))){
       # Question: is the missing variable a scalar from the global environment?
       var_pblm = setdiff(complete_vars, dataNames)
@@ -631,9 +631,16 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
         # see https://github.com/lrberge/fixest/issues/426
         if(exists(var, envir = call_env)){
           var_value = eval(str2lang(var), call_env)
-          if(is.atomic(var_value) && length(var_value) < 5){
+          if(is.atomic(var_value) && is.numeric(var_value) && length(var_value) > 1 &&
+             all(diff(var_value) == 1)){
+            # we accept values of the form 1:500
+            var_pblm_dp[i] = paste0(var_value[1], ":", tail(var_value, 1))
+            type[i] = "scalar"
+            
+          } else if(is.atomic(var_value) && length(var_value) <= 5){
             var_pblm_dp[i] = deparse_long(var_value)
             type[i] = "scalar"
+            
           } else {
             ok = FALSE
             type[i] = if(length(var) == nrow(data)) "var" else "other"

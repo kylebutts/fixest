@@ -55,6 +55,7 @@ class r_vector {
   
 public:
   r_vector(SEXP);
+  r_vector(vector<int>);
   
   // public properties
   int n;
@@ -222,6 +223,23 @@ r_vector::r_vector(SEXP x){
     }    
     
   }
+}
+
+
+r_vector::r_vector(vector<int> x){
+  
+  this->px_int = x.data();
+  this->type = T_INT;
+  int x_max = *std::max_element(x.begin(), x.end());
+  int x_min = *std::min_element(x.begin(), x.end());
+  
+  this->x_range = x_max - x_min + 1;
+  this->x_range_bin = power_of_two(this->x_range);    
+  this->is_fast_int = this->x_range < 100000 || this->x_range <= 2*n;
+  
+  this->any_na = false;
+  this->NA_value = this->x_range - 1;
+  
 }
 
 SEXP std_string_to_r_string(std::vector<std::string> x){
@@ -583,8 +601,11 @@ void general_type_to_index_double(r_vector *x, int *__restrict p_index_in,
   
   n_groups = g;
 }
+
+
 inline void update_index_intarray_g_obs(int id, size_t i, int &g, int * &int_array, 
-                                        int *__restrict &p_index, bool &is_final, vector<int> &vec_first_obs){
+                                        int *__restrict &p_index, bool &is_final, 
+                                        vector<int> &vec_first_obs){
   
   if(int_array[id] == 0){
     ++g;
@@ -807,6 +828,14 @@ void multiple_ints_to_index(vector<r_vector> &all_vecs, vector<int> &all_k,
   
   delete[] int_array;
 }
+
+class indexed_vector {
+public:
+  vector<int> index;
+  vector<int> firstobs;
+  vector<int> table;
+  vector<double> sum;
+};
 
 
 SEXP cpp_to_index_main(SEXP &x){

@@ -28,13 +28,12 @@ get_all_vars = function(expr, sort = FALSE, ignore_formula = FALSE,
   res = character(0)
   i_start = if(is.expression(expr)) 1 else 2
   
+  pos_prefix = 0
   if(i.prefix && i_start == 2 && length(expr) >= 3 && is_operator(expr, "i")){
-    pos = 3
+    pos_prefix = 3
     if(!is.null(names(expr)) && "var" %in% names(expr)){
-      pos = which("var" %in% names(expr))
+      pos_prefix = which("var" %in% names(expr))
     }
-  } else {
-    i.prefix = FALSE
   }
   
   for(i in i_start:length(expr)){
@@ -43,7 +42,7 @@ get_all_vars = function(expr, sort = FALSE, ignore_formula = FALSE,
       if(is.name(element)){
         
         varname = as.character(element)
-        if(i.prefix && i == pos && substr(varname, 1, 2) == "i."){
+        if(i.prefix && i == pos_prefix && substr(varname, 1, 2) == "i."){
           varname = substr(varname, 3, 500)
         }
         
@@ -88,7 +87,7 @@ get_all_vars_from_formula = function(fml){
     )
   }
   
-  sort(unique(all_vars))
+  unique(all_vars)
 }
 
 

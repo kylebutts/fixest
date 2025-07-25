@@ -440,7 +440,7 @@ expand_lags_lhs = function(expr, is_root = TRUE){
     new_expr = eval(expr, envlist)
     attr(new_expr, "lag_expand") = TRUE
     
-    if(is_root){
+    if(is_root && !is.call(new_expr)){
       new_expr = str2lang(paste0("c(", new_expr, ")"))
       return(new_expr)
     }
@@ -529,7 +529,6 @@ fixest_fml_rewriter = function(fml){
   
   
   lhs = fml[[2]]
-  
   if(is_formula(lhs)){
     left_part = fml[[2]]
     

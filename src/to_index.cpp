@@ -11,236 +11,11 @@
  *********************************************************************/
 
 
-#include <stdint.h>
-#include <cmath>
-#include <vector>
-#include <string>
-#include <algorithm>
-#include <R.h>
-#include <Rinternals.h>
-
-using std::vector;
+#include "to_index.h"
 
 namespace indexthis {
-
-enum {T_INT, T_DBL_INT, T_DBL, T_STR};
-
-inline int double_to_uint32(const double &x){
-  uint32_t y[2];
-  std::memcpy(y, &x, sizeof(y));
-  return y[0] + y[1];
-}
-
-inline int power_of_two(double x){
-  return std::ceil(std::log2(x + 1));
-}
-
-inline uint32_t hash_single(uint32_t value, int shifter){
-  return (3141592653U * value >> (32 - shifter));
-}
-
-inline uint32_t hash_double(uint32_t v1, uint32_t v2, int shifter){
-  return (((3141592653U * v1) ^ (3141592653U * v2)) >> (32 - shifter));
-}
-
-inline bool is_equal_dbl(double x, double y){
-  return std::isnan(x) ? std::isnan(y) : x == y;
-}
-
-// Class very useful to pass around the data on R vectors 
-class r_vector {
-  r_vector() = delete;
   
-  SEXP x_conv;
-  
-public:
-  r_vector(SEXP);
-  r_vector(vector<int>);
-  
-  // public properties
-  int n;
-  bool is_fast_int = false;
-  int x_range = 0;
-  int x_range_bin = 0;
-  int x_min = 0;
-  int type = 0;
-  
-  // if a non numeric non character vector has been turned into character
-  // we need to keep track of protection
-  bool is_protect = false;
-  
-  // this is only used in the quick ints algorithm
-  // for factors and bool we assume there are NAs since we don't traverse the data
-  //  to find the range, contrary to ints or dbl_ints
-  bool any_na = true;
-  int NA_value = -1;
-  
-  // pointers: only the valid one ends up non-null
-  int *px_int = (int *) nullptr;
-  double *px_dbl = (double *) nullptr;
-  intptr_t *px_intptr = (intptr_t *) nullptr;
-  
-};
-
-r_vector::r_vector(SEXP x){
-  
-  int n = Rf_length(x);
-  this->n = n;
-  
-  bool IS_INT = false;
-  
-  if(TYPEOF(x) == STRSXP){
-    // character
-    this->type = T_STR;
-    this->px_intptr = (intptr_t *) STRING_PTR_RO(x);
-    
-  } else if(Rf_isNumeric(x) || Rf_isFactor(x) || TYPEOF(x) == LGLSXP){
-      
-    if(TYPEOF(x) == REALSXP){
-      // we check if the underlying structure is int
-      this->px_dbl = REAL(x);
-      IS_INT = true;
-      double *px = REAL(x);
-      double x_min = 0, x_max = 0, x_tmp;
-      
-      // taking care of NA corner cases
-      int i_start = 0;
-      while(i_start < n && std::isnan(px[i_start])){
-        ++i_start;
-      }
-      
-      bool any_na = i_start > 0;
-      if(i_start < n){
-        x_min = px[i_start];
-        x_max = px[i_start];
-        
-        for(int i=i_start ; i<n ; ++i){
-          x_tmp = px[i];
-          
-          if(std::isnan(x_tmp)){
-            any_na = true;
-          } else if(!(x_tmp == (int) x_tmp)){
-            IS_INT = false;
-            break;
-          } else if(x_tmp > x_max){
-            x_max = x_tmp;
-          } else if(x_tmp < x_min){
-            x_min = x_tmp;
-          }
-        }
-      }      
-      
-      this->any_na = any_na;
-
-      this->x_min = static_cast<int>(x_min);
-      // +1 for the NAs
-      this->x_range = x_max - x_min + 2;
-      
-      this->type = IS_INT ? T_DBL_INT : T_DBL;
-    } else {
-      // logical, factor and integer are all integers
-      IS_INT = true;
-      this->px_int = INTEGER(x);
-      this->type = T_INT;
-      
-      if(TYPEOF(x) == INTSXP){
-        int *px = INTEGER(x);
-        int x_min = 0, x_max = 0, x_tmp;
-        
-        // taking care of NA corner cases
-        int i_start = 0;
-        while(i_start < n && px[i_start] == NA_INTEGER){
-          ++i_start;
-        }
-        bool any_na = i_start > 0;
-        if(i_start < n){
-          x_min = px[i_start];
-          x_max = px[i_start];
-          
-          for(int i=i_start ; i<n ; ++i){
-            x_tmp = px[i];
-            
-            if(x_tmp > x_max){
-              x_max = x_tmp;
-            } else if(x_tmp < x_min){
-              // NA integer is the smallest int, defined as -2147483648
-              if(x_tmp == NA_INTEGER){
-                any_na = true;
-              } else {
-                x_min = x_tmp;
-              }            
-            }
-          }
-        }
-        
-        this->any_na = any_na;
-        this->x_min = x_min;
-        // +1 for the NAs
-        this->x_range = x_max - x_min + 2;
-      } else if(TYPEOF(x) == LGLSXP){
-        this->x_min = 0;
-        // 0, 1, NA
-        this->x_range = 3;
-      } else {
-        // factor
-        SEXP labels = Rf_getAttrib(x, R_LevelsSymbol);
-        // factors always start at 1
-        this->x_min = 1;
-        // we add 1 for the NAs
-        this->x_range = Rf_length(labels) + 1;
-      }
-    }
-    
-    if(IS_INT){
-      // finding out if we're in the easy case
-      this->x_range_bin = power_of_two(this->x_range);    
-      this->is_fast_int = this->x_range < 100000 || this->x_range <= 2*n;
-      this->NA_value = this->x_range - 1;
-    }
-    
-  } else {
-    // we apply a conversion to a known type
-    
-    if(TYPEOF(x) == CHARSXP || TYPEOF(x) == LGLSXP || TYPEOF(x) == INTSXP || 
-      TYPEOF(x) == REALSXP || TYPEOF(x) == CPLXSXP || TYPEOF(x) == STRSXP || TYPEOF(x) == RAWSXP){
-      // we convert to character
-      SEXP call_as_character = PROTECT(Rf_lang2(Rf_install("as.character"), x));
-  
-      int any_error;
-      this->x_conv = PROTECT(R_tryEval(call_as_character, R_GlobalEnv, &any_error));
-
-      if(any_error){
-        Rf_error("In `to_index`, the vector to index was not standard (int or real, etc) and failed to be converted to character before applying indexation._n");
-      }
-      
-      // conversion succeeded
-      this->type = T_STR;
-      this->px_intptr = (intptr_t *) STRING_PTR_RO(this->x_conv);
-      this->is_protect = true;
-      
-    } else {
-      Rf_error("In `to_index`, the R vectors must be atomic. The current type is not valid.");
-    }    
-    
-  }
-}
-
-
-r_vector::r_vector(vector<int> x){
-  
-  this->px_int = x.data();
-  this->type = T_INT;
-  int x_max = *std::max_element(x.begin(), x.end());
-  int x_min = *std::min_element(x.begin(), x.end());
-  
-  this->x_range = x_max - x_min + 1;
-  this->x_range_bin = power_of_two(this->x_range);    
-  this->is_fast_int = this->x_range < 100000 || this->x_range <= 2*n;
-  
-  this->any_na = false;
-  this->NA_value = this->x_range - 1;
-  
-}
+using std::vector;
 
 SEXP std_string_to_r_string(std::vector<std::string> x){
   
@@ -257,7 +32,7 @@ SEXP std_string_to_r_string(std::vector<std::string> x){
   return res;
 }
 
-void general_type_to_index_single(r_vector *x, int *__restrict p_index, int &n_groups,
+void general_type_to_index_single(const r_vector *x, int *__restrict p_index, int &n_groups,
                                   vector<int> &vec_first_obs, bool is_final){
   
   const size_t n = x->n;
@@ -398,7 +173,7 @@ void general_type_to_index_single(r_vector *x, int *__restrict p_index, int &n_g
   
 }
 
-void general_type_to_index_double(r_vector *x, int *__restrict p_index_in, 
+void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in, 
                                   int *__restrict p_index_out, int &n_groups,
                                   vector<int> &vec_first_obs, bool is_final){
   // Two differences with the *_single version:
@@ -619,7 +394,7 @@ inline void update_index_intarray_g_obs(int id, size_t i, int &g, int * &int_arr
   }  
 }
 
-void multiple_ints_to_index(vector<r_vector> &all_vecs, vector<int> &all_k, 
+void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k, 
                             int *__restrict p_index, int &n_groups,
                             vector<int> &vec_first_obs, bool is_final){
   
@@ -631,7 +406,7 @@ void multiple_ints_to_index(vector<r_vector> &all_vecs, vector<int> &all_k,
   }  
   
   int k0 = all_k[0];
-  r_vector *x0 = &all_vecs[k0];
+  const r_vector *x0 = &all_vecs[k0];
   const size_t n = x0->n;
   const int * px0_int = (int *) x0->px_int;
   const double * px0_dbl = (double *) x0->px_dbl;
@@ -690,7 +465,7 @@ void multiple_ints_to_index(vector<r_vector> &all_vecs, vector<int> &all_k,
   } else {
     
     int k1 = all_k[1];
-    r_vector *x1 = &all_vecs[k1];
+    const r_vector *x1 = &all_vecs[k1];
     const int *px1_int = (int *) x1->px_int;
     const double *px1_dbl = (double *) x1->px_dbl;
     
@@ -769,7 +544,7 @@ void multiple_ints_to_index(vector<r_vector> &all_vecs, vector<int> &all_k,
       offset += x1->x_range_bin;
       for(int ind=2 ; ind<K-1 ; ++ind){
         int k = all_k[ind];
-        r_vector *xk = &all_vecs[k];
+        const r_vector *xk = &all_vecs[k];
         const int *pxk_int = (int *) xk->px_int;
         const double *pxk_dbl = (double *) xk->px_dbl;
         
@@ -789,7 +564,7 @@ void multiple_ints_to_index(vector<r_vector> &all_vecs, vector<int> &all_k,
             
       // last element + group creation
       int k = all_k[K - 1];
-      r_vector *xk = &all_vecs[k];
+      const r_vector *xk = &all_vecs[k];
       const int *pxk_int = (int *) xk->px_int;
       const double *pxk_dbl = (double *) xk->px_dbl;
       
@@ -829,20 +604,8 @@ void multiple_ints_to_index(vector<r_vector> &all_vecs, vector<int> &all_k,
   delete[] int_array;
 }
 
-class indexed_vector {
-public:
-  vector<int> index;
-  vector<int> firstobs;
-  vector<int> table;
-  vector<double> sum;
-};
 
-
-SEXP cpp_to_index_main(SEXP &x){
-  // x: vector or list of vectors of the same length (n)
-  // returns:
-  // - index: vector of length n, from 1 to the numberof unique values of x (g)
-  // - first_obs: vector of length g of the first observation belonging to each group
+void to_index_main(const SEXP &x, IndexedVector &output){
   
   size_t n = 0;
   int K = 0;
@@ -869,12 +632,38 @@ SEXP cpp_to_index_main(SEXP &x){
     all_vecs.push_back(rvec);
   }
   
+  to_index_main(all_vecs, output);
+}
+
+void to_index_main(const r_vector &x, IndexedVector &output){
+  std::vector<r_vector> all_vecs;
+  all_vecs.push_back(x);
+  to_index_main(all_vecs, output);
+}
+
+
+void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output){
+  // x: vector or list of vectors of the same length (n)
+  // returns:
+  // - index: vector of length n, from 1 to the numberof unique values of x (g)
+  // - first_obs: vector of length g of the first observation belonging to each group
+  
+  int K = all_vecs.size();
+  int n = 5;
+  // all_vecs.at(0).size();
+  
+  if(n != output.n){
+    Rf_error("Internal error `to_index_main`: The index size allocated in output is different from the input!");
+  }
+  
+  
   // the result to be returned
-  SEXP index = PROTECT(Rf_allocVector(INTSXP, n));
-  int *p_index = INTEGER(index);
+  int *p_index = output.p_index;
   
   // vector of the first observation of the group
-  std::vector<int> vec_first_obs;
+  std::vector<int> &vec_first_obs = output.firstobs;
+  std::vector<int> &vec_table = output.table;
+  std::vector<double> &vec_sum = output.sum;
   
   // finding out the fast cases
   // Note that partial fast ordering is enabled and 
@@ -882,7 +671,7 @@ SEXP cpp_to_index_main(SEXP &x){
   int sum_bin_ranges = 0;
   vector<int> id_fast_int;
   for(int k=0 ; k<K ; ++k){
-    r_vector *x = &all_vecs[k];
+    const r_vector *x = &all_vecs[k];
     if(x->is_fast_int){
       int new_bin_range = sum_bin_ranges + x->x_range_bin;
       if(new_bin_range < 17 || (K >= 2 && new_bin_range <= power_of_two(5 * n))){
@@ -960,8 +749,17 @@ SEXP cpp_to_index_main(SEXP &x){
       }
       delete[] p_extra_index;
     }
-  } 
+  }
+}
+
+
+SEXP cpp_to_index_main(SEXP &x){
   
+  int n = Rf_length(x);
+  SEXP index = PROTECT(Rf_allocVector(INTSXP, n));
+  
+  IndexedVector index_vec(index);
+  /*
   // we copy the first observations into an R vector
   int g = vec_first_obs.size();
   SEXP r_first_obs = PROTECT(Rf_allocVector(INTSXP, g));
@@ -984,9 +782,7 @@ SEXP cpp_to_index_main(SEXP &x){
       UNPROTECT(2);
     }
   }
-  
-  
-  return res;  
+  */
 }
  
 }

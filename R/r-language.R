@@ -5,9 +5,13 @@
 #------------------------------------------------------------------------------#
 
 
+is_formula = function(x){
+  is.call(x) && length(x[[1]]) == 1 && x[[1]] == "~"
+}
 
 
-get_all_vars = function(expr, is_root = TRUE, ignore_formula = FALSE, interpol = FALSE){
+get_all_vars = function(expr, sort = FALSE, ignore_formula = FALSE, 
+                        interpol = FALSE, i.prefix = FALSE){
   
   if(length(expr) == 1){
     if(is.name(expr)){
@@ -21,27 +25,71 @@ get_all_vars = function(expr, is_root = TRUE, ignore_formula = FALSE, interpol =
     return(NULL)
   }
   
-  if(ignore_formula && is_formula(expr)){
-    return(NULL)
-  }
-  
   res = character(0)
   i_start = if(is.expression(expr)) 1 else 2
-  for(i in i_start:length(expr)){
-    vars = get_all_vars(expr[[i]], is_root = FALSE, 
-                        ignore_formula = ignore_formula, interpol = interpol)
-    if(length(vars) > 0){
-      res = c(res, vars)
+  
+  if(i.prefix && i_start == 2 && length(expr) >= 3 && is_operator(expr, "i")){
+    pos = 3
+    if(!is.null(names(expr)) && "var" %in% names(expr)){
+      pos = which("var" %in% names(expr))
     }
+  } else {
+    i.prefix = FALSE
   }
   
-  if(is_root && length(res) > 1){
+  for(i in i_start:length(expr)){
+    element = expr[[i]]
+    if(length(element) == 1){
+      if(is.name(element)){
+        
+        varname = as.character(element)
+        if(i.prefix && i == pos && substr(varname, 1, 2) == "i."){
+          varname = substr(varname, 3, 500)
+        }
+        
+        res = c(res, varname)
+      }
+    } else if(ignore_formula && length(element[[1]]) == 1 && element[[1]] == "~"){
+      # we ignore
+      
+    } else {
+      vars = get_all_vars(element, ignore_formula = ignore_formula, 
+                          interpol = interpol, i.prefix = i.prefix)
+      
+      if(length(vars) > 0){
+        res = c(res, vars)
+      }
+    }
+    
+  }
+  
+  if(sort && length(res) > 1){
     return(unique(sort(res)))
   }
   
   res
 }
 
+get_all_vars_from_formula = function(fml){
+  
+  left = fml[[2]]
+  right = fml[[3]]
+  
+  if(is_formula(left)){
+    all_vars = c(
+      get_all_vars(left[[2]], ignore_formula = TRUE),
+      get_all_vars(left[[3]], ignore_formula = TRUE, i.prefix = TRUE),
+      get_all_vars(right, ignore_formula = TRUE, i.prefix = TRUE)
+    )
+  } else {
+    all_vars = c(
+      get_all_vars(left, ignore_formula = TRUE),
+      get_all_vars(right, ignore_formula = TRUE, i.prefix = TRUE)
+    )
+  }
+  
+  sort(unique(all_vars))
+}
 
 
 ####

@@ -350,7 +350,6 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
     #
     # The data
-
     if(missing(data)){
       stop("You must provide the argument 'data' (currently it is missing).")
     }
@@ -448,7 +447,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     }
 
     check_value(data, "matrix | data.frame", .arg_name = "data")
-
+    
     if(is.matrix(data)){
       if(is.null(colnames(data))){
         stop("If argument 'data' is to be a matrix, its columns must be named.")
@@ -659,15 +658,15 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
           sub = paste0("\\1", var_pblm_dp[i], "\\2")
           fml_dp = gsub(pattern, sub, fml_dp, perl = TRUE)
         }
-
+        
         fml = str2lang(fml_dp)
         fml_parts = fml_split(fml, raw = TRUE)
-
+        
       } else {
-
+        
         var_pblm = var_pblm[type != "scalar"]
         type = type[type != "scalar"]
-
+        
         if(length(var_pblm) > 0){
 
           # Error => we take the time to provide an informative error message
@@ -1123,22 +1122,25 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
   if(isFit == FALSE){
 
     # The LHS must contain only values in the DF
-    namesLHS = all.vars(fml_linear[[2]])
-    lhs_text = deparse_long(fml_linear[[2]])
+    lhs_call = fml_linear[[2]]
+    namesLHS = all.vars(lhs_call)
     if(length(namesLHS) == 0){
-      stop("The right hand side of the formula (", lhs_text, ") contains no variable!")
-
+      stop("The right hand side of the formula ({dp ? lhs_call}) contains no variable!")
+    }
+    
+    if(length(lhs_call) > 1 && is_operator(lhs_call, "c")){
+      lhs_call[[1]] = as.name("list")
     }
 
-    lhs_text2eval = gsub("^(c|(c?sw0?))\\(", "list(", lhs_text)
-
-    lhs = error_sender(eval(str2lang(lhs_text2eval), data),
+    lhs = error_sender(eval(lhs_call, data),
                        "Evaluation of the left-hand-side (equal to ", 
-                       lhs_text, ") raises an error: \n")
+                       deparse_short(lhs_call), ") raises an error: \n")
 
     if(is.list(lhs)){
       # we check the consistency
-      lhs_names = eval(str2lang(gsub("^list\\(", "sw(", lhs_text2eval)))
+      lhs_call_sw = lhs_call
+      lhs_call_sw[[1]] = as.name("sw")
+      lhs_names = eval(lhs_call_sw)
 
       n_all = lengths(lhs)
       if(!all(n_all == n_all[1])){
@@ -1162,7 +1164,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       lhs = check_set_value(lhs, "numeric vmatrix ncol(1) conv", 
                             .prefix = "The left hand side")
       if(is.matrix(lhs)) lhs = as.vector(lhs)
-      lhs_names = lhs_text
+      lhs_names = deparse_long(lhs_call)
     }
 
     if(is.list(lhs)){

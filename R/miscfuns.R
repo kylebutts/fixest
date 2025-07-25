@@ -4027,7 +4027,8 @@ prepare_matrix = function(fml, base, fake_intercept = FALSE){
 }
 
 
-fixest_model_matrix = function(fml, data, fake_intercept = FALSE, i_noref = FALSE, mf = NULL){
+fixest_model_matrix = function(fml, data, fake_intercept = FALSE, 
+                               i_noref = FALSE, mf = NULL){
   # This functions takes in the formula of the linear part and the
   # data
   # It reformulates the formula (ie with lags and interactions)

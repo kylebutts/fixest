@@ -136,6 +136,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - add suggestions when some variables are misspelled in estimations
 
+- improve the robustness (and speed) of the algorithm identifying which variables are in the formula
+
 ## etable
 
 - add a section in the documentation documenting the Latex depdencies

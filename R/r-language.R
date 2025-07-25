@@ -541,6 +541,220 @@ fixest_fml_rewriter = function(fml){
   return(res)
 }
 
+lag_expand = function(x, k = 1, fill = NA){
+  mc = match.call()
+  
+  if(length(k) > 1){
+    args = lapply(as.numeric(k), function(i) {mc$k = i ; names(mc) = NULL ; deparse_long(mc)})
+    args$sep = "+"
+    res = do.call(paste, args)
+    res = str2lang(res)
+    return(res)
+  }
+  
+  names(mc) = NULL
+  
+  mc
+}
+
+protect_powers_expand_lags = function(expr){
+  # x1^2 + l(x2, 1:2) => I(x1^2) + l(x2, 1) + l(x2, 2)
+  
+  if(length(expr) == 1){
+    return(expr)
+  }
+  
+  if(length(expr[[1]]) == 1 && as.character(expr[[1]]) %in% c("l", "f", "d")){
+    # lags
+    
+    envlist = list(lag_expand)
+    names(envlist) = as.character(expr[[1]])
+    new_expr = eval(expr, envlist)
+    attr(new_expr, "lag_expand") = TRUE
+    
+    return(new_expr)
+    
+  } else if(length(expr[[1]]) == 1 && expr[[1]] == "^"){
+    # power
+    
+    if(is.numeric(expr[[3]])){
+      new_expr = quote(I(x))
+      new_expr[[2]] = expr
+      return(new_expr)
+    }
+    
+  } else {
+    is_plus = is_operator(expr, "+")
+    fix_plus = FALSE
+    for(i in 2:length(expr)){
+      new_element = protect_powers_expand_lags(expr[[i]])
+      
+      if(!identical(new_element, expr[[i]])){
+        if(is_plus && i == 3 && isTRUE(attr(new_element, "lag_expand"))){
+          fix_plus = TRUE
+        }
+      }
+      
+      expr[[i]] = new_element
+    }
+    
+    if(fix_plus){
+      expr = str2lang(paste0(deparse_long(expr[[2]]), "+", deparse_long(expr[[3]])))
+    }
+    
+  }
+  
+  expr
+}
+
+lag_expand_comma = function(x, k = 1, fill = NA){
+  # returns a string
+  mc = match.call()
+  
+  if(length(k) > 1){
+    args = lapply(as.numeric(k), function(i) {mc$k = i ; names(mc) = NULL ; deparse_long(mc)})
+    args$sep = ","
+    res = do.call(paste, args)
+    return(res)
+  }
+  
+  names(mc) = NULL
+  
+  mc
+}
+
+expand_lags_lhs = function(expr, is_root = TRUE){
+  # l(y, 1:2) => c(l(y, 1), l(y, 2))
+  
+  if(length(expr) == 1){
+    return(expr)
+  }
+  
+  if(length(expr[[1]]) == 1 && as.character(expr[[1]]) %in% c("l", "f", "d")){
+    # lags
+    
+    envlist = list(lag_expand_comma)
+    names(envlist) = as.character(expr[[1]])
+    new_expr = eval(expr, envlist)
+    attr(new_expr, "lag_expand") = TRUE
+    
+    if(is_root){
+      new_expr = str2lang(paste0("c(", new_expr, ")"))
+      return(new_expr)
+    }
+    
+    return(new_expr)
+    
+  } else {
+    is_binary = length(expr[[1]]) == 1 && as.character(expr[[1]]) %in% c("+", "-", "*", "/")
+    
+    if(is_binary){
+      # we avoid errors even if what the user wants to do is nonsensical
+      
+      is_plus = expr[[1]] == "+"
+      fix_plus = FALSE
+      for(i in 2:length(expr)){
+        new_element = protect_powers_expand_lags(expr[[i]])
+        
+        if(!identical(new_element, expr[[i]])){
+          if(is_plus && isTRUE(attr(new_element, "lag_expand"))){
+            fix_plus = TRUE
+          }
+        }
+        
+        expr[[i]] = new_element
+      }
+      
+      if(fix_plus){
+        expr = str2lang(paste0(deparse_long(expr[[2]]), "+", deparse_long(expr[[3]])))
+      }
+      
+    } else {
+      # in the left hand side the lags are extended with commas
+      # c(x^2, l(y, 1:2)) => c(x^2, l(y, 1), l(y, 2))
+      
+      if(is_root && length(expr[[1]]) == 1 && as.character(expr[[1]]) %in% c("sw", "sw0", "csw", "csw0")){
+        expr[[1]] = as.name("c")
+      }
+      
+      rebuild = FALSE
+      for(i in 2:length(expr)){
+        new_element = expand_lags_lhs(expr[[i]], is_root = FALSE)
+        
+        if(!identical(new_element, expr[[i]]) && isTRUE(attr(new_element, "lag_expand"))){
+          rebuild = TRUE
+          new_expr = as.list(expr)
+          new_expr[[i]] = new_element
+          break
+        }
+        
+        expr[[i]] = new_element
+      }
+      
+      if(rebuild){
+        i_start = i + 1
+        if(i_start <= length(expr)){
+          for(i in i_start:length(expr)){
+            new_expr[[i]] = expand_lags_lhs(expr[[i]], is_root = FALSE)
+          }
+        }
+        
+        # we rebuild the call
+        args_list = lapply(new_expr[-1], 
+                           function(x) ifelse(is.character(x), x, deparse_long(x)))
+        args_list$sep = ", "
+        core = do.call(paste, args_list)
+        call_txt = paste0(deparse_long(expr[[1]]), "(", core, ")")
+        new_expr = str2lang(call_txt)
+        
+        return(new_expr)
+        
+      }
+    }
+  }
+  
+  expr
+}
+
+
+fixest_fml_rewriter_new = function(fml){
+  # Currently performs the following
+  # - expands lags
+  # - protects powers: x^3 => I(x^3)
+  #
+  # fml = sw(f(y, 1:2)) ~ x1 + l(x2, 1:2) + x2^2 | fe1 | y ~ z::e + g^3
+  # fml = y ~ 1 | id + period | l(x_endo, -1:1) ~ l(x_exo, -1:1)
+  
+  
+  lhs = fml[[2]]
+  
+  if(is_formula(lhs)){
+    left_part = fml[[2]]
+    
+    lhs = expand_lags_lhs(left_part[[2]])
+    rhs = protect_powers_expand_lags(left_part[[3]])
+    iv = protect_powers_expand_lags(fml[[3]])
+    
+    left_part[[2]] = lhs
+    left_part[[3]] = rhs
+    
+    fml[[2]] = left_part
+    fml[[3]] = iv
+    
+  } else {
+    lhs = expand_lags_lhs(lhs)
+    rhs = protect_powers_expand_lags(fml[[3]])
+    
+    fml[[2]] = lhs
+    fml[[3]] = rhs
+  }
+  
+  isPanel = any(c("l", "d", "f") %in% all.vars(fml, functions = TRUE, unique = FALSE))
+
+  res = list(fml = fml, isPanel = isPanel)
+
+  return(res)
+}
 
 replace_dot_with_expr = function(expr, replacement){
   

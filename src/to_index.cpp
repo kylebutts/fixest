@@ -752,7 +752,6 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output)
   }
 }
 
-
 SEXP cpp_to_index_main(SEXP &x){
   
   int n = Rf_length(x);

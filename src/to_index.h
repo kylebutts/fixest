@@ -52,7 +52,7 @@ public:
   r_vector(SEXP);
   r_vector(vector<int>);
   
-  int const size() {return n;}
+  int size() const {return n;}
   
   // public properties
   int n;
@@ -259,6 +259,8 @@ public:
   
   int *p_index = nullptr;
   int n = 0;
+  
+  int n_protect = 0;
 };
 
 IndexedVector::IndexedVector(SEXP x){
@@ -276,6 +278,7 @@ IndexedVector::IndexedVector(SEXP x){
 IndexedVector::IndexedVector(int n){
   
   index.resize(n);
+  p_index = index.data();
   this->n = n;
   
 }
@@ -284,9 +287,20 @@ IndexedVector::IndexedVector(int n){
 // function declarations -------------------------------------------------------
 //
 
+void to_index_main(const SEXP &x, IndexedVector &output);
 
+void to_index_main(const SEXP &x, IndexedVector &output,
+                   bool do_sum, const double *p_vec_to_sum);
+
+void to_index_main(const r_vector &x, IndexedVector &output);
+
+void to_index_main(const r_vector &x, IndexedVector &output, 
+                   bool do_sum, const double *p_vec_to_sum);
 
 void to_index_main(const std::vector<r_vector> &x, IndexedVector &output);
+
+void to_index_main(const std::vector<r_vector> &x, IndexedVector &output, 
+                   bool do_sum, const double *p_vec_to_sum);
 
 } // namespace indexthis
 

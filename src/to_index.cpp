@@ -760,7 +760,7 @@ std::vector<r_vector> SEXP_to_vec_r_vector(const SEXP &x){
     all_vecs.push_back(rvec);
   }
   
-  return(all_vecs);
+  return all_vecs;
 }
 
 void to_index_main(const SEXP &x, IndexedVector &output, 
@@ -805,8 +805,7 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output,
   // - first_obs: vector of length g of the first observation belonging to each group
   
   int K = all_vecs.size();
-  int n = 5;
-  // all_vecs.at(0).size();
+  int n = all_vecs.at(0).size();
   
   if(n != output.n){
     Rf_error("Internal error `to_index_main`: The index size allocated in output is different from the input!");
@@ -913,16 +912,20 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output,
     }
   }
 }
-
-SEXP cpp_to_index_main(SEXP &x){
+ 
+}
+ 
+ 
+ // [[Rcpp::export]]
+SEXP cpp_to_index(SEXP &x){
   
   // x can be a vector or a list of vectors of the same length
-  vector<r_vector> all_vecs = SEXP_to_vec_r_vector(x);
+  std::vector<indexthis::r_vector> all_vecs = indexthis::SEXP_to_vec_r_vector(x);
   
   const int n = all_vecs.at(0).size();
   SEXP index = PROTECT(Rf_allocVector(INTSXP, n));
   
-  IndexedVector index_info(index);
+  indexthis::IndexedVector index_info(index);
   
   //
   // computing the index 
@@ -936,8 +939,8 @@ SEXP cpp_to_index_main(SEXP &x){
   //
   
   // we copy the first observations into an R vector
-  SEXP first_obs = to_r_vector(index_info.firstobs);
-  SEXP table = to_r_vector(index_info.table);
+  SEXP first_obs = indexthis::to_r_vector(index_info.firstobs);
+  SEXP table = indexthis::to_r_vector(index_info.table);
   
   // we save the results into a list
   SEXP res = PROTECT(Rf_allocVector(VECSXP, 3));
@@ -946,7 +949,7 @@ SEXP cpp_to_index_main(SEXP &x){
   SET_VECTOR_ELT(res, 2, table);
   
   // names
-  Rf_setAttrib(res, R_NamesSymbol, std_string_to_r_string({"index", "first_obs", "table"}));
+  Rf_setAttrib(res, R_NamesSymbol, indexthis::std_string_to_r_string({"index", "first_obs", "table"}));
     
   UNPROTECT(3);
   
@@ -957,12 +960,9 @@ SEXP cpp_to_index_main(SEXP &x){
     }
   }
   
+  return res;
+  
 }
- 
-}
- 
- 
- 
  
  
  

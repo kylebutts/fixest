@@ -81,6 +81,10 @@ cpp_paste_conditional <- function(x, id, n) {
     .Call(`_fixest_cpp_paste_conditional`, x, id, n)
 }
 
+cpp_index_table_sum <- function(x_list, y, do_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads, do_refactor, r_x_sizes, obs2keep) {
+    .Call(`_fixest_cpp_index_table_sum`, x_list, y, do_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads, do_refactor, r_x_sizes, obs2keep)
+}
+
 cpp_cholesky <- function(X, tol = 1.0/100000.0/100000.0, nthreads = 1L) {
     .Call(`_fixest_cpp_cholesky`, X, tol, nthreads)
 }
@@ -303,6 +307,10 @@ cpp_quf_table_sum <- function(x, y, do_sum_y, rm_0, rm_1, rm_single, only_slope,
 
 cpp_colon_to_star <- function(Rstr) {
     .Call(`_fixest_cpp_colon_to_star`, Rstr)
+}
+
+cpp_to_index <- function(x) {
+    .Call(`_fixest_cpp_to_index`, x)
 }
 
 cpp_newey_west <- function(S, w, nthreads) {

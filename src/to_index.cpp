@@ -33,7 +33,10 @@ SEXP std_string_to_r_string(std::vector<std::string> x){
 }
 
 void general_type_to_index_single(const r_vector *x, int *__restrict p_index, int &n_groups,
-                                  vector<int> &vec_first_obs, bool is_final){
+                                  const bool is_final,
+                                  vector<int> &vec_firstobs, vector<int> &vec_table, 
+                                  vector<double> &vec_sum,
+                                  const bool do_sum, const double *p_vec_to_sum){
   
   const size_t n = x->n;
   
@@ -90,7 +93,7 @@ void general_type_to_index_single(const r_vector *x, int *__restrict p_index, in
         hashed_obs_vec[id] = i + 1;
         p_index[i] = ++g;
         if(is_final){
-          vec_first_obs.push_back(i + 1);
+          vec_firstobs.push_back(i + 1);
         }
       }
     }
@@ -117,7 +120,7 @@ void general_type_to_index_single(const r_vector *x, int *__restrict p_index, in
         hashed_obs_vec[id] = i + 1;
         p_index[i] = ++g;
         if(is_final){
-          vec_first_obs.push_back(i + 1);
+          vec_firstobs.push_back(i + 1);
         }
       }
     }
@@ -162,7 +165,7 @@ void general_type_to_index_single(const r_vector *x, int *__restrict p_index, in
         hashed_obs_vec[id] = i + 1;
         p_index[i] = ++g;
         if(is_final){
-          vec_first_obs.push_back(i + 1);
+          vec_firstobs.push_back(i + 1);
         }
       }
     }
@@ -175,7 +178,10 @@ void general_type_to_index_single(const r_vector *x, int *__restrict p_index, in
 
 void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in, 
                                   int *__restrict p_index_out, int &n_groups,
-                                  vector<int> &vec_first_obs, bool is_final){
+                                  const bool is_final,
+                                  vector<int> &vec_firstobs, vector<int> &vec_table,
+                                  vector<double> &vec_sum,
+                                  const bool do_sum, const double *p_vec_to_sum){
   // Two differences with the *_single version:
   // - when hashing and checking for collision => we use the extra index
   // - we include the possibility of fast ints
@@ -238,7 +244,7 @@ void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in,
         int_array[id] = g;
         p_index_out[i] = g;
         if(is_final){
-          vec_first_obs.push_back(i + 1);
+          vec_firstobs.push_back(i + 1);
         }
       } else {
         p_index_out[i] = int_array[id];
@@ -293,7 +299,7 @@ void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in,
           hashed_obs_vec[id] = i + 1;
           p_index_out[i] = ++g;
           if(is_final){
-            vec_first_obs.push_back(i + 1);
+            vec_firstobs.push_back(i + 1);
           }
         }
       }
@@ -320,7 +326,7 @@ void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in,
           hashed_obs_vec[id] = i + 1;
           p_index_out[i] = ++g;
           if(is_final){
-            vec_first_obs.push_back(i + 1);
+            vec_firstobs.push_back(i + 1);
           }
         }
       }
@@ -365,7 +371,7 @@ void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in,
           hashed_obs_vec[id] = i + 1;
           p_index_out[i] = ++g;
           if(is_final){
-            vec_first_obs.push_back(i + 1);
+            vec_firstobs.push_back(i + 1);
           }
         }
       }
@@ -379,15 +385,15 @@ void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in,
 
 
 inline void update_index_intarray_g_obs(int id, size_t i, int &g, int * &int_array, 
-                                        int *__restrict &p_index, bool &is_final, 
-                                        vector<int> &vec_first_obs){
+                                        int *__restrict &p_index, const bool &is_final, 
+                                        vector<int> &vec_firstobs){
   
   if(int_array[id] == 0){
     ++g;
     int_array[id] = g;
     p_index[i] = g;
     if(is_final){
-      vec_first_obs.push_back(i + 1);
+      vec_firstobs.push_back(i + 1);
     }
   } else {
     p_index[i] = int_array[id];
@@ -395,8 +401,10 @@ inline void update_index_intarray_g_obs(int id, size_t i, int &g, int * &int_arr
 }
 
 void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k, 
-                            int *__restrict p_index, int &n_groups,
-                            vector<int> &vec_first_obs, bool is_final){
+                            int *__restrict p_index, int &n_groups, const bool is_final,
+                            vector<int> &vec_firstobs, vector<int> &vec_table,
+                            vector<double> &vec_sum,
+                            const bool do_sum, const double *p_vec_to_sum){
   
   int sum_bin_ranges = 0;
   int K = all_k.size();
@@ -434,12 +442,12 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
             id = px0_int[i] - x0_min;
           }
           
-          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_first_obs);
+          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_firstobs);
         }
       } else {
         for(size_t i=0 ; i<n ; ++i){
           id = px0_int[i] - x0_min;
-          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_first_obs);
+          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_firstobs);
         }
       }
     } else {
@@ -453,12 +461,12 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
             id = static_cast<int>(px0_dbl[i]) - x0_min;
           }
           
-          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_first_obs);
+          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_firstobs);
         }
       } else {
         for(size_t i=0 ; i<n ; ++i){
           id = static_cast<int>(px0_dbl[i]) - x0_min;
-          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_first_obs);
+          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_firstobs);
         }
       }
     }
@@ -515,7 +523,7 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
           int_array[id] = g;
           p_index[i] = g;
           if(is_final){
-            vec_first_obs.push_back(i + 1);
+            vec_firstobs.push_back(i + 1);
           }
         } else {
           p_index[i] = int_array[id];
@@ -588,7 +596,7 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
           int_array[id] = g;
           p_index[i] = g;
           if(is_final){
-            vec_first_obs.push_back(i + 1);
+            vec_firstobs.push_back(i + 1);
           }
         } else {
           p_index[i] = int_array[id];
@@ -682,7 +690,7 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output,
   int *p_index = output.p_index;
   
   // vector of the first observation of the group
-  std::vector<int> &vec_first_obs = output.firstobs;
+  std::vector<int> &vec_firstobs = output.firstobs;
   std::vector<int> &vec_table = output.table;
   std::vector<double> &vec_sum = output.sum;
   
@@ -716,7 +724,8 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output,
     init_done = true;
     
     is_final = (size_t) K == id_fast_int.size();
-    multiple_ints_to_index(all_vecs, id_fast_int, p_index, n_groups, vec_first_obs, is_final);
+    multiple_ints_to_index(all_vecs, id_fast_int, p_index, n_groups, is_final, 
+                           vec_firstobs, vec_table, vec_sum, do_sum, p_vec_to_sum);
   }
   
   if(!is_final){
@@ -743,7 +752,8 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output,
       all_k_left.erase(all_k_left.begin());
       
       is_final = all_k_left.empty();
-      general_type_to_index_single(&all_vecs[k0], p_index, n_groups, vec_first_obs, is_final);
+      general_type_to_index_single(&all_vecs[k0], p_index, n_groups, is_final, 
+                                   vec_firstobs, vec_table, vec_sum, do_sum, p_vec_to_sum);
     }
     
     if(!is_final){
@@ -757,10 +767,14 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output,
         int k = all_k_left[ind];
         is_final = ind == all_k_left.size() - 1;
         if(is_res_updated_index){
-          general_type_to_index_double(&all_vecs[k], p_index, p_extra_index, n_groups, vec_first_obs, is_final);
+          general_type_to_index_double(&all_vecs[k], p_index, p_extra_index, n_groups, 
+                                       is_final, vec_firstobs, vec_table, vec_sum, 
+                                       do_sum, p_vec_to_sum);
           is_res_updated_index = false;
         } else {
-          general_type_to_index_double(&all_vecs[k], p_extra_index, p_index, n_groups, vec_first_obs, is_final);
+          general_type_to_index_double(&all_vecs[k], p_extra_index, p_index, n_groups, 
+                                       is_final, vec_firstobs, vec_table, vec_sum, 
+                                       do_sum, p_vec_to_sum);
           is_res_updated_index = true;
         }
       }
@@ -781,10 +795,10 @@ SEXP cpp_to_index_main(SEXP &x){
   IndexedVector index_vec(index);
   /*
   // we copy the first observations into an R vector
-  int g = vec_first_obs.size();
+  int g = vec_firstobs.size();
   SEXP r_first_obs = PROTECT(Rf_allocVector(INTSXP, g));
   int *p_first_obs = INTEGER(r_first_obs);
-  std::memcpy(p_first_obs, vec_first_obs.data(), sizeof(int) * g);
+  std::memcpy(p_first_obs, vec_firstobs.data(), sizeof(int) * g);
   
   // we save the results into a list
   SEXP res = PROTECT(Rf_allocVector(VECSXP, 2));

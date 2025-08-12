@@ -94,8 +94,20 @@ void general_type_to_index_single(const r_vector *x, int *__restrict p_index, in
         p_index[i] = ++g;
         if(is_final){
           vec_firstobs.push_back(i + 1);
+          vec_table.push_back(1);
+          if(do_sum){
+            vec_sum.push_back(p_vec_to_sum[i]);
+          }
+        }
+      } else if(is_final){
+        // NOTA: the index is 1-indexed, we need to 0-index it
+        const int group_id = p_index[i] - 1;
+        vec_table[group_id]++;
+        if(do_sum){
+          vec_sum[group_id] += p_vec_to_sum[i];
         }
       }
+      
     }
   } else if(x_type == T_INT){
     for(size_t i=0 ; i<n ; ++i){
@@ -121,6 +133,17 @@ void general_type_to_index_single(const r_vector *x, int *__restrict p_index, in
         p_index[i] = ++g;
         if(is_final){
           vec_firstobs.push_back(i + 1);
+          vec_table.push_back(1);
+          if(do_sum){
+            vec_sum.push_back(p_vec_to_sum[i]);
+          }
+        }
+      } else if(is_final){
+        // NOTA: the index is 1-indexed, we need to 0-index it
+        const int group_id = p_index[i] - 1;
+        vec_table[group_id]++;
+        if(do_sum){
+          vec_sum[group_id] += p_vec_to_sum[i];
         }
       }
     }
@@ -166,6 +189,17 @@ void general_type_to_index_single(const r_vector *x, int *__restrict p_index, in
         p_index[i] = ++g;
         if(is_final){
           vec_firstobs.push_back(i + 1);
+          vec_table.push_back(1);
+          if(do_sum){
+            vec_sum.push_back(p_vec_to_sum[i]);
+          }
+        }
+      } else if(is_final){
+        // NOTA: the index is 1-indexed, we need to 0-index it
+        const int group_id = p_index[i] - 1;
+        vec_table[group_id]++;
+        if(do_sum){
+          vec_sum[group_id] += p_vec_to_sum[i];
         }
       }
     }
@@ -245,9 +279,22 @@ void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in,
         p_index_out[i] = g;
         if(is_final){
           vec_firstobs.push_back(i + 1);
+          vec_table.push_back(1);
+          if(do_sum){
+            vec_sum.push_back(p_vec_to_sum[i]);
+          }
         }
       } else {
         p_index_out[i] = int_array[id];
+        
+        if(is_final){
+          // NOTA: the index is 1-indexed, we need to 0-index it
+          const int group_id = p_index_out[i] - 1;
+          vec_table[group_id]++;
+          if(do_sum){
+            vec_sum[group_id] += p_vec_to_sum[i];
+          }
+        }
       }
     }
     
@@ -300,8 +347,20 @@ void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in,
           p_index_out[i] = ++g;
           if(is_final){
             vec_firstobs.push_back(i + 1);
+            vec_table.push_back(1);
+            if(do_sum){
+              vec_sum.push_back(p_vec_to_sum[i]);
+            }
+          }
+        } else if(is_final){
+          // NOTA: the index is 1-indexed, we need to 0-index it
+          const int group_id = p_index_out[i] - 1;
+          vec_table[group_id]++;
+          if(do_sum){
+            vec_sum[group_id] += p_vec_to_sum[i];
           }
         }
+        
       }
     } else if(x_type == T_INT){
       for(size_t i=0 ; i<n ; ++i){
@@ -327,6 +386,17 @@ void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in,
           p_index_out[i] = ++g;
           if(is_final){
             vec_firstobs.push_back(i + 1);
+            vec_table.push_back(1);
+            if(do_sum){
+              vec_sum.push_back(p_vec_to_sum[i]);
+            }
+          }
+        } else if(is_final){
+          // NOTA: the index is 1-indexed, we need to 0-index it
+          const int group_id = p_index_out[i] - 1;
+          vec_table[group_id]++;
+          if(do_sum){
+            vec_sum[group_id] += p_vec_to_sum[i];
           }
         }
       }
@@ -372,6 +442,17 @@ void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in,
           p_index_out[i] = ++g;
           if(is_final){
             vec_firstobs.push_back(i + 1);
+            vec_table.push_back(1);
+            if(do_sum){
+              vec_sum.push_back(p_vec_to_sum[i]);
+            }
+          }
+        } else if(is_final){
+          // NOTA: the index is 1-indexed, we need to 0-index it
+          const int group_id = p_index_out[i] - 1;
+          vec_table[group_id]++;
+          if(do_sum){
+            vec_sum[group_id] += p_vec_to_sum[i];
           }
         }
       }
@@ -386,7 +467,9 @@ void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in,
 
 inline void update_index_intarray_g_obs(int id, size_t i, int &g, int * &int_array, 
                                         int *__restrict &p_index, const bool &is_final, 
-                                        vector<int> &vec_firstobs){
+                                        vector<int> &vec_firstobs, vector<int> &vec_table,
+                                        vector<double> &vec_sum, const bool do_sum, 
+                                        const double *p_vec_to_sum){
   
   if(int_array[id] == 0){
     ++g;
@@ -394,9 +477,21 @@ inline void update_index_intarray_g_obs(int id, size_t i, int &g, int * &int_arr
     p_index[i] = g;
     if(is_final){
       vec_firstobs.push_back(i + 1);
+      vec_table.push_back(1);
+      if(do_sum){
+        vec_sum.push_back(p_vec_to_sum[i]);
+      }
     }
   } else {
     p_index[i] = int_array[id];
+    if(is_final){
+      // NOTA: the index is 1-indexed, we need to 0-index it
+      const int group_id = p_index[i] - 1;
+      vec_table[group_id]++;
+      if(do_sum){
+        vec_sum[group_id] += p_vec_to_sum[i];
+      }
+    }
   }  
 }
 
@@ -442,12 +537,14 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
             id = px0_int[i] - x0_min;
           }
           
-          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_firstobs);
+          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, 
+                                      vec_firstobs, vec_table, vec_sum, do_sum, p_vec_to_sum);
         }
       } else {
         for(size_t i=0 ; i<n ; ++i){
           id = px0_int[i] - x0_min;
-          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_firstobs);
+          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, 
+                                      vec_firstobs, vec_table, vec_sum, do_sum, p_vec_to_sum);
         }
       }
     } else {
@@ -461,12 +558,14 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
             id = static_cast<int>(px0_dbl[i]) - x0_min;
           }
           
-          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_firstobs);
+          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, 
+                                      vec_firstobs, vec_table, vec_sum, do_sum, p_vec_to_sum);
         }
       } else {
         for(size_t i=0 ; i<n ; ++i){
           id = static_cast<int>(px0_dbl[i]) - x0_min;
-          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, vec_firstobs);
+          update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, 
+                                      vec_firstobs, vec_table, vec_sum, do_sum, p_vec_to_sum);
         }
       }
     }
@@ -524,9 +623,21 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
           p_index[i] = g;
           if(is_final){
             vec_firstobs.push_back(i + 1);
+            vec_table.push_back(1);
+            if(do_sum){
+              vec_sum.push_back(p_vec_to_sum[i]);
+            }
           }
         } else {
           p_index[i] = int_array[id];
+          if(is_final){
+            // NOTA: the index is 1-indexed, we need to 0-index it
+            const int group_id = p_index[i] - 1;
+            vec_table[group_id]++;
+            if(do_sum){
+              vec_sum[group_id] += p_vec_to_sum[i];
+            }
+          }
         }
       }
     } else {
@@ -597,9 +708,21 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
           p_index[i] = g;
           if(is_final){
             vec_firstobs.push_back(i + 1);
+            vec_table.push_back(1);
+            if(do_sum){
+              vec_sum.push_back(p_vec_to_sum[i]);
+            }
           }
         } else {
           p_index[i] = int_array[id];
+          if(is_final){
+            // NOTA: the index is 1-indexed, we need to 0-index it
+            const int group_id = p_index[i] - 1;
+            vec_table[group_id]++;
+            if(do_sum){
+              vec_sum[group_id] += p_vec_to_sum[i];
+            }
+          }
         }
       }
       

@@ -249,10 +249,10 @@ r_vector::r_vector(vector<int> x){
 class IndexedVector {
 public:
   
+  IndexedVector() = delete;
   IndexedVector(SEXP);
-  IndexedVector(int);
+  IndexedVector(vector<int> &);
   
-  vector<int> index;
   vector<int> firstobs;
   vector<int> table;
   vector<double> sum;
@@ -271,15 +271,14 @@ IndexedVector::IndexedVector(SEXP x){
   }
   
   p_index = INTEGER(x);
-  int n = Rf_length(x);
+  n = Rf_length(x);
   
 }
 
-IndexedVector::IndexedVector(int n){
+IndexedVector::IndexedVector(vector<int> &x){
   
-  index.resize(n);
-  p_index = index.data();
-  this->n = n;
+  p_index = x.data();
+  n = x.size();
   
 }
 

@@ -807,18 +807,18 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output,
   int K = all_vecs.size();
   int n = all_vecs.at(0).size();
   
-  if(n != output.n){
+  if(n != output.size()){
     Rf_error("Internal error `to_index_main`: The index size allocated in output is different from the input!");
   }
   
   
   // the result to be returned
-  int *p_index = output.p_index;
+  int *p_index = output.get_p_index();
   
   // vector of the first observation of the group
-  std::vector<int> &vec_firstobs = output.firstobs;
-  std::vector<int> &vec_table = output.table;
-  std::vector<double> &vec_sum = output.sum;
+  std::vector<int> &vec_firstobs = output.get_firstobs();
+  std::vector<int> &vec_table = output.get_table();
+  std::vector<double> &vec_sum = output.get_sum();
   
   // finding out the fast cases
   // Note that partial fast ordering is enabled and 
@@ -938,8 +938,8 @@ SEXP cpp_to_index(SEXP &x){
   //
   
   // we copy the first observations into an R vector
-  SEXP first_obs = indexthis::to_r_vector(index_info.firstobs);
-  SEXP table = indexthis::to_r_vector(index_info.table);
+  SEXP first_obs = indexthis::to_r_vector(index_info.get_firstobs());
+  SEXP table = indexthis::to_r_vector(index_info.get_table());
   
   // we save the results into a list
   SEXP res = PROTECT(Rf_allocVector(VECSXP, 3));

@@ -257,11 +257,6 @@ r_vector::r_vector(vector<int> x){
 
 
 class IndexedVector {
-public:
-  
-  IndexedVector() = delete;
-  IndexedVector(SEXP);
-  IndexedVector(vector<int> &);
   
   vector<int> firstobs;
   vector<int> table;
@@ -270,27 +265,63 @@ public:
   int *p_index = nullptr;
   int n = 0;
   
-  int n_protect = 0;
-};
-
-IndexedVector::IndexedVector(SEXP x){
-  // x is the vector that will receive the index
+  bool is_initialized = false;
   
-  if(TYPEOF(x) != INTSXP){
-    Rf_error("The class IndexedVector can only be initialized with INTEGER R objects.");
+public:
+  
+  IndexedVector() = default;
+  IndexedVector(SEXP x){ initialize(x); }
+  IndexedVector(vector<int> &x){ initialize(x); }
+  
+  void initialize(SEXP x){
+    if(TYPEOF(x) != INTSXP){
+      Rf_error("The class IndexedVector can only be initialized with INTEGER R objects.");
+    }
+    
+    p_index = INTEGER(x);
+    n = Rf_length(x);
+    is_initialized = true;
   }
   
-  p_index = INTEGER(x);
-  n = Rf_length(x);
+  void initialize(vector<int> & x){
+    p_index = x.data();
+    n = x.size();
+    is_initialized = true;
+  }
   
-}
+  void check_init() const {
+    if(!is_initialized){
+      Rf_error("IndexedVector: trying to use IndexedVector while not initialized!!! Please fix.");
+    }
+  }
+  
+  vector<int>& get_firstobs(){
+    check_init();
+    return firstobs;
+  }
+  
+  vector<int>& get_table(){
+    check_init();
+    return table;
+  }
+  
+  vector<double>& get_sum(){
+    check_init();
+    return sum;
+  }
+  
+  int* get_p_index(){
+    check_init();
+    return p_index;
+  }
+  
+  int size() const { 
+    check_init();
+    return n;
+  }
+  
+};
 
-IndexedVector::IndexedVector(vector<int> &x){
-  
-  p_index = x.data();
-  n = x.size();
-  
-}
 
 //
 // function declarations -------------------------------------------------------

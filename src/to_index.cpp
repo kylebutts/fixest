@@ -735,9 +735,7 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
   delete[] int_array;
 }
 
-
-void to_index_main(const SEXP &x, IndexedVector &output, 
-                   const bool do_sum, const double *p_vec_to_sum){
+std::vector<r_vector> SEXP_to_vec_r_vector(const SEXP &x){
   
   size_t n = 0;
   int K = 0;
@@ -758,11 +756,17 @@ void to_index_main(const SEXP &x, IndexedVector &output,
     }
     
   } else {
-    K = 1;
-    n = Rf_length(x);
     r_vector rvec(x);
     all_vecs.push_back(rvec);
   }
+  
+  return(all_vecs);
+}
+
+void to_index_main(const SEXP &x, IndexedVector &output, 
+                   const bool do_sum, const double *p_vec_to_sum){
+  
+  std::vector<r_vector> all_vecs = SEXP_to_vec_r_vector(x);
   
   to_index_main(all_vecs, output, do_sum, p_vec_to_sum);
 }
@@ -912,34 +916,47 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output,
 
 SEXP cpp_to_index_main(SEXP &x){
   
-  int n = Rf_length(x);
+  // x can be a vector or a list of vectors of the same length
+  vector<r_vector> all_vecs = SEXP_to_vec_r_vector(x);
+  
+  const int n = all_vecs.at(0).size();
   SEXP index = PROTECT(Rf_allocVector(INTSXP, n));
   
-  IndexedVector index_vec(index);
-  /*
+  IndexedVector index_info(index);
+  
+  //
+  // computing the index 
+  //
+  
+  
+  to_index_main(all_vecs, index_info);
+  
+  //
+  // saving the results 
+  //
+  
   // we copy the first observations into an R vector
-  int g = vec_firstobs.size();
-  SEXP r_first_obs = PROTECT(Rf_allocVector(INTSXP, g));
-  int *p_first_obs = INTEGER(r_first_obs);
-  std::memcpy(p_first_obs, vec_firstobs.data(), sizeof(int) * g);
+  SEXP first_obs = to_r_vector(index_info.firstobs);
+  SEXP table = to_r_vector(index_info.table);
   
   // we save the results into a list
-  SEXP res = PROTECT(Rf_allocVector(VECSXP, 2));
+  SEXP res = PROTECT(Rf_allocVector(VECSXP, 3));
   SET_VECTOR_ELT(res, 0, index);
-  SET_VECTOR_ELT(res, 1, r_first_obs);
+  SET_VECTOR_ELT(res, 1, first_obs);
+  SET_VECTOR_ELT(res, 2, table);
   
   // names
-  Rf_setAttrib(res, R_NamesSymbol, std_string_to_r_string({"index", "first_obs"}));
+  Rf_setAttrib(res, R_NamesSymbol, std_string_to_r_string({"index", "first_obs", "table"}));
     
   UNPROTECT(3);
   
   // we unprotect if we have converted some vectors to character
-  for(int k=0; k<K; ++k){
-    if(all_vecs[k].is_protect){
+  for(const auto &v : all_vecs){
+    if(v.is_protect){
       UNPROTECT(2);
     }
   }
-  */
+  
 }
  
 }

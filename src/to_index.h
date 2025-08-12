@@ -37,6 +37,16 @@ inline bool is_equal_dbl(double x, double y){
   return std::isnan(x) ? std::isnan(y) : x == y;
 }
 
+inline SEXP to_r_vector(const vector<int> &x){
+  const int n = x.size();
+  SEXP r_vec = PROTECT(Rf_allocVector(INTSXP, n));
+  int *p_int = INTEGER(r_vec);
+  std::memcpy(p_int, x.data(), sizeof(int) * n);
+  UNPROTECT(1);
+  
+  return r_vec;
+}
+
 //
 // r_vector --------------------------------------------------------------------
 //

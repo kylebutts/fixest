@@ -289,17 +289,17 @@ IndexedVector::IndexedVector(vector<int> &x){
 void to_index_main(const SEXP &x, IndexedVector &output);
 
 void to_index_main(const SEXP &x, IndexedVector &output,
-                   bool do_sum, const double *p_vec_to_sum);
+                   const bool do_sum, const double *p_vec_to_sum);
 
 void to_index_main(const r_vector &x, IndexedVector &output);
 
 void to_index_main(const r_vector &x, IndexedVector &output, 
-                   bool do_sum, const double *p_vec_to_sum);
+                   const bool do_sum, const double *p_vec_to_sum);
 
 void to_index_main(const std::vector<r_vector> &x, IndexedVector &output);
 
 void to_index_main(const std::vector<r_vector> &x, IndexedVector &output, 
-                   bool do_sum, const double *p_vec_to_sum);
+                   const bool do_sum, const double *p_vec_to_sum);
 
 } // namespace indexthis
 

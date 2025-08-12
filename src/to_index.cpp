@@ -605,7 +605,8 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
 }
 
 
-void to_index_main(const SEXP &x, IndexedVector &output){
+void to_index_main(const SEXP &x, IndexedVector &output, 
+                   const bool do_sum, const double *p_vec_to_sum){
   
   size_t n = 0;
   int K = 0;
@@ -632,17 +633,37 @@ void to_index_main(const SEXP &x, IndexedVector &output){
     all_vecs.push_back(rvec);
   }
   
-  to_index_main(all_vecs, output);
+  to_index_main(all_vecs, output, do_sum, p_vec_to_sum);
+}
+
+void to_index_main(const SEXP &x, IndexedVector &output){
+  const bool do_sum = false;
+  const double *p_vec_to_sum = nullptr;
+  to_index_main(x, output, do_sum, p_vec_to_sum);
+}
+
+void to_index_main(const r_vector &x, IndexedVector &output, 
+                   const bool do_sum, const double *p_vec_to_sum){
+  std::vector<r_vector> all_vecs;
+  all_vecs.push_back(x);
+  to_index_main(all_vecs, output, do_sum, p_vec_to_sum);
 }
 
 void to_index_main(const r_vector &x, IndexedVector &output){
-  std::vector<r_vector> all_vecs;
-  all_vecs.push_back(x);
-  to_index_main(all_vecs, output);
+  const bool do_sum = false;
+  const double *p_vec_to_sum = nullptr;
+  to_index_main(x, output, do_sum, p_vec_to_sum);
 }
 
+void to_index_main(const std::vector<r_vector> &x, IndexedVector &output){
+  const bool do_sum = false;
+  const double *p_vec_to_sum = nullptr;
+  to_index_main(x, output, do_sum, p_vec_to_sum);
+}
 
-void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output){
+void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output, 
+                   const bool do_sum, const double *p_vec_to_sum){
+  
   // x: vector or list of vectors of the same length (n)
   // returns:
   // - index: vector of length n, from 1 to the numberof unique values of x (g)

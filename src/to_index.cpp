@@ -931,7 +931,6 @@ SEXP cpp_to_index(SEXP &x){
   // computing the index 
   //
   
-  
   to_index_main(all_vecs, index_info);
   
   //
@@ -951,7 +950,7 @@ SEXP cpp_to_index(SEXP &x){
   // names
   Rf_setAttrib(res, R_NamesSymbol, indexthis::std_string_to_r_string({"index", "first_obs", "table"}));
     
-  UNPROTECT(3);
+  UNPROTECT(2);
   
   // we unprotect if we have converted some vectors to character
   for(const auto &v : all_vecs){

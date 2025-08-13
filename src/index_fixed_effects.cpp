@@ -81,6 +81,8 @@ void mark_obs_to_remove(std::vector<char> &removed_flag, bool &any_removed,
   
 }
 
+
+// [[Rcpp::export]]
 SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y, 
                          const bool rm_0, const bool rm_1, const bool rm_single, 
                          const Rcpp::IntegerVector only_slope, const int nthreads){
@@ -122,16 +124,20 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   }
   
   // we intialize the information on the indexes to be computed
+  
+  // we pre allocate the index output vector (the largest bit)
+  Rcpp::List all_indexes_sexp(Q);
+  for(int q = 0 ; q < Q ; ++q){
+    all_indexes_sexp[q] = PROTECT(Rf_allocVector(INTSXP, n_obs));
+  }
+  
   std::vector< indexthis::IndexInputVector > all_input_vectors(Q);
-  std::vector< std::vector<int> > all_index_vectors(Q);
   std::vector<indexthis::IndexedVector> all_index_info(Q);
   for(int q = 0 ; q < Q ; ++q){
     const SEXP &fixef_vec = VECTOR_ELT(fixef_list, q);
     all_input_vectors[q].initialize(fixef_vec);
     
-    std::vector<int> &vec = all_index_vectors[q];
-    vec = std::vector<int>(n_obs);
-    all_index_info[q].initialize(vec);
+    all_index_info[q].initialize(all_indexes_sexp[q]);
   }
   
   // below: only used when some observations were removed
@@ -144,6 +150,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     removed_flag = std::vector<char>(n_obs, 0);
   }
   
+  bool do_sort_obs_removed = false;
   bool keep_running = true;
   bool first_iter = true;
   while(keep_running){
@@ -180,6 +187,8 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
       } else {
         // here we use the information on the obs_keep bc we nee to track 
         // which observation was removed
+        
+        do_sort_obs_removed = true;
         for(int i = 0 ; i < n_current ; ++i){
           if(removed_flag[i] == 1){
             obs_removed.push_back(obs_keep[i]);
@@ -199,7 +208,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
       #pragma omp parallel for num_threads(nthreads)
       for(int q = 0 ; q < Q ; ++q){
         
-        // 1) we used the coputed index as new input
+        // 1) we use the computed index as new input
         int *p_index = all_index_info[q].get_p_index();
         std::vector<int> new_input(n_new);
         int index = 0;
@@ -213,8 +222,8 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
         all_input_vectors[q].initialize(all_raw_input_vectors[q]);
         
         // 2) we reset the containers of the future indexes
-        all_index_vectors[q] = std::vector<int>(n_new);
-        all_index_info[q].initialize(all_index_vectors[q]);
+        all_indexes_sexp[q] = PROTECT(Rf_allocVector(INTSXP, n_new));
+        all_index_info[q].initialize(all_indexes_sexp[q]);
       }
       
     }
@@ -225,9 +234,46 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   // building the return object 
   //
   
+  /* RETURNED OBJECT
+  * 
+  * - index: 1-G values of length n_new (over the number of observations, 
+  *   once we remove the ones to be removed)
+  * - firstobs: first occurrence of the FEs that are kept
+  * - table: the number of items for the FEs that are kept
+  * - sum_y: the sum of y for the FEs that are kept
+  * - obs_removed: the ID of the observations that were removed
+  * - firstobs_removed: first occurence of the FEs that were removed
+  * 
+  * */
   
+  Rcpp::List res;
   
+  res["index"] = all_indexes_sexp;
   
+  // table
+  Rcpp::List all_tables(Q);
+  Rcpp::List all_sum_y(Q);
+  for(int q = 0 ; q < Q ; ++q){
+    all_tables[q] = all_index_info[q].get_table();
+    
+    if(do_sum_y){
+      all_sum_y[q] = all_index_info[q].get_sum();
+    } else {
+      all_sum_y[q] = 0;
+    }
+  }
+  
+  res["table"] = all_tables;
+  res["sum_y"] = all_sum_y;
+  
+  if(!obs_removed.empty()){
+    if(do_sort_obs_removed){
+      std::sort(obs_removed.begin(), obs_removed.end());
+    }
+    res["obs_removed"] = obs_removed;
+  }
+  
+  return res;
   
 }
 

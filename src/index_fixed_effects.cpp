@@ -24,6 +24,7 @@ inline std::vector<int> seq(int from, int to){
 }
 
 void mark_obs_to_remove(std::vector<char> &removed_flag, bool &any_removed,
+                        std::vector<int> &firstobs_rm,
                         const indexthis::IndexedVector &index_info, 
                         const bool rm_0, const bool rm_1, const bool rm_single){
   
@@ -68,14 +69,15 @@ void mark_obs_to_remove(std::vector<char> &removed_flag, bool &any_removed,
   
   int *p_index = index_info.get_p_index();
   const int n = index_info.size();
+  std::vector<bool> is_done(G, false);
   for(int i = i_start ; i < n ; ++i){
     const int g = p_index[i] - 1;
-    if(rm_single && table[g] == 1){
+    if((rm_single && table[g] == 1) || (rm_0 && sum_y[g] == 0) || (rm_1 && sum_y[g] == table[g])){
       removed_flag[i] = 1;
-    } else if(rm_0 && sum_y[g] == 0){
-      removed_flag[i] = 1;
-    } else if(rm_1 && sum_y[g] == table[g]){
-      removed_flag[i] = 1;
+      if(!is_done[g]){
+        is_done[g] = true;
+        firstobs_rm.push_back(firstobs[g]);
+      }
     }
   }
   
@@ -146,6 +148,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   std::vector<char> removed_flag;
   std::vector<int> obs_keep;
   std::vector<int> obs_removed;
+  std::vector< std::vector<int> > all_firstobs_rm(Q);
   if(any_to_check_for_removal){
     removed_flag = std::vector<char>(n_obs, 0);
   }
@@ -159,6 +162,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     
     const int n_current = all_input_vectors[0].size();
     bool any_removed = false;
+    std::vector< std::vector<int> > all_firstobs_rm_new(Q);
     #pragma omp parallel for num_threads(nthreads)
     for(int q = 0 ; q < Q ; ++q){
       const indexthis::IndexInputVector &fixef_vec = all_input_vectors[q];
@@ -166,7 +170,8 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
       indexthis::to_index_main(fixef_vec, index_info);
       
       if(do_removal[q]){
-        mark_obs_to_remove(removed_flag, any_removed, index_info, rm_0, rm_1, rm_single);
+        mark_obs_to_remove(removed_flag, any_removed, all_firstobs_rm_new[q],
+                           index_info, rm_0, rm_1, rm_single);
       }
     }
     
@@ -184,9 +189,22 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
           }
         }
         
+        // firstobs removed
+        for(int q = 0 ; q < Q ; ++q){
+          all_firstobs_rm[q] = std::move(all_firstobs_rm_new[q]);
+        }
+        
       } else {
         // here we use the information on the obs_keep bc we nee to track 
         // which observation was removed
+        
+        // firstobs removed: we need to do it before obs_keep is modified
+        for(int q = 0 ; q < Q ; ++q){
+          auto &firstobs_rm = all_firstobs_rm[q];
+          for(const auto &obs_rm : all_firstobs_rm_new[q]){
+            firstobs_rm.push_back(obs_keep[obs_rm - 1]);
+          }
+        }
         
         do_sort_obs_removed = true;
         for(int i = 0 ; i < n_current ; ++i){
@@ -253,7 +271,11 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   // table
   Rcpp::List all_tables(Q);
   Rcpp::List all_sum_y(Q);
+  Rcpp::List all_firstobs(Q);
+  Rcpp::List all_firstobs_removed(Q);
+  const bool any_removed = !obs_removed.empty();
   for(int q = 0 ; q < Q ; ++q){
+    
     all_tables[q] = all_index_info[q].get_table();
     
     if(do_sum_y){
@@ -261,12 +283,31 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     } else {
       all_sum_y[q] = 0;
     }
+    
+    if(any_removed){
+      auto firstobs_new = all_index_info[q].get_firstobs();
+      for(auto &firstobs : firstobs_new){
+        firstobs = obs_keep[firstobs - 1];
+      }
+      
+      all_firstobs[q] = firstobs_new;
+    } else {
+      all_firstobs[q] = all_index_info[q].get_firstobs();
+    }
+    
+    if(any_removed){
+      all_firstobs_removed[q] = all_firstobs_rm[q];
+    }
   }
   
   res["table"] = all_tables;
   res["sum_y"] = all_sum_y;
+  res["firstobs"] = all_firstobs;
+  if(any_removed){
+    res["all_firstobs_removed"] = all_firstobs_removed;
+  }
   
-  if(!obs_removed.empty()){
+  if(any_removed){
     if(do_sort_obs_removed){
       std::sort(obs_removed.begin(), obs_removed.end());
     }

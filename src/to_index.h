@@ -267,6 +267,12 @@ class IndexedVector {
   
   bool is_initialized = false;
   
+  void check_init() const {
+    if(!is_initialized){
+      Rf_error("IndexedVector: trying to use IndexedVector while not initialized!!! Please fix.");
+    }
+  }
+  
 public:
   
   IndexedVector() = default;
@@ -289,13 +295,12 @@ public:
     is_initialized = true;
   }
   
-  void check_init() const {
-    if(!is_initialized){
-      Rf_error("IndexedVector: trying to use IndexedVector while not initialized!!! Please fix.");
-    }
+  vector<int>& get_firstobs(){
+    check_init();
+    return firstobs;
   }
   
-  vector<int>& get_firstobs(){
+  const vector<int>& get_firstobs() const {
     check_init();
     return firstobs;
   }
@@ -305,12 +310,22 @@ public:
     return table;
   }
   
+  const vector<int>& get_table() const {
+    check_init();
+    return table;
+  }
+  
   vector<double>& get_sum(){
     check_init();
     return sum;
   }
   
-  int* get_p_index(){
+  const vector<double>& get_sum() const {
+    check_init();
+    return sum;
+  }
+  
+  int* get_p_index() const {
     check_init();
     return p_index;
   }

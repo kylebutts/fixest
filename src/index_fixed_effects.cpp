@@ -240,6 +240,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
         all_input_vectors[q].initialize(all_raw_input_vectors[q]);
         
         // 2) we reset the containers of the future indexes
+        UNPROTECT(Q);
         all_indexes_sexp[q] = PROTECT(Rf_allocVector(INTSXP, n_new));
         all_index_info[q].initialize(all_indexes_sexp[q]);
       }
@@ -313,6 +314,8 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     }
     res["obs_removed"] = obs_removed;
   }
+  
+  UNPROTECT(Q);
   
   return res;
   

@@ -134,6 +134,8 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     all_index_info[q].initialize(vec);
   }
   
+  // below: only used when some observations were removed
+  std::vector< std::vector<int> > all_raw_input_vectors(Q);
   
   std::vector<char> removed_flag;
   std::vector<int> obs_keep;
@@ -148,6 +150,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     keep_running = false;
     first_iter = false;
     
+    const int n_current = all_input_vectors[0].size();
     bool any_removed = false;
     #pragma omp parallel for num_threads(nthreads)
     for(int q = 0 ; q < Q ; ++q){
@@ -166,8 +169,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
       if(first_iter){
         // This is the initialization: first iteration of the while loop
         obs_keep = seq(1, n_obs);
-        const int n = removed_flag.size();
-        for(int i = 0 ; i < n ; ++i){
+        for(int i = 0 ; i < n_current ; ++i){
           if(removed_flag[i] == 1){
             obs_removed.push_back(i);
           } else {
@@ -178,8 +180,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
       } else {
         // here we use the information on the obs_keep bc we nee to track 
         // which observation was removed
-        const int n = removed_flag.size();
-        for(int i = 0 ; i < n ; ++i){
+        for(int i = 0 ; i < n_current ; ++i){
           if(removed_flag[i] == 1){
             obs_removed.push_back(obs_keep[i]);
             obs_keep.erase(obs_keep.begin() + i);
@@ -194,15 +195,38 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
       }
       
       // we take the index just computed (in index_info) as the new input
-      std::unique_ptr< std::vector<int> >
-      
-      
-      
-      
+      const int n_new = obs_keep.size();
+      #pragma omp parallel for num_threads(nthreads)
+      for(int q = 0 ; q < Q ; ++q){
+        
+        // 1) we used the coputed index as new input
+        int *p_index = all_index_info[q].get_p_index();
+        std::vector<int> new_input(n_new);
+        int index = 0;
+        for(int i = 0 ; i < n_current ; ++i){
+          if(removed_flag[i] == 0){
+            new_input[index++] = p_index[i];
+          }
+        }
+        
+        all_raw_input_vectors[q] = std::move(new_input);
+        all_input_vectors[q].initialize(all_raw_input_vectors[q]);
+        
+        // 2) we reset the containers of the future indexes
+        all_index_vectors[q] = std::vector<int>(n_new);
+        all_index_info[q].initialize(all_index_vectors[q]);
+      }
       
     }
     
   }
+  
+  //
+  // building the return object 
+  //
+  
+  
+  
   
   
 }

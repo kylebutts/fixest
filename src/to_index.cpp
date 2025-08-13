@@ -18,7 +18,7 @@ namespace indexthis {
 using std::vector;
 
 
-void r_vector::initialize(SEXP x){
+void IndexInputVector::initialize(SEXP x){
   
   int n = Rf_length(x);
   this->n = n;
@@ -162,7 +162,7 @@ void r_vector::initialize(SEXP x){
 }
 
 
-void r_vector::initialize(vector<int> x){
+void IndexInputVector::initialize(vector<int> x){
   
   this-> n = x.size();
   
@@ -196,7 +196,7 @@ SEXP std_string_to_r_string(std::vector<std::string> x){
   return res;
 }
 
-void general_type_to_index_single(const r_vector *x, int *__restrict p_index, int &n_groups,
+void general_type_to_index_single(const IndexInputVector *x, int *__restrict p_index, int &n_groups,
                                   const bool is_final,
                                   vector<int> &vec_firstobs, vector<int> &vec_table, 
                                   vector<double> &vec_sum,
@@ -374,7 +374,7 @@ void general_type_to_index_single(const r_vector *x, int *__restrict p_index, in
   
 }
 
-void general_type_to_index_double(const r_vector *x, int *__restrict p_index_in, 
+void general_type_to_index_double(const IndexInputVector *x, int *__restrict p_index_in, 
                                   int *__restrict p_index_out, int &n_groups,
                                   const bool is_final,
                                   vector<int> &vec_firstobs, vector<int> &vec_table,
@@ -659,7 +659,7 @@ inline void update_index_intarray_g_obs(int id, size_t i, int &g, int * &int_arr
   }  
 }
 
-void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k, 
+void multiple_ints_to_index(const vector<IndexInputVector> &all_vecs, vector<int> &all_k, 
                             int *__restrict p_index, int &n_groups, const bool is_final,
                             vector<int> &vec_firstobs, vector<int> &vec_table,
                             vector<double> &vec_sum,
@@ -673,7 +673,7 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
   }  
   
   int k0 = all_k[0];
-  const r_vector *x0 = &all_vecs[k0];
+  const IndexInputVector *x0 = &all_vecs[k0];
   const size_t n = x0->n;
   const int * px0_int = (int *) x0->px_int;
   const double * px0_dbl = (double *) x0->px_dbl;
@@ -736,7 +736,7 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
   } else {
     
     int k1 = all_k[1];
-    const r_vector *x1 = &all_vecs[k1];
+    const IndexInputVector *x1 = &all_vecs[k1];
     const int *px1_int = (int *) x1->px_int;
     const double *px1_dbl = (double *) x1->px_dbl;
     
@@ -827,7 +827,7 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
       offset += x1->x_range_bin;
       for(int ind=2 ; ind<K-1 ; ++ind){
         int k = all_k[ind];
-        const r_vector *xk = &all_vecs[k];
+        const IndexInputVector *xk = &all_vecs[k];
         const int *pxk_int = (int *) xk->px_int;
         const double *pxk_dbl = (double *) xk->px_dbl;
         
@@ -847,7 +847,7 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
             
       // last element + group creation
       int k = all_k[K - 1];
-      const r_vector *xk = &all_vecs[k];
+      const IndexInputVector *xk = &all_vecs[k];
       const int *pxk_int = (int *) xk->px_int;
       const double *pxk_dbl = (double *) xk->px_dbl;
       
@@ -899,17 +899,17 @@ void multiple_ints_to_index(const vector<r_vector> &all_vecs, vector<int> &all_k
   delete[] int_array;
 }
 
-std::vector<r_vector> SEXP_to_vec_r_vector(const SEXP &x){
+std::vector<IndexInputVector> SEXP_to_vec_r_vector(const SEXP &x){
   
   size_t n = 0;
   int K = 0;
-  std::vector<r_vector> all_vecs;
+  std::vector<IndexInputVector> all_vecs;
   
   // we set up the info with the rvec class. It makes it easy to pass across functions
   if(TYPEOF(x) == VECSXP){
     K = Rf_length(x);
     for(int k=0; k<K; ++k){
-      r_vector rvec(VECTOR_ELT(x, k));
+      IndexInputVector rvec(VECTOR_ELT(x, k));
       all_vecs.push_back(rvec);
       
       if(k == 0){
@@ -920,7 +920,7 @@ std::vector<r_vector> SEXP_to_vec_r_vector(const SEXP &x){
     }
     
   } else {
-    r_vector rvec(x);
+    IndexInputVector rvec(x);
     all_vecs.push_back(rvec);
   }
   
@@ -930,7 +930,7 @@ std::vector<r_vector> SEXP_to_vec_r_vector(const SEXP &x){
 void to_index_main(const SEXP &x, IndexedVector &output, 
                    const bool do_sum, const double *p_vec_to_sum){
   
-  std::vector<r_vector> all_vecs = SEXP_to_vec_r_vector(x);
+  std::vector<IndexInputVector> all_vecs = SEXP_to_vec_r_vector(x);
   
   to_index_main(all_vecs, output, do_sum, p_vec_to_sum);
 }
@@ -941,26 +941,26 @@ void to_index_main(const SEXP &x, IndexedVector &output){
   to_index_main(x, output, do_sum, p_vec_to_sum);
 }
 
-void to_index_main(const r_vector &x, IndexedVector &output, 
+void to_index_main(const IndexInputVector &x, IndexedVector &output, 
                    const bool do_sum, const double *p_vec_to_sum){
-  std::vector<r_vector> all_vecs;
+  std::vector<IndexInputVector> all_vecs;
   all_vecs.push_back(x);
   to_index_main(all_vecs, output, do_sum, p_vec_to_sum);
 }
 
-void to_index_main(const r_vector &x, IndexedVector &output){
+void to_index_main(const IndexInputVector &x, IndexedVector &output){
   const bool do_sum = false;
   const double *p_vec_to_sum = nullptr;
   to_index_main(x, output, do_sum, p_vec_to_sum);
 }
 
-void to_index_main(const std::vector<r_vector> &x, IndexedVector &output){
+void to_index_main(const std::vector<IndexInputVector> &x, IndexedVector &output){
   const bool do_sum = false;
   const double *p_vec_to_sum = nullptr;
   to_index_main(x, output, do_sum, p_vec_to_sum);
 }
 
-void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output, 
+void to_index_main(const std::vector<IndexInputVector> &all_vecs, IndexedVector &output, 
                    const bool do_sum, const double *p_vec_to_sum){
   
   // x: vector or list of vectors of the same length (n)
@@ -990,7 +990,7 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output,
   int sum_bin_ranges = 0;
   vector<int> id_fast_int;
   for(int k=0 ; k<K ; ++k){
-    const r_vector *x = &all_vecs[k];
+    const IndexInputVector *x = &all_vecs[k];
     if(x->is_fast_int){
       int new_bin_range = sum_bin_ranges + x->x_range_bin;
       if(new_bin_range < 17 || (K >= 2 && new_bin_range <= power_of_two(5 * n))){
@@ -1084,7 +1084,7 @@ void to_index_main(const std::vector<r_vector> &all_vecs, IndexedVector &output,
 SEXP cpp_to_index(SEXP &x){
   
   // x can be a vector or a list of vectors of the same length
-  std::vector<indexthis::r_vector> all_vecs = indexthis::SEXP_to_vec_r_vector(x);
+  std::vector<indexthis::IndexInputVector> all_vecs = indexthis::SEXP_to_vec_r_vector(x);
   
   const int n = all_vecs.at(0).size();
   SEXP index = PROTECT(Rf_allocVector(INTSXP, n));

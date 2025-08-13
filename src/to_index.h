@@ -48,19 +48,19 @@ inline SEXP to_r_vector(const vector<int> &x){
 }
 
 //
-// r_vector --------------------------------------------------------------------
+// IndexInputVector --------------------------------------------------------------------
 //
 
 
 // Class very useful to pass around the data on R vectors 
-class r_vector {
+class IndexInputVector {
   
   SEXP x_conv;
   
 public:
-  r_vector() = default;
-  r_vector(SEXP x) { initialize(x); }
-  r_vector(vector<int> x) { initialize(x); }
+  IndexInputVector() = default;
+  IndexInputVector(SEXP x) { initialize(x); }
+  IndexInputVector(vector<int> x) { initialize(x); }
   
   void initialize(SEXP);
   void initialize(vector<int>);
@@ -188,14 +188,14 @@ void to_index_main(const SEXP &x, IndexedVector &output);
 void to_index_main(const SEXP &x, IndexedVector &output,
                    const bool do_sum, const double *p_vec_to_sum);
 
-void to_index_main(const r_vector &x, IndexedVector &output);
+void to_index_main(const IndexInputVector &x, IndexedVector &output);
 
-void to_index_main(const r_vector &x, IndexedVector &output, 
+void to_index_main(const IndexInputVector &x, IndexedVector &output, 
                    const bool do_sum, const double *p_vec_to_sum);
 
-void to_index_main(const std::vector<r_vector> &x, IndexedVector &output);
+void to_index_main(const std::vector<IndexInputVector> &x, IndexedVector &output);
 
-void to_index_main(const std::vector<r_vector> &x, IndexedVector &output, 
+void to_index_main(const std::vector<IndexInputVector> &x, IndexedVector &output, 
                    const bool do_sum, const double *p_vec_to_sum);
 
 } // namespace indexthis

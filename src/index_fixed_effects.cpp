@@ -87,7 +87,7 @@ void mark_obs_to_remove(std::vector<char> &removed_flag, bool &any_removed,
 // [[Rcpp::export]]
 SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y, 
                          const bool rm_0, const bool rm_1, const bool rm_single, 
-                         const Rcpp::IntegerVector only_slope, const int nthreads){
+                         Rcpp::IntegerVector only_slope, const int nthreads){
   
   
   int Q = Rf_length(fixef_list);
@@ -167,7 +167,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     for(int q = 0 ; q < Q ; ++q){
       const indexthis::IndexInputVector &fixef_vec = all_input_vectors[q];
       indexthis::IndexedVector &index_info = all_index_info[q];
-      indexthis::to_index_main(fixef_vec, index_info);
+      indexthis::to_index_main(fixef_vec, index_info, do_sum_y, py);
       
       if(do_removal[q]){
         mark_obs_to_remove(removed_flag, any_removed, all_firstobs_rm_new[q],

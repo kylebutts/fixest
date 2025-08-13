@@ -388,23 +388,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_index_table_sum
-List cpp_index_table_sum(SEXP x_list, SEXP y, bool do_sum_y, bool rm_0, bool rm_1, bool rm_single, IntegerVector only_slope, int nthreads, bool do_refactor, SEXP r_x_sizes, IntegerVector obs2keep);
-RcppExport SEXP _fixest_cpp_index_table_sum(SEXP x_listSEXP, SEXP ySEXP, SEXP do_sum_ySEXP, SEXP rm_0SEXP, SEXP rm_1SEXP, SEXP rm_singleSEXP, SEXP only_slopeSEXP, SEXP nthreadsSEXP, SEXP do_refactorSEXP, SEXP r_x_sizesSEXP, SEXP obs2keepSEXP) {
+SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y, const bool rm_0, const bool rm_1, const bool rm_single, Rcpp::IntegerVector only_slope, const int nthreads);
+RcppExport SEXP _fixest_cpp_index_table_sum(SEXP fixef_listSEXP, SEXP ySEXP, SEXP do_sum_ySEXP, SEXP rm_0SEXP, SEXP rm_1SEXP, SEXP rm_singleSEXP, SEXP only_slopeSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x_list(x_listSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type fixef_list(fixef_listSEXP);
     Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< bool >::type do_sum_y(do_sum_ySEXP);
-    Rcpp::traits::input_parameter< bool >::type rm_0(rm_0SEXP);
-    Rcpp::traits::input_parameter< bool >::type rm_1(rm_1SEXP);
-    Rcpp::traits::input_parameter< bool >::type rm_single(rm_singleSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type only_slope(only_slopeSEXP);
-    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
-    Rcpp::traits::input_parameter< bool >::type do_refactor(do_refactorSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type r_x_sizes(r_x_sizesSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type obs2keep(obs2keepSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_index_table_sum(x_list, y, do_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads, do_refactor, r_x_sizes, obs2keep));
+    Rcpp::traits::input_parameter< const bool >::type do_sum_y(do_sum_ySEXP);
+    Rcpp::traits::input_parameter< const bool >::type rm_0(rm_0SEXP);
+    Rcpp::traits::input_parameter< const bool >::type rm_1(rm_1SEXP);
+    Rcpp::traits::input_parameter< const bool >::type rm_single(rm_singleSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type only_slope(only_slopeSEXP);
+    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_index_table_sum(fixef_list, y, do_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1222,7 +1219,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fixest_cpp_dsb_full_string", (DL_FUNC) &_fixest_cpp_dsb_full_string, 1},
     {"_fixest_cpp_dsb_if_extract", (DL_FUNC) &_fixest_cpp_dsb_if_extract, 1},
     {"_fixest_cpp_paste_conditional", (DL_FUNC) &_fixest_cpp_paste_conditional, 3},
-    {"_fixest_cpp_index_table_sum", (DL_FUNC) &_fixest_cpp_index_table_sum, 11},
+    {"_fixest_cpp_index_table_sum", (DL_FUNC) &_fixest_cpp_index_table_sum, 8},
     {"_fixest_cpp_cholesky", (DL_FUNC) &_fixest_cpp_cholesky, 3},
     {"_fixest_cpp_sparse_products", (DL_FUNC) &_fixest_cpp_sparse_products, 5},
     {"_fixest_cpp_crossprod", (DL_FUNC) &_fixest_cpp_crossprod, 3},

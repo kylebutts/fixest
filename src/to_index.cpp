@@ -20,6 +20,12 @@ using std::vector;
 
 void IndexInputVector::initialize(SEXP x){
   
+  if(is_initialized){
+    reset();
+  }
+  
+  is_initialized = true;
+  
   int n = Rf_length(x);
   this->n = n;
   
@@ -163,6 +169,12 @@ void IndexInputVector::initialize(SEXP x){
 
 
 void IndexInputVector::initialize(vector<int> x){
+  
+  if(is_initialized){
+    reset();
+  }
+  
+  is_initialized = true;
   
   this-> n = x.size();
   

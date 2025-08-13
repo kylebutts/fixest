@@ -56,6 +56,22 @@ inline SEXP to_r_vector(const vector<int> &x){
 class IndexInputVector {
   
   SEXP x_conv;
+  bool is_initialized = false;
+  
+  void reset(){
+    // we reset to the default values
+    is_fast_int = false;
+    x_range = 0;
+    x_range_bin = 0;
+    x_min = 0;
+    type = 0;
+    is_protect = false;
+    any_na = true;
+    NA_value = -1;
+    px_int = nullptr;
+    px_dbl = nullptr;
+    px_intptr = nullptr;
+  }
   
 public:
   IndexInputVector() = default;
@@ -68,7 +84,7 @@ public:
   int size() const { return n; }
   
   // public properties
-  int n;
+  int n = 0;
   bool is_fast_int = false;
   int x_range = 0;
   int x_range_bin = 0;
@@ -114,6 +130,14 @@ class IndexedVector {
     }
   }
   
+  void reset(){
+    firstobs.clear();
+    table.clear();
+    sum.clear();
+    n = 0;
+    p_index = nullptr;
+  }
+  
 public:
   
   IndexedVector() = default;
@@ -125,12 +149,21 @@ public:
       Rf_error("The class IndexedVector can only be initialized with INTEGER R objects.");
     }
     
+    if(is_initialized){
+      reset();
+    }
+    
     p_index = INTEGER(x);
     n = Rf_length(x);
     is_initialized = true;
   }
   
-  void initialize(vector<int> & x){
+  void initialize(vector<int> &x){
+    
+    if(is_initialized){
+      reset();
+    }
+    
     p_index = x.data();
     n = x.size();
     is_initialized = true;

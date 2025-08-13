@@ -13,6 +13,15 @@
 #include "Rcpp.h"
 #include "to_index.h"
 
+inline std::vector<int> seq(int from, int to){
+  const int n = to - from + 1;
+  std::vector<int> res(n);
+  for(int i = 0 ; i < n ; ++i){
+    res[i] = i + from;
+  }
+  
+  return res;
+}
 
 void mark_obs_to_remove(std::vector<char> &removed_flag, bool &any_removed,
                         const indexthis::IndexedVector &index_info, 
@@ -79,7 +88,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   
   int Q = Rf_length(fixef_list);
   SEXP fixef_vec = VECTOR_ELT(fixef_list, 0);
-  int n = Rf_length(fixef_vec);
+  const int n_obs = Rf_length(fixef_vec);
   
   // do_removal => whether we check for removal
   std::vector<bool> do_removal(Q, true);
@@ -113,32 +122,84 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   }
   
   // we intialize the information on the indexes to be computed
+  std::vector< indexthis::IndexInputVector > all_input_vectors(Q);
   std::vector< std::vector<int> > all_index_vectors(Q);
   std::vector<indexthis::IndexedVector> all_index_info(Q);
   for(int q = 0 ; q < Q ; ++q){
+    const SEXP &fixef_vec = VECTOR_ELT(fixef_list, q);
+    all_input_vectors[q].initialize(fixef_vec);
+    
     std::vector<int> &vec = all_index_vectors[q];
-    vec = std::vector<int>(n);
+    vec = std::vector<int>(n_obs);
     all_index_info[q].initialize(vec);
   }
   
+  
   std::vector<char> removed_flag;
+  std::vector<int> obs_keep;
+  std::vector<int> obs_removed;
   if(any_to_check_for_removal){
-    removed_flag = std::vector<char>(n, 0);
+    removed_flag = std::vector<char>(n_obs, 0);
   }
   
   bool keep_running = true;
+  bool first_iter = true;
   while(keep_running){
     keep_running = false;
+    first_iter = false;
     
     bool any_removed = false;
+    #pragma omp parallel for num_threads(nthreads)
     for(int q = 0 ; q < Q ; ++q){
-      const SEXP &fixef_vec = VECTOR_ELT(fixef_list, q);
+      const indexthis::IndexInputVector &fixef_vec = all_input_vectors[q];
       indexthis::IndexedVector &index_info = all_index_info[q];
       indexthis::to_index_main(fixef_vec, index_info);
       
       if(do_removal[q]){
         mark_obs_to_remove(removed_flag, any_removed, index_info, rm_0, rm_1, rm_single);
       }
+    }
+    
+    if(any_removed){
+      keep_running = true;
+      
+      if(first_iter){
+        // This is the initialization: first iteration of the while loop
+        obs_keep = seq(1, n_obs);
+        const int n = removed_flag.size();
+        for(int i = 0 ; i < n ; ++i){
+          if(removed_flag[i] == 1){
+            obs_removed.push_back(i);
+          } else {
+            obs_keep.erase(obs_keep.begin() + i);
+          }
+        }
+        
+      } else {
+        // here we use the information on the obs_keep bc we nee to track 
+        // which observation was removed
+        const int n = removed_flag.size();
+        for(int i = 0 ; i < n ; ++i){
+          if(removed_flag[i] == 1){
+            obs_removed.push_back(obs_keep[i]);
+            obs_keep.erase(obs_keep.begin() + i);
+          }
+        }
+        
+      }
+      
+      if(obs_keep.empty()){
+        Rcpp::List res = Rcpp::List::create(Rcpp::Named("all_removed") = true);
+        return res;
+      }
+      
+      // we take the index just computed (in index_info) as the new input
+      std::unique_ptr< std::vector<int> >
+      
+      
+      
+      
+      
     }
     
   }

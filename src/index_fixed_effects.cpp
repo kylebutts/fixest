@@ -158,7 +158,6 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   bool first_iter = true;
   while(keep_running){
     keep_running = false;
-    first_iter = false;
     
     const int n_current = all_input_vectors[0].size();
     bool any_removed = false;
@@ -179,6 +178,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
       keep_running = true;
       
       if(first_iter){
+        first_iter = false;
         // This is the initialization: first iteration of the while loop
         obs_keep = seq(1, n_obs);
         for(int i = 0 ; i < n_current ; ++i){

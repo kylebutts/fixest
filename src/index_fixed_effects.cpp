@@ -12,6 +12,7 @@
 
 #include "Rcpp.h"
 #include "to_index.h"
+#include "util.h"
 
 inline std::vector<int> seq(int from, int to){
   const int n = to - from + 1;
@@ -31,6 +32,10 @@ void mark_obs_to_remove(std::vector<char> &removed_flag, bool &any_removed,
   const std::vector<int> &firstobs = index_info.get_firstobs();
   const std::vector<int> &table = index_info.get_table();
   const std::vector<double> &sum_y = index_info.get_sum();
+  
+  util::debug_msg("firstobs = ", firstobs);
+  util::debug_msg("table = ", table);
+  util::debug_msg("sum_y = ", sum_y);
   
   //
   // step 1: we check if at least one is removed 
@@ -81,6 +86,8 @@ void mark_obs_to_remove(std::vector<char> &removed_flag, bool &any_removed,
     }
   }
   
+  util::debug_msg("firstobs_rm = ", firstobs_rm);
+  
 }
 
 
@@ -89,6 +96,9 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
                          const bool rm_0, const bool rm_1, const bool rm_single, 
                          Rcpp::IntegerVector only_slope, const int nthreads){
   
+  if((rm_0 || rm_1) && !do_sum_y){
+    Rf_error("Internal error: you cannot have rm_0 without do_sum_y!!!");
+  }
   
   int Q = Rf_length(fixef_list);
   SEXP fixef_vec = VECTOR_ELT(fixef_list, 0);
@@ -114,9 +124,9 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   }
   
   
-  double *py = nullptr;
+  double *p_y = nullptr;
   if(TYPEOF(y) == REALSXP){
-    py = REAL(y);
+    p_y = REAL(y);
   } else {
     // => there will be no use of y, so nullptr is OK
     // but I must ensure that beforehand: do_sum_y = rm_0 = rm_1 = false
@@ -144,6 +154,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   
   // below: only used when some observations were removed
   std::vector< std::vector<int> > all_raw_input_vectors(Q);
+  std::vector<double> y_new;
   
   std::vector<char> removed_flag;
   std::vector<int> obs_keep;
@@ -166,11 +177,21 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     for(int q = 0 ; q < Q ; ++q){
       const indexthis::IndexInputVector &fixef_vec = all_input_vectors[q];
       indexthis::IndexedVector &index_info = all_index_info[q];
-      indexthis::to_index_main(fixef_vec, index_info, do_sum_y, py);
       
       using Rcpp::Rcout;
-      int *p_index = index_info.get_p_index();
+      
+      Rcout << "Input: \n" << 
+        "- is_fast_int = " << fixef_vec.is_fast_int << "\n" << 
+        "- n = " << fixef_vec.n << "\n" << 
+        "- px_int = " << fixef_vec.px_int << "\n" << 
+        "- x_min = " << fixef_vec.x_min << "\n" << 
+        "- x_range = " << fixef_vec.x_range << "\n";
+      
       Rcout << "Indexing: ";
+      indexthis::to_index_main(fixef_vec, index_info, do_sum_y, p_y);
+      
+      int *p_index = index_info.get_p_index();
+      
       for(int i = 0 ; i < n_current ; ++i){
         if(i > 0) Rcout << ", ";
         Rcout << p_index[i];
@@ -194,6 +215,9 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
             obs_removed.push_back(i + 1);
           } else {
             obs_keep.push_back(i + 1);
+            if(do_sum_y){
+              y_new.push_back(p_y[i]);
+            }
           }
         }
         
@@ -220,15 +244,24 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
           if(removed_flag[i] == 1){
             obs_removed.push_back(obs_keep[i]);
             obs_keep.erase(obs_keep.begin() + i);
+            if(do_sum_y){
+              y_new.erase(y_new.begin() + i);
+            }
           }
         }
         
       }
       
+      p_y = y_new.data();
+      
       if(obs_keep.empty()){
         Rcpp::List res = Rcpp::List::create(Rcpp::Named("all_removed") = true);
         return res;
       }
+      
+      util::debug_msg("obs_keep = ", obs_keep);
+      util::debug_msg("obs_removed = ", obs_removed);
+      util::debug_msg("n_new = ", obs_keep.size());
       
       // we take the index just computed (in index_info) as the new input
       const int n_new = obs_keep.size();
@@ -244,6 +277,8 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
             new_input[index++] = p_index[i];
           }
         }
+        
+        util::debug_msg("new_input = ", new_input);
         
         all_raw_input_vectors[q] = std::move(new_input);
         all_input_vectors[q].initialize(all_raw_input_vectors[q]);

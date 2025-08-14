@@ -19,7 +19,7 @@ namespace indexthis {
 using std::vector;
 
 
-void IndexInputVector::initialize(SEXP x){
+void IndexInputVector::initialize(const SEXP &x){
   
   if(is_initialized){
     reset();
@@ -169,7 +169,7 @@ void IndexInputVector::initialize(SEXP x){
 }
 
 
-void IndexInputVector::initialize(vector<int> x){
+void IndexInputVector::initialize(const vector<int> &x){
   
   if(is_initialized){
     reset();
@@ -177,7 +177,7 @@ void IndexInputVector::initialize(vector<int> x){
   
   is_initialized = true;
   
-  this-> n = x.size();
+  this->n = x.size();
   
   this->px_int = x.data();
   this->type = T_INT;
@@ -698,6 +698,8 @@ void multiple_ints_to_index(const vector<IndexInputVector> &all_vecs, vector<int
   
   util::debug_msg("n = ", n);
   util::debug_msg("x0_min = ", x0_min);
+  util::debug_msg("is_x0_int = ", is_x0_int);
+  util::debug_msg("px0_int[0] = ", px0_int[0]);
   
   size_t lookup_size = K == 1 ? x0->x_range + 1 : std::pow(2, sum_bin_ranges + K - 1);
   int *int_array = new int[lookup_size];

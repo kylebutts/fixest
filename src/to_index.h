@@ -75,11 +75,11 @@ class IndexInputVector {
   
 public:
   IndexInputVector() = default;
-  IndexInputVector(SEXP x) { initialize(x); }
-  IndexInputVector(vector<int> x) { initialize(x); }
+  IndexInputVector(const SEXP &x) { initialize(x); }
+  IndexInputVector(const vector<int> &x) { initialize(x); }
   
-  void initialize(SEXP);
-  void initialize(vector<int>);
+  void initialize(const SEXP &x);
+  void initialize(const vector<int> &x);
   
   int size() const { return n; }
   
@@ -102,9 +102,9 @@ public:
   int NA_value = -1;
   
   // pointers: only the valid one ends up non-null
-  int *px_int = (int *) nullptr;
-  double *px_dbl = (double *) nullptr;
-  intptr_t *px_intptr = (intptr_t *) nullptr;
+  const int *px_int = (int *) nullptr;
+  const double *px_dbl = (double *) nullptr;
+  const intptr_t *px_intptr = (intptr_t *) nullptr;
   
 };
 

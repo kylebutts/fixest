@@ -174,11 +174,11 @@ compare = function(x, y){
     y_solo = setdiff(names(y), names(x))
     
     if(length(x_solo) > 0){
-      mema("Object{$s} in x not in y: {enum.bq ? names(x)}.")
+      mema("Object{$s} in x not in y: {enum.bq ? x_solo}.")
     }
     
     if(length(y_solo) > 0){
-      mema("Object{$s} in y not in x: {enum.bq ? names(y)}.")
+      mema("Object{$s} in y not in x: {enum.bq ? y_solo}.")
     }
     
   }

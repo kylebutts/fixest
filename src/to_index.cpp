@@ -11,6 +11,7 @@
  *********************************************************************/
 
 
+#include "util.h"
 #include "to_index.h"
 
 namespace indexthis {
@@ -183,6 +184,7 @@ void IndexInputVector::initialize(vector<int> x){
   int x_max = *std::max_element(x.begin(), x.end());
   int x_min = *std::min_element(x.begin(), x.end());
   
+  this->x_min = x_min;
   this->x_range = x_max - x_min + 1;
   this->x_range_bin = power_of_two(this->x_range);    
   this->is_fast_int = this->x_range < 100000 || this->x_range <= 2*n;
@@ -694,6 +696,9 @@ void multiple_ints_to_index(const vector<IndexInputVector> &all_vecs, vector<int
   const bool is_x0_int = x0_type == T_INT;
   const int x0_min = x0->x_min;
   
+  util::debug_msg("n = ", n);
+  util::debug_msg("x0_min = ", x0_min);
+  
   size_t lookup_size = K == 1 ? x0->x_range + 1 : std::pow(2, sum_bin_ranges + K - 1);
   int *int_array = new int[lookup_size];
   std::fill_n(int_array, lookup_size, 0);
@@ -718,6 +723,9 @@ void multiple_ints_to_index(const vector<IndexInputVector> &all_vecs, vector<int
         }
       } else {
         for(size_t i=0 ; i<n ; ++i){
+          
+          util::debug_msg("i = ", i, ", px0_int[i] = ", px0_int[i]);
+          
           id = px0_int[i] - x0_min;
           update_index_intarray_g_obs(id, i, g, int_array, p_index, is_final, 
                                       vec_firstobs, vec_table, vec_sum, do_sum, p_vec_to_sum);

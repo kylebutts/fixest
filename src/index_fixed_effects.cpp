@@ -168,6 +168,15 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
       indexthis::IndexedVector &index_info = all_index_info[q];
       indexthis::to_index_main(fixef_vec, index_info, do_sum_y, py);
       
+      using Rcpp::Rcout;
+      int *p_index = index_info.get_p_index();
+      Rcout << "Indexing: ";
+      for(int i = 0 ; i < n_current ; ++i){
+        if(i > 0) Rcout << ", ";
+        Rcout << p_index[i];
+      }
+      Rcout << "\n";
+      
       if(do_removal[q]){
         mark_obs_to_remove(removed_flag, any_removed, all_firstobs_rm_new[q],
                            index_info, rm_0, rm_1, rm_single);
@@ -180,12 +189,11 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
       if(first_iter){
         first_iter = false;
         // This is the initialization: first iteration of the while loop
-        obs_keep = seq(1, n_obs);
         for(int i = 0 ; i < n_current ; ++i){
           if(removed_flag[i] == 1){
-            obs_removed.push_back(i);
+            obs_removed.push_back(i + 1);
           } else {
-            obs_keep.erase(obs_keep.begin() + i);
+            obs_keep.push_back(i + 1);
           }
         }
         
@@ -206,8 +214,9 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
           }
         }
         
+        // since we erase, we need to start from the end
         do_sort_obs_removed = true;
-        for(int i = 0 ; i < n_current ; ++i){
+        for(int i = n_current - 1 ; i >= 0 ; --i){
           if(removed_flag[i] == 1){
             obs_removed.push_back(obs_keep[i]);
             obs_keep.erase(obs_keep.begin() + i);

@@ -3355,30 +3355,35 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
   if(is.null(fixef_sizes)){
     fixef_sizes = 0
   }
-
-  quf_info_all = cpp_quf_table_sum(x = fixef_df, y = lhs, do_sum_y = do_sum_y,
+  
+  if(isRefactor){
+    if(!identical(obs2keep, 0) && length(obs2keep) > 0){
+      for(i in seq_along(fixef_df)){
+        fixef_df[[i]] = fixef_df[[i]][obs2keep]
+      }
+      
+      if(length(lhs) > 1){
+        lhs = lhs[obs2keep]
+      }
+    }
+  }
+  
+  all_index_info = cpp_index_table_sum(x = fixef_df, y = lhs, do_sum_y = do_sum_y,
                                    rm_0 = rm_0, rm_1 = rm_1, rm_single = rm_single,
-                                   only_slope = only_slope, nthreads = nthreads,
-                                   do_refactor = isRefactor, r_x_sizes = fixef_sizes, 
-                                   obs2keep = obs2keep)
+                                   only_slope = only_slope, nthreads = nthreads)
 
-  fixef_id = quf_info_all$quf
+  fixef_id = all_index_info$index
 
   # table/sum_y/sizes
-  fixef_table = quf_info_all$table
-  sum_y_all = quf_info_all$sum_y
+  fixef_table = all_index_info$table
+  sum_y_all = all_index_info$sum_y
   fixef_sizes = lengths(fixef_table)
 
   # names
   fixef_names = list()
   if(isRefactor == FALSE){
-    is_string = sapply(fixef_df, is.character)
     for(i in 1:length(fixef_id)){
-      if(is_string[i]){
-        fixef_names[[i]] = fixef_df[[i]][quf_info_all$items[[i]]]
-      } else {
-        fixef_names[[i]] = quf_info_all$items[[i]]
-      }
+      fixef_names[[i]] = fixef_df[[i]][all_index_info$firstobs[[i]]]
     }
 
   } else {
@@ -3387,14 +3392,31 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
       # We ensure we have exactly the same estimates as the if the estimation
       # was done separately, otherwise there can be a reordering of the fixed-effects IDs
       # Personally, I find it's overdoing it since it's not really needed.
-
-      items_order = order(quf_info_all$items[[i]])
+      
+      # NOTA 2025-08-14
+      # given the new indexing algorithm which is order based (and not value based)
+      # => this issue does not happen any more
+      # 
+      # I keep it for now but I should remove this code
+      
+      # example:
+      # partition of the data: A, A, A, A, B, B, B, B
+      #                    fe: a, b, e, a, b, d, a, d
+      #            fe_indexed: 1, 2, 3, 1, 2, 4, 1, 4
+      #     index(fe) B (old):             2, 3, 1, 3
+      #     index(fe) B (new):             1, 2, 3, 2
+      # index(fe_index) B   
+      #            (new/old):              1, 2, 3, 2
+      
+      items = all_index_info$index[[i]][all_index_info$firstobs[[i]]]
+      items_order = order(items)
       items_order_order = order(items_order)
+      
       new_id = items_order_order[fixef_id[[i]]]
-      new_items = quf_info_all$items[[i]][items_order]
+      new_items = items[items_order]
       new_table = fixef_table[[i]][items_order]
       new_sum_y = sum_y_all[[i]]
-      if(length(new_sum_y) > 0){
+      if(length(new_sum_y) > 1){
         new_sum_y = new_sum_y[items_order]
       }
 
@@ -3409,10 +3431,10 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
   fixef_removed = list()
   obs2remove = message_fixef = c()
 
-  if(!is.null(quf_info_all$obs_removed)){
+  if(!is.null(all_index_info$obs_removed)){
 
     # which obs are removed
-    obs2remove = which(quf_info_all$obs_removed)
+    obs2remove = all_index_info$obs_removed
 
     # update of the lhs
     # if multi_lhs, only reason we're here is because of rm_single, which is performed
@@ -3425,16 +3447,14 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
 
     # update of the slope variables
     if(isSlope){
-      for(i in seq_along(slope_variables)) slope_variables[[i]] = slope_variables[[i]][-obs2remove]
+      for(i in seq_along(slope_variables)){
+        slope_variables[[i]] = slope_variables[[i]][-obs2remove]
+      }
     }
 
     # Names of the FE removed
     for(i in 1:length(fixef_id)){
-      if(is.character(fixef_df[[i]])){
-        fixef_removed[[i]] = fixef_df[[i]][quf_info_all$fe_removed[[i]]]
-      } else {
-        fixef_removed[[i]] = quf_info_all$fe_removed[[i]]
-      }
+      fixef_removed[[i]] = fixef_df[[i]][all_index_info$firstobs_removed[[i]]]
     }
 
     names(fixef_removed) = fixef_vars

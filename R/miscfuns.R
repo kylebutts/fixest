@@ -2704,13 +2704,12 @@ demean = function(X, f, slope.vars, slope.flag, data, weights,
   # Unclassing fes
   #
 
-  quf_info_all = cpp_quf_table_sum(x = f, y = 0, do_sum_y = FALSE, rm_0 = FALSE,
-                                      rm_1 = FALSE, rm_single = FALSE, do_refactor = FALSE,
-                                      r_x_sizes = 0, obs2keep = 0, only_slope = slope.flag < 0L,
-                                      nthreads = nthreads)
+  all_index_info = cpp_index_table_sum(x = f, y = 0, do_sum_y = FALSE, rm_0 = FALSE,
+                                       rm_1 = FALSE, rm_single = FALSE, 
+                                       only_slope = slope.flag < 0L, nthreads = nthreads)
 
   # table/sum_y/sizes
-  fixef_table = quf_info_all$table
+  fixef_table = all_index_info$table
   fixef_sizes = lengths(fixef_table)
 
   if(fixef.reorder){
@@ -2718,7 +2717,7 @@ demean = function(X, f, slope.vars, slope.flag, data, weights,
     if(is.unsorted(new_order)){
       fixef_table = fixef_table[new_order]
       fixef_sizes = fixef_sizes[new_order]
-      quf_info_all$quf = quf_info_all$quf[new_order]
+      all_index_info$index = all_index_info$index[new_order]
 
       # We reorder slope.vars only if needed (because it is a pain)
       if(sum(slope.flag != 0) >= 2){
@@ -2785,7 +2784,7 @@ demean = function(X, f, slope.vars, slope.flag, data, weights,
 
   vars_demean = cpp_demean(y, X, weights, iterMax = iter,
                            diffMax = tol, r_nb_id_Q = fixef_sizes,
-                           fe_id_list = quf_info_all$quf, table_id_I = fixef_table_vector,
+                           fe_id_list = all_index_info$index, table_id_I = fixef_table_vector,
                            slope_flag_Q = slope.flag, slope_vars_list = slope.vars,
                            r_init = 0, nthreads = nthreads, 
                            algo_extraProj = fixef.algo$extraProj, 
@@ -2797,7 +2796,7 @@ demean = function(X, f, slope.vars, slope.flag, data, weights,
   if(fe_info){
 
     res = list(y = vars_demean$y_demean, X = vars_demean$X_demean,
-               weights = weights, fixef_id_list = quf_info_all$quf,
+               weights = weights, fixef_id_list = all_index_info$index,
                slope_vars = slope.vars, slope_flag = slope.flag, varnames = colnames(X))
 
     return(res)

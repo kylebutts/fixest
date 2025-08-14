@@ -33,10 +33,6 @@ void mark_obs_to_remove(std::vector<char> &removed_flag, bool &any_removed,
   const std::vector<int> &table = index_info.get_table();
   const std::vector<double> &sum_y = index_info.get_sum();
   
-  util::debug_msg("firstobs = ", firstobs);
-  util::debug_msg("table = ", table);
-  util::debug_msg("sum_y = ", sum_y);
-  
   //
   // step 1: we check if at least one is removed 
   //
@@ -85,8 +81,6 @@ void mark_obs_to_remove(std::vector<char> &removed_flag, bool &any_removed,
       }
     }
   }
-  
-  util::debug_msg("firstobs_rm = ", firstobs_rm);
   
 }
 
@@ -160,9 +154,6 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   std::vector<int> obs_keep;
   std::vector<int> obs_removed;
   std::vector< std::vector<int> > all_firstobs_rm(Q);
-  if(any_to_check_for_removal){
-    removed_flag = std::vector<char>(n_obs, 0);
-  }
   
   bool do_sort_obs_removed = false;
   bool keep_running = true;
@@ -173,32 +164,18 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     const int n_current = all_input_vectors[0].size();
     bool any_removed = false;
     std::vector< std::vector<int> > all_firstobs_rm_new(Q);
+    
+    if(any_to_check_for_removal){
+      removed_flag = std::vector<char>(n_current, 0);
+    }
+    
     #pragma omp parallel for num_threads(nthreads)
     for(int q = 0 ; q < Q ; ++q){
       
       const indexthis::IndexInputVector &fixef_vec = all_input_vectors[q];
       indexthis::IndexedVector &index_info = all_index_info[q];
       
-      using Rcpp::Rcout;
-      
-      Rcout << "q = " << q << " --------------\n";
-      Rcout << "Input: \n" << 
-        "- is_fast_int = " << fixef_vec.is_fast_int << "\n" << 
-        "- n = " << fixef_vec.n << "\n" << 
-        "- px_int = " << fixef_vec.px_int << "\n" << 
-        "- x_min = " << fixef_vec.x_min << "\n" << 
-        "- x_range = " << fixef_vec.x_range << "\n";
-      
-      Rcout << "Indexing: ";
       indexthis::to_index_main(fixef_vec, index_info, do_sum_y, p_y);
-      
-      int *p_index = index_info.get_p_index();
-      
-      for(int i = 0 ; i < n_current ; ++i){
-        if(i > 0) Rcout << ", ";
-        Rcout << p_index[i];
-      }
-      Rcout << "\n";
       
       if(do_removal[q]){
         mark_obs_to_remove(removed_flag, any_removed, all_firstobs_rm_new[q],
@@ -262,10 +239,6 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
         return res;
       }
       
-      util::debug_msg("obs_keep = ", obs_keep);
-      util::debug_msg("obs_removed = ", obs_removed);
-      util::debug_msg("n_new = ", obs_keep.size());
-      
       // we take the index just computed (in index_info) as the new input
       const int n_new = obs_keep.size();
       #pragma omp parallel for num_threads(nthreads)
@@ -280,8 +253,6 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
             new_input[index++] = p_index[i];
           }
         }
-        
-        util::debug_msg("new_input = ", new_input);
         
         all_raw_input_vectors[q] = std::move(new_input);
         all_input_vectors[q].initialize(all_raw_input_vectors[q]);
@@ -352,7 +323,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
   res["sum_y"] = all_sum_y;
   res["firstobs"] = all_firstobs;
   if(any_removed){
-    res["all_firstobs_removed"] = all_firstobs_removed;
+    res["firstobs_removed"] = all_firstobs_removed;
   }
   
   if(any_removed){

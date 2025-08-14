@@ -175,11 +175,13 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     std::vector< std::vector<int> > all_firstobs_rm_new(Q);
     #pragma omp parallel for num_threads(nthreads)
     for(int q = 0 ; q < Q ; ++q){
+      
       const indexthis::IndexInputVector &fixef_vec = all_input_vectors[q];
       indexthis::IndexedVector &index_info = all_index_info[q];
       
       using Rcpp::Rcout;
       
+      Rcout << "q = " << q << " --------------\n";
       Rcout << "Input: \n" << 
         "- is_fast_int = " << fixef_vec.is_fast_int << "\n" << 
         "- n = " << fixef_vec.n << "\n" << 
@@ -255,6 +257,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
       p_y = y_new.data();
       
       if(obs_keep.empty()){
+        UNPROTECT(Q);
         Rcpp::List res = Rcpp::List::create(Rcpp::Named("all_removed") = true);
         return res;
       }
@@ -284,7 +287,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
         all_input_vectors[q].initialize(all_raw_input_vectors[q]);
         
         // 2) we reset the containers of the future indexes
-        UNPROTECT(Q);
+        UNPROTECT(1);
         all_indexes_sexp[q] = PROTECT(Rf_allocVector(INTSXP, n_new));
         all_index_info[q].initialize(all_indexes_sexp[q]);
       }

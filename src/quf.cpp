@@ -547,7 +547,8 @@ void quf_single(void *px_in, std::string &x_type, int n, int *x_uf, vector<doubl
 
 }
 
-void quf_refactor(int *px_in, int x_size, IntegerVector &obs2keep, int n, int *x_uf, vector<double> &x_unik, vector<int> &x_table){
+void quf_refactor(int *px_in, int x_size, IntegerVector &obs2keep, int n, int *x_uf, 
+                  vector<double> &x_unik, vector<int> &x_table){
   // pxin: data that has been qufed already => so integer ranging from 1 to nber of unique elements
   // obs2keep => optional, observations to keep
 

@@ -81,8 +81,8 @@ cpp_paste_conditional <- function(x, id, n) {
     .Call(`_fixest_cpp_paste_conditional`, x, id, n)
 }
 
-cpp_index_table_sum <- function(fixef_list, y, do_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads) {
-    .Call(`_fixest_cpp_index_table_sum`, fixef_list, y, do_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads)
+cpp_index_table_sum <- function(fixef_list, y, save_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads) {
+    .Call(`_fixest_cpp_index_table_sum`, fixef_list, y, save_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads)
 }
 
 cpp_cholesky <- function(X, tol = 1.0/100000.0/100000.0, nthreads = 1L) {

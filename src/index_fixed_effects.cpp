@@ -86,13 +86,9 @@ void mark_obs_to_remove(std::vector<char> &removed_flag, bool &any_removed,
 
 
 // [[Rcpp::export]]
-SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y, 
+SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool save_sum_y, 
                          const bool rm_0, const bool rm_1, const bool rm_single, 
                          Rcpp::IntegerVector only_slope, const int nthreads){
-  
-  if((rm_0 || rm_1) && !do_sum_y){
-    Rf_error("Internal error: you cannot have rm_0 without do_sum_y!!!");
-  }
   
   int Q = Rf_length(fixef_list);
   SEXP fixef_vec = VECTOR_ELT(fixef_list, 0);
@@ -123,11 +119,13 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     p_y = REAL(y);
   } else {
     // => there will be no use of y, so nullptr is OK
-    // but I must ensure that beforehand: do_sum_y = rm_0 = rm_1 = false
-    if(do_sum_y || rm_0 ||rm_1){
-      Rcpp::stop("y should not be a list when its values are assessed.");
+    // but I must ensure that beforehand: save_sum_y = rm_0 = rm_1 = false
+    if(save_sum_y || rm_0 || rm_1){
+      Rcpp::stop("Internal error, cpp_index_table_sum: you need to give y to apply save_sum_y/rm_0/rm_1.");
     }
   }
+  
+  const bool do_sum_y = save_sum_y || rm_0 || rm_1;
   
   // we intialize the information on the indexes to be computed
   
@@ -297,7 +295,7 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y,
     
     all_tables[q] = all_index_info[q].get_table();
     
-    if(do_sum_y){
+    if(save_sum_y){
       all_sum_y[q] = all_index_info[q].get_sum();
     } else {
       all_sum_y[q] = 0;

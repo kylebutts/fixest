@@ -388,20 +388,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // cpp_index_table_sum
-SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool do_sum_y, const bool rm_0, const bool rm_1, const bool rm_single, Rcpp::IntegerVector only_slope, const int nthreads);
-RcppExport SEXP _fixest_cpp_index_table_sum(SEXP fixef_listSEXP, SEXP ySEXP, SEXP do_sum_ySEXP, SEXP rm_0SEXP, SEXP rm_1SEXP, SEXP rm_singleSEXP, SEXP only_slopeSEXP, SEXP nthreadsSEXP) {
+SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool save_sum_y, const bool rm_0, const bool rm_1, const bool rm_single, Rcpp::IntegerVector only_slope, const int nthreads);
+RcppExport SEXP _fixest_cpp_index_table_sum(SEXP fixef_listSEXP, SEXP ySEXP, SEXP save_sum_ySEXP, SEXP rm_0SEXP, SEXP rm_1SEXP, SEXP rm_singleSEXP, SEXP only_slopeSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type fixef_list(fixef_listSEXP);
     Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const bool >::type do_sum_y(do_sum_ySEXP);
+    Rcpp::traits::input_parameter< const bool >::type save_sum_y(save_sum_ySEXP);
     Rcpp::traits::input_parameter< const bool >::type rm_0(rm_0SEXP);
     Rcpp::traits::input_parameter< const bool >::type rm_1(rm_1SEXP);
     Rcpp::traits::input_parameter< const bool >::type rm_single(rm_singleSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type only_slope(only_slopeSEXP);
     Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_index_table_sum(fixef_list, y, do_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads));
+    rcpp_result_gen = Rcpp::wrap(cpp_index_table_sum(fixef_list, y, save_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads));
     return rcpp_result_gen;
 END_RCPP
 }

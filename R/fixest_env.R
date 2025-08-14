@@ -3368,9 +3368,9 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
     }
   }
   
-  all_index_info = cpp_index_table_sum(x = fixef_df, y = lhs, do_sum_y = do_sum_y,
-                                   rm_0 = rm_0, rm_1 = rm_1, rm_single = rm_single,
-                                   only_slope = only_slope, nthreads = nthreads)
+  all_index_info = cpp_index_table_sum(fixef_list = fixef_df, y = lhs, save_sum_y = do_sum_y,
+                                       rm_0 = rm_0, rm_1 = rm_1, rm_single = rm_single,
+                                       only_slope = only_slope, nthreads = nthreads)
 
   fixef_id = all_index_info$index
 

@@ -2704,7 +2704,7 @@ demean = function(X, f, slope.vars, slope.flag, data, weights,
   # Unclassing fes
   #
 
-  all_index_info = cpp_index_table_sum(x = f, y = 0, do_sum_y = FALSE, rm_0 = FALSE,
+  all_index_info = cpp_index_table_sum(fixef_list = f, y = 0, save_sum_y = FALSE, rm_0 = FALSE,
                                        rm_1 = FALSE, rm_single = FALSE, 
                                        only_slope = slope.flag < 0L, nthreads = nthreads)
 

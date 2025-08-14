@@ -127,6 +127,10 @@ SEXP cpp_index_table_sum(SEXP fixef_list, SEXP y, const bool save_sum_y,
   
   const bool do_sum_y = save_sum_y || rm_0 || rm_1;
   
+  if(do_sum_y && Rf_length(y) != n_obs){
+    Rf_error("Internal error, cpp_index_table_sum: the length of y is different from the length of the fixed-effects.");
+  }
+  
   // we intialize the information on the indexes to be computed
   
   // we pre allocate the index output vector (the largest bit)

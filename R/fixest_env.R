@@ -3361,10 +3361,6 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
       for(i in seq_along(fixef_df)){
         fixef_df[[i]] = fixef_df[[i]][obs2keep]
       }
-      
-      if(length(lhs) > 1){
-        lhs = lhs[obs2keep]
-      }
     }
   }
   

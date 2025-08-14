@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
   
 using std::string;
 using std::vector;
@@ -41,7 +42,7 @@ string txt(T&& x){
   }
 }
 
-string txt(const char* x){
+inline string txt(const char* x){
   return string(x);
 }
 

@@ -88,6 +88,10 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - add new method `formula.fixest_multi`
 
+- complete rewrite of the internal algorithm turning the fixed-effects into indexes, it is now: i) faster (much faster when combining mutliple fixed effects), ii) more consistent for character vectors
+
+- new algorithm removing the fixed-effects from the estimation due to singletons or perfect fits: now the algorithm is recursive
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

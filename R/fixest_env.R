@@ -4043,7 +4043,13 @@ reshape_env = function(env, obs2keep = NULL, lhs = NULL, rhs = NULL, assign_lhs 
     assign("linear.mat", rhs, new_env)
 
     isLinear = FALSE
-    if(length(rhs) > 1){
+    if(origin_type == "feols" && is.list(rhs)){
+      # feols: multiple LHS/RHS
+      if(length(rhs) > 0){
+        isLinear = TRUE
+      }
+      
+    } else if(length(rhs) > 1){
       isLinear = TRUE
 
       linear.params = colnames(rhs)

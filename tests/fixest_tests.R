@@ -1114,11 +1114,11 @@ test(any(grepl("HC3", est_tab$est)), TRUE)
 
 # Passing functions
 test(
-  summary(est, vcov = \(x) sandwich::vcovHC(x, type = "HC3"))$se,
+  summary(est, vcov = function(x) sandwich::vcovHC(x, type = "HC3"))$se,
   summary(est, vcov = sandwich::vcovHC, .vcov_args = list(type = "HC3"))$se
 )
 # Confirming these work 
-temp <- etable(est, vcov = \(x) sandwich::vcovHC(x, type = "HC3"))
+temp <- etable(est, vcov = function(x) sandwich::vcovHC(x, type = "HC3"))
 temp <- etable(est, vcov = sandwich::vcovHC, .vcov_args = list(type = "HC3"))
 
 

@@ -67,15 +67,15 @@
 #' but more convenient.
 #'
 #' Note that pasting is a costly operation, especially for large data sets. 
-#' Thus, the internal algorithm uses a numerical trick which is fast, but the drawback is 
-#' that the identity of each observation is lost (i.e. they are now equal to a meaningless 
-#' number instead of being equal to `paste0(fe_1, "_", fe_2)`). These \dQuote{identities} 
-#' are useful only if you're interested in the value of the fixed-effects (that you can 
-#' extract with [`fixef.fixest`]). If you're only interested in coefficients of the variables, 
-#' it doesn't matter. Anyway, you can use `fixef.keep_names = FALSE` to tell the internal 
-#' algorithm to use `paste` instead of the numerical trick. By default, the numerical 
-#' trick is performed only for large data sets.
-#'
+#' Hence, by default this paste is done only when the number of unique values 
+#' is lower than 50,000 observations. 
+#' 
+#' In case you are using a large data set and want to keep the identity of the fixed-effects, 
+#' you need to use the argument `fixef.keep_names = TRUE`.
+#' 
+#' Note that these \dQuote{identities} are useful only if you're interested in 
+#' the value of the fixed-effects (that you can extract with [`fixef.fixest`]). 
+#' 
 #' @section Varying slopes:
 #' You can add variables with varying slopes in the fixed-effect part of the formula. 
 #' The syntax is as follows: `fixef_var[var1, var2]`. Here the variables var1 and var2 will 
@@ -512,7 +512,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
                  collin.tol = 1e-9, nthreads = getFixest_nthreads(),
                  lean = FALSE, verbose = 0, warn = TRUE, notes = getFixest_notes(),
                  only.coef = FALSE, data.save = FALSE,
-                 fixef.keep_names, demeaned = FALSE, mem.clean = FALSE, 
+                 fixef.keep_names = NULL, demeaned = FALSE, mem.clean = FALSE, 
                  only.env = FALSE, env, ...){
 
   dots = list(...)
@@ -2465,7 +2465,7 @@ feglm = function(fml, data, family = "gaussian", vcov, offset, weights, subset, 
                  glm.iter = 25, glm.tol = 1e-8, nthreads = getFixest_nthreads(),
                  lean = FALSE, warn = TRUE, notes = getFixest_notes(), verbose = 0,
                  only.coef = FALSE, data.save = FALSE,
-                 fixef.keep_names, mem.clean = FALSE, only.env = FALSE, env, ...){
+                 fixef.keep_names = NULL, mem.clean = FALSE, only.env = FALSE, env, ...){
 
   if(missing(weights)) weights = NULL
 
@@ -3506,7 +3506,8 @@ femlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian")
                  panel.duplicate.method = "none", 
                  fixef.tol = 1e-5, fixef.iter = 10000,
                  nthreads = getFixest_nthreads(), lean = FALSE, verbose = 0, warn = TRUE,
-                 notes = getFixest_notes(), theta.init, fixef.keep_names, mem.clean = FALSE,
+                 notes = getFixest_notes(), theta.init, fixef.keep_names = NULL, 
+                 mem.clean = FALSE,
                  only.env = FALSE, only.coef = FALSE, data.save = FALSE, env, ...){
 
   # This is just an alias
@@ -3545,7 +3546,7 @@ fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "p
                     panel.duplicate.method = "none",
                     fixef.tol = 1e-5, fixef.iter = 10000, nthreads = getFixest_nthreads(),
                     lean = FALSE, verbose = 0, warn = TRUE, notes = getFixest_notes(),
-                    fixef.keep_names, mem.clean = FALSE, 
+                    fixef.keep_names = NULL, mem.clean = FALSE, 
                     only.env = FALSE, only.coef = FALSE, data.save = FALSE, env, ...){
 
   # We control for the problematic argument family
@@ -3565,7 +3566,8 @@ fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "p
                    se = se, ssc = ssc, panel.id = panel.id, panel.time.step = panel.time.step,
                    panel.duplicate.method = panel.duplicate.method, fixef.tol = fixef.tol,
                    fixef.iter = fixef.iter, nthreads = nthreads, lean = lean,
-                   verbose = verbose, warn = warn, notes = notes, fixef.keep_names = fixef.keep_names,
+                   verbose = verbose, warn = warn, notes = notes, 
+                   fixef.keep_names = fixef.keep_names,
                    mem.clean = mem.clean, only.env = only.env, 
                    only.coef = only.coef, data.save = data.save,
                    origin_bis = "fenegbin", mc_origin_bis = match.call(),
@@ -3588,7 +3590,7 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
                   collin.tol = 1e-9, glm.iter = 25, glm.tol = 1e-8,
                   nthreads = getFixest_nthreads(), lean = FALSE, 
                   warn = TRUE, notes = getFixest_notes(),
-                  verbose = 0, fixef.keep_names, mem.clean = FALSE, only.env = FALSE,
+                  verbose = 0, fixef.keep_names = NULL, mem.clean = FALSE, only.env = FALSE,
                   only.coef = FALSE, data.save = FALSE, env, ...){
 
   # We control for the problematic argument family
@@ -3779,14 +3781,15 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #' of only 0 (or 0/1) outcomes in a fixed-effect setup (in Poisson/Neg. Bin./Logit models). 
 #' To avoid displaying these messages, you can set `notes = FALSE`. You can 
 #' remove these messages permanently by using `setFixest_notes(FALSE)`.
-#' @param fixef.keep_names Logical. When you combine different variables to transform them 
-#' into a single fixed-effects you can do e.g. `y ~ x | paste(var1, var2)`. 
+#' @param fixef.keep_names Logical or `NULL` (default). When you combine different 
+#' variables to transform them into a single fixed-effects you can do 
+#' e.g. `y ~ x | paste(var1, var2)`. 
 #' The algorithm provides a shorthand to do the same operation: `y ~ x | var1^var2`. 
 #' Because pasting variables is a costly operation, the internal algorithm may use a 
 #' numerical trick to hasten the process. The cost of doing so is that you lose the labels. 
 #' If you are interested in getting the value of the fixed-effects coefficients 
-#' after the estimation, you should use `fixef.keep_names = FALSE`. By default it is 
-#' equal to `FALSE` if the number of observations is lower than 50,000, and to `TRUE` 
+#' after the estimation, you should use `fixef.keep_names = TRUE`. By default it is 
+#' equal to `TRUE` if the number of unique values is lower than 50,000, and to `FALSE` 
 #' otherwise.
 #' @param only.env (Advanced users.) Logical, default is `FALSE`. If `TRUE`, then only 
 #' the environment used to make the estimation is returned.
@@ -3993,7 +3996,7 @@ feNmlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"
                   hessian.args = NULL, opt.control = list(), nthreads = getFixest_nthreads(),
                   lean = FALSE, verbose = 0, theta.init, fixef.tol = 1e-5, fixef.iter = 10000,
                   deriv.tol = 1e-4, deriv.iter = 1000, warn = TRUE, notes = getFixest_notes(),
-                  fixef.keep_names, mem.clean = FALSE, only.env = FALSE, 
+                  fixef.keep_names = NULL, mem.clean = FALSE, only.env = FALSE, 
                   only.coef = FALSE, data.save = FALSE, env, ...){
 
   time_start = proc.time()

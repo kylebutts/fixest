@@ -86,9 +86,9 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
   feols_args = c("weights", "demeaned", "collin.tol", "fixef.algo")
   internal_args = c("debug")
 
-  deprec_old_new = c()
+  deprec_new_old = c("fixef.keep_names" = "combine.quick")
 
-  common_args = c(main_args, internal_args, deprec_old_new)
+  common_args = c(main_args, internal_args, deprec_new_old)
 
   # FIT methods
   fit_base_args = c(setdiff(common_args, c("fml", "data", "data.save")), "y", "X", "fixef_df")
@@ -122,14 +122,18 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     }
   }
 
-  args_deprec = deprec_old_new[deprec_old_new %in% args]
+  args_deprec = deprec_new_old[deprec_new_old %in% args]
   if(length(args_deprec) > 0){
     dots = list(...)
     for(i in seq_along(args_deprec)){
       # we assign the deprecated argument to the new one if not provided
       old = args_deprec[i]
       new = names(args_deprec)[i]
-      warning("Argument '", old, "' is deprecated. Use '", new, "' instead.", immediate. = TRUE)
+      
+      if(not_too_many_messages("combine.quick")){
+        mema("Argument {q ? old} is deprecated. Please use {q ? new} instead.")
+      }
+      
       if(!new %in% args){
         assign(new, dots[[old]])
       }

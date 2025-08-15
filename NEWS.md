@@ -214,6 +214,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix bug in `etable` when `headers`/`extralines` receive a list of numeric and character values at the same time. Reported by @Oravishayrizi, #574
 
+- fix fatal crash in `feols` when: i) multiple estimations were used, ii) samples were different across estimations, iii) singletons were removed. Reported by @marco-t3, #486
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

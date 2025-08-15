@@ -1,10 +1,16 @@
-    //=========================================================================//
-   //            Author: Laurent R. Bergé, University of Bordeaux             //
-  //             Copyright (C) 2025-present, Laurent R. Bergé                //
- //              MIT License (see project_root/LICENSE)                     //
+//=========================================================================//
+//            Author: Laurent R. Bergé, University of Bordeaux             //
+//             Copyright (C) 2025-present, Laurent R. Bergé                //
 //=========================================================================//
 
+// This code is from sircon
+
 #pragma once
+
+// I need to comment this since my templates need c++17 to work => I only use it when I debug
+// #define DEBUGFIXEST 1 
+
+#ifdef DEBUGFIXEST
 
 #include <string>
 #include <vector>
@@ -191,4 +197,6 @@ public:
 
 } // end namepsace util
 
+
+#endif
 

@@ -3813,7 +3813,7 @@ reshape_env = function(env, obs2keep = NULL, lhs = NULL, rhs = NULL, assign_lhs 
       #
       # The linear mat
       #
-
+      
       if(assign_rhs){
 
         if(is.null(rhs)){
@@ -3821,7 +3821,25 @@ reshape_env = function(env, obs2keep = NULL, lhs = NULL, rhs = NULL, assign_lhs 
         }
 
         isLinear = FALSE
-        if(length(rhs) > 1){
+        
+        if(origin_type == "feols"){
+          if(is.list(rhs)){
+            # in multiple RHS
+            if(length(rhs) > 0){
+              isLinear = TRUE
+              rhs = select_obs(rhs, obs2keep, nthreads)
+            }
+            
+          } else {
+            if(length(rhs) > 1){
+              isLinear = TRUE
+              rhs = select_obs(rhs, obs2keep, nthreads)
+            }
+          }
+          
+          assign("linear.mat", rhs, new_env)
+          
+        } else if(length(rhs) > 1){
           isLinear = TRUE
           rhs = select_obs(rhs, obs2keep, nthreads)
 

@@ -964,23 +964,18 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
         if(any(len_all == 1)){
           my_rhs = my_rhs[len_all > 1]
         }
-
+        
+        # NOTA: reshape_env can remove singletons, hence we need to reassign the lhs/rhs
         if(!no_na){
-          # NA removal
-          for(u in seq_along(my_lhs)){
-            my_lhs[[u]] = my_lhs[[u]][!is_na_current]
-          }
-
-          for(u in seq_along(my_rhs)){
-            if(length(my_rhs[[u]]) > 1) my_rhs[[u]] = my_rhs[[u]][!is_na_current, , drop = FALSE]
-          }
-
           my_env = reshape_env(env, obs2keep = which(!is_na_current), 
-                               assign_lhs = FALSE, assign_rhs = FALSE)
-
+                               lhs = my_lhs, rhs = my_rhs)
+          
         } else {
-          my_env = reshape_env(env)
+          my_env = reshape_env(env, lhs = my_lhs, rhs = my_rhs)
         }
+        
+        my_lhs = get("lhs", my_env)
+        my_rhs = get("linear.mat", my_env)
 
         weights = get("weights.value", my_env)
 
@@ -1044,7 +1039,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
           slope_vars = get("slope_variables", my_env)
 
           if(mem.clean) gc()
-
+          
           vars_demean = cpp_demean(my_lhs, X_all, weights, iterMax = fixef.iter,
                                    diffMax = fixef.tol, r_nb_id_Q = fixef_sizes,
                                    fe_id_list = fixef_id_list, table_id_I = fixef_table_vector,
@@ -1059,7 +1054,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
           y_demean = vars_demean$y_demean
 
           if(do_iv){
-
+            
             iv_vars_demean = cpp_demean(iv_lhs, iv.mat, weights, iterMax = fixef.iter,
                                         diffMax = fixef.tol, r_nb_id_Q = fixef_sizes,
                                         fe_id_list = fixef_id_list, table_id_I = fixef_table_vector,
@@ -1080,7 +1075,6 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
         if(do_iv){
 
           if(isFixef){
-            
             iv_products = cpp_iv_products(X = X_demean, y = y_demean,
                                           Z = iv.mat_demean, u = iv_lhs_demean,
                                           w = weights, nthreads = nthreads)

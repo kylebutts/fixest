@@ -7464,7 +7464,7 @@ getFixest_fml = function(){
 #'
 setFixest_estimation = function(data = NULL, panel.id = NULL, fixef.rm = "perfect",
                                 fixef.tol = 1e-6, fixef.iter = 10000, collin.tol = 1e-10,
-                                lean = FALSE, verbose = 0, warn = TRUE, combine.quick = NULL,
+                                lean = FALSE, verbose = 0, warn = TRUE, fixef.keep_names = NULL,
                                 demeaned = FALSE, mem.clean = FALSE, glm.iter = 25,
                                 glm.tol = 1e-8, data.save = FALSE, reset = FALSE){
 
@@ -7473,7 +7473,7 @@ setFixest_estimation = function(data = NULL, panel.id = NULL, fixef.rm = "perfec
   check_arg(fixef.iter, glm.iter, "integer scalar GE{1}")
   check_arg(verbose, "integer scalar GE{0}")
   check_arg(lean, warn, demeaned, mem.clean, reset, data.save, "logical scalar")
-  check_arg(combine.quick, "NULL logical scalar")
+  check_arg(fixef.keep_names, "NULL logical scalar")
   check_arg(panel.id, "NULL character vector len(,2) no na | os formula")
 
   if(!missing(data)){

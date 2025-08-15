@@ -2648,7 +2648,7 @@ predict.fixest = function(object, newdata, type = c("response", "link"), se.fit 
       if(grepl("\\^", fe_var)){
         # If fastCombine was used => we're screwed, impossible to recover
         if(!all(grepl("_", fixef_values_possible, fixed = TRUE))){
-          stop("You cannot use predict() based on the initial regression since the fixed-effect '", fe_var, "' was combined using an algorithm dropping the FE values (but fast). Please re-run the regression using the argument 'combine.quick=FALSE'.")
+          stop("You cannot use predict() based on the initial regression since the fixed-effect '", fe_var, "' was combined using an algorithm dropping the FE values (but fast). Please re-run the regression using the argument 'fixef.keep_names=FALSE'.")
         }
 
         fe_var = fml_combine(fe_var, fastCombine = FALSE, vars = TRUE)

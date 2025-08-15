@@ -2318,7 +2318,7 @@ test(tail(pred_all, 20), pred_tail)
 #
 
 
-res = feols(y ~ x1 | species^fe_bis[x2], base, combine.quick = FALSE)
+res = feols(y ~ x1 | species^fe_bis[x2], base, fixef.keep_names = FALSE)
 
 obs_fe = predict(res, fixef = TRUE)
 fe_coef_all = fixef(res, sorted = FALSE)

@@ -138,6 +138,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - substantially improve the robustness (and speed) of the internal algorithms handling formulas
 
+- in all estimations: the argument `combine.quick` is renamed into `fixef.keep_names`
+
 ## etable
 
 - add a section in the documentation documenting the Latex depdencies

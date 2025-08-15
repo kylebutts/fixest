@@ -72,7 +72,7 @@
 #' number instead of being equal to `paste0(fe_1, "_", fe_2)`). These \dQuote{identities} 
 #' are useful only if you're interested in the value of the fixed-effects (that you can 
 #' extract with [`fixef.fixest`]). If you're only interested in coefficients of the variables, 
-#' it doesn't matter. Anyway, you can use `combine.quick = FALSE` to tell the internal 
+#' it doesn't matter. Anyway, you can use `fixef.keep_names = FALSE` to tell the internal 
 #' algorithm to use `paste` instead of the numerical trick. By default, the numerical 
 #' trick is performed only for large data sets.
 #'
@@ -512,7 +512,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
                  collin.tol = 1e-9, nthreads = getFixest_nthreads(),
                  lean = FALSE, verbose = 0, warn = TRUE, notes = getFixest_notes(),
                  only.coef = FALSE, data.save = FALSE,
-                 combine.quick, demeaned = FALSE, mem.clean = FALSE, 
+                 fixef.keep_names, demeaned = FALSE, mem.clean = FALSE, 
                  only.env = FALSE, env, ...){
 
   dots = list(...)
@@ -564,7 +564,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
                 fixef.algo = fixef.algo, collin.tol = collin.tol,
                 nthreads = nthreads, lean = lean, verbose = verbose, warn = warn,
                 notes = notes, only.coef = only.coef, data.save = data.save,
-                combine.quick = combine.quick, demeaned = demeaned,
+                fixef.keep_names = fixef.keep_names, demeaned = demeaned,
                 mem.clean = mem.clean, origin = "feols", mc_origin = match.call(),
                 call_env = call_env, ...), silent = TRUE)
 
@@ -2465,7 +2465,7 @@ feglm = function(fml, data, family = "gaussian", vcov, offset, weights, subset, 
                  glm.iter = 25, glm.tol = 1e-8, nthreads = getFixest_nthreads(),
                  lean = FALSE, warn = TRUE, notes = getFixest_notes(), verbose = 0,
                  only.coef = FALSE, data.save = FALSE,
-                 combine.quick, mem.clean = FALSE, only.env = FALSE, env, ...){
+                 fixef.keep_names, mem.clean = FALSE, only.env = FALSE, env, ...){
 
   if(missing(weights)) weights = NULL
 
@@ -2490,7 +2490,7 @@ feglm = function(fml, data, family = "gaussian", vcov, offset, weights, subset, 
                          collin.tol = collin.tol,
                          glm.iter = glm.iter, glm.tol = glm.tol,
                          nthreads = nthreads, lean = lean, warn = warn, notes = notes,
-                         verbose = verbose, combine.quick = combine.quick,
+                         verbose = verbose, fixef.keep_names = fixef.keep_names,
                          mem.clean = mem.clean, only.coef = only.coef, data.save = data.save,
                          origin = "feglm", 
                          mc_origin = match.call(), call_env = call_env, ...), silent = TRUE)
@@ -3506,7 +3506,7 @@ femlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian")
                  panel.duplicate.method = "none", 
                  fixef.tol = 1e-5, fixef.iter = 10000,
                  nthreads = getFixest_nthreads(), lean = FALSE, verbose = 0, warn = TRUE,
-                 notes = getFixest_notes(), theta.init, combine.quick, mem.clean = FALSE,
+                 notes = getFixest_notes(), theta.init, fixef.keep_names, mem.clean = FALSE,
                  only.env = FALSE, only.coef = FALSE, data.save = FALSE, env, ...){
 
   # This is just an alias
@@ -3524,7 +3524,7 @@ femlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian")
                    panel.duplicate.method = panel.duplicate.method, start = start,
                    fixef.tol=fixef.tol, fixef.iter = fixef.iter, nthreads = nthreads,
                    lean = lean, verbose = verbose, warn = warn, notes = notes,
-                   theta.init = theta.init, combine.quick = combine.quick,
+                   theta.init = theta.init, fixef.keep_names = fixef.keep_names,
                    mem.clean = mem.clean, 
                    origin_bis = "femlm", mc_origin_bis = match.call(),
                    call_env_bis = call_env_bis, only.env = only.env, 
@@ -3545,7 +3545,7 @@ fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "p
                     panel.duplicate.method = "none",
                     fixef.tol = 1e-5, fixef.iter = 10000, nthreads = getFixest_nthreads(),
                     lean = FALSE, verbose = 0, warn = TRUE, notes = getFixest_notes(),
-                    combine.quick, mem.clean = FALSE, 
+                    fixef.keep_names, mem.clean = FALSE, 
                     only.env = FALSE, only.coef = FALSE, data.save = FALSE, env, ...){
 
   # We control for the problematic argument family
@@ -3565,7 +3565,7 @@ fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "p
                    se = se, ssc = ssc, panel.id = panel.id, panel.time.step = panel.time.step,
                    panel.duplicate.method = panel.duplicate.method, fixef.tol = fixef.tol,
                    fixef.iter = fixef.iter, nthreads = nthreads, lean = lean,
-                   verbose = verbose, warn = warn, notes = notes, combine.quick = combine.quick,
+                   verbose = verbose, warn = warn, notes = notes, fixef.keep_names = fixef.keep_names,
                    mem.clean = mem.clean, only.env = only.env, 
                    only.coef = only.coef, data.save = data.save,
                    origin_bis = "fenegbin", mc_origin_bis = match.call(),
@@ -3588,7 +3588,7 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
                   collin.tol = 1e-9, glm.iter = 25, glm.tol = 1e-8,
                   nthreads = getFixest_nthreads(), lean = FALSE, 
                   warn = TRUE, notes = getFixest_notes(),
-                  verbose = 0, combine.quick, mem.clean = FALSE, only.env = FALSE,
+                  verbose = 0, fixef.keep_names, mem.clean = FALSE, only.env = FALSE,
                   only.coef = FALSE, data.save = FALSE, env, ...){
 
   # We control for the problematic argument family
@@ -3611,7 +3611,7 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
                   fixef.algo = fixef.algo,
                   collin.tol = collin.tol, glm.iter = glm.iter, glm.tol = glm.tol,
                   nthreads = nthreads, lean = lean, warn = warn, notes = notes,
-                  verbose = verbose, combine.quick = combine.quick, mem.clean = mem.clean,
+                  verbose = verbose, fixef.keep_names = fixef.keep_names, mem.clean = mem.clean,
                   only.env = only.env, only.coef = only.coef, data.save = data.save,
                   origin_bis = "fepois", mc_origin_bis = match.call(),
                   call_env_bis = call_env_bis, env = env, ...), silent = TRUE)
@@ -3779,13 +3779,13 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #' of only 0 (or 0/1) outcomes in a fixed-effect setup (in Poisson/Neg. Bin./Logit models). 
 #' To avoid displaying these messages, you can set `notes = FALSE`. You can 
 #' remove these messages permanently by using `setFixest_notes(FALSE)`.
-#' @param combine.quick Logical. When you combine different variables to transform them 
+#' @param fixef.keep_names Logical. When you combine different variables to transform them 
 #' into a single fixed-effects you can do e.g. `y ~ x | paste(var1, var2)`. 
 #' The algorithm provides a shorthand to do the same operation: `y ~ x | var1^var2`. 
 #' Because pasting variables is a costly operation, the internal algorithm may use a 
 #' numerical trick to hasten the process. The cost of doing so is that you lose the labels. 
 #' If you are interested in getting the value of the fixed-effects coefficients 
-#' after the estimation, you should use `combine.quick = FALSE`. By default it is 
+#' after the estimation, you should use `fixef.keep_names = FALSE`. By default it is 
 #' equal to `FALSE` if the number of observations is lower than 50,000, and to `TRUE` 
 #' otherwise.
 #' @param only.env (Advanced users.) Logical, default is `FALSE`. If `TRUE`, then only 
@@ -3993,7 +3993,7 @@ feNmlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"
                   hessian.args = NULL, opt.control = list(), nthreads = getFixest_nthreads(),
                   lean = FALSE, verbose = 0, theta.init, fixef.tol = 1e-5, fixef.iter = 10000,
                   deriv.tol = 1e-4, deriv.iter = 1000, warn = TRUE, notes = getFixest_notes(),
-                  combine.quick, mem.clean = FALSE, only.env = FALSE, 
+                  fixef.keep_names, mem.clean = FALSE, only.env = FALSE, 
                   only.coef = FALSE, data.save = FALSE, env, ...){
 
   time_start = proc.time()
@@ -4016,7 +4016,7 @@ feNmlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"
                          useHessian = useHessian, opt.control = opt.control, nthreads = nthreads,
                          lean = lean, verbose = verbose, theta.init = theta.init,
                          fixef.tol = fixef.tol, fixef.iter = fixef.iter, deriv.iter = deriv.iter,
-                         warn = warn, notes = notes, combine.quick = combine.quick,
+                         warn = warn, notes = notes, fixef.keep_names = fixef.keep_names,
                          mem.clean = mem.clean, only.coef = only.coef, data.save = data.save,
                          origin = "feNmlm", mc_origin = match.call(),
                          call_env = call_env, computeModel0 = TRUE, ...), silent = TRUE)
@@ -4952,7 +4952,7 @@ multi_fixef = function(env, estfun){
   assign("do_multi_fixef", FALSE, env)
 
   multi_fixef_fml_full = get("multi_fixef_fml_full", env)
-  combine.quick = get("combine.quick", env)
+  fixef.keep_names = get("fixef.keep_names", env)
   fixef.rm = get("fixef.rm", env)
   family = get("family", env)
   origin_type = get("origin_type", env)
@@ -4979,7 +4979,7 @@ multi_fixef = function(env, estfun){
       fixef_terms = fixef_terms_full$fml_terms
 
       # FEs
-      fixef_df = error_sender(prepare_df(fixef_terms_full$fe_vars, data, combine.quick),
+      fixef_df = error_sender(prepare_df(fixef_terms_full$fe_vars, data, fixef.keep_names),
                               "Problem evaluating the fixed-effects part of the formula:\n")
 
       fixef_vars = names(fixef_df)

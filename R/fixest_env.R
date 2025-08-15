@@ -21,7 +21,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
                       fixef.iter = 10000, collin.tol = 1e-14, deriv.iter = 5000,
                       deriv.tol = 1e-4, glm.iter = 25, glm.tol = 1e-8, etastart, mustart,
                       fixef.algo = NULL,
-                      warn = TRUE, notes = getFixest_notes(), combine.quick, demeaned = FALSE,
+                      warn = TRUE, notes = getFixest_notes(), fixef.keep_names, demeaned = FALSE,
                       origin_bis = NULL, origin = "feNmlm", mc_origin, mc_origin_bis, mc_origin_ter,
                       computeModel0 = FALSE, weights = NULL, only.coef = FALSE,
                       debug = FALSE, mem.clean = FALSE, call_env = NULL, call_env_bis, ...){
@@ -75,7 +75,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
                 "offset", "subset", "split", "fsplit", "split.keep",
                 "split.drop", "vcov", "data.save",
                 "cluster", "se", "ssc", "fixef.rm", "fixef.tol", "fixef.iter", "fixef",
-                "nthreads", "lean", "verbose", "warn", "notes", "combine.quick",
+                "nthreads", "lean", "verbose", "warn", "notes", "fixef.keep_names",
                 "start", "only.env", "mem.clean", "only.coef")
 
   femlm_args = c("family", "theta.init", "linear.start", "opt.control", "deriv.tol", "deriv.iter")
@@ -2143,11 +2143,11 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       #
 
       # Managing fast combine
-      if(missnull(combine.quick)){
+      if(missnull(fixef.keep_names)){
         if(NROW(data) > 5e4){
-          combine.quick = TRUE
+          fixef.keep_names = TRUE
         } else {
-          combine.quick = FALSE
+          fixef.keep_names = FALSE
         }
       }
 
@@ -2155,7 +2155,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       fixef_terms = fixef_terms_full$fml_terms
 
       # FEs
-      fixef_df = error_sender(prepare_df(fixef_terms_full$fe_vars, data, combine.quick),
+      fixef_df = error_sender(prepare_df(fixef_terms_full$fe_vars, data, fixef.keep_names),
                    "Problem evaluating the fixed-effects part of the formula:\n")
       
       fixef_vars = names(fixef_df)
@@ -2913,10 +2913,10 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
   if(multi_fixef){
     assign("multi_fixef_fml_full", fixef_info_stepwise$fml_all_full, env)
 
-    if(missnull(combine.quick)){
-      combine.quick = TRUE
+    if(missnull(fixef.keep_names)){
+      fixef.keep_names = TRUE
     }
-    assign("combine.quick", combine.quick, env)
+    assign("fixef.keep_names", fixef.keep_names, env)
 
     var_sw = unique(fixef_info_stepwise$sw_all_vars)
 

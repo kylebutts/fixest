@@ -6241,8 +6241,8 @@ char2num = function(x, addItem = FALSE){
 
 }
 
-to_index_internal = function(x, add_item = FALSE, sorted = FALSE){
-  to_integer(x, add_item = add_item, sorted = sorted, items.list = TRUE, 
+to_index_internal = function(x, add_items = FALSE, sorted = FALSE){
+  to_integer(x, add_items = add_items, sorted = sorted, items.list = TRUE, 
              na.valid = TRUE, internal = TRUE)
 }
 

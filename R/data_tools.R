@@ -1368,7 +1368,7 @@ len_unique = function(x, nthreads = getFixest_nthreads()){
     return(0)
   }
 
-  x_quf = to_index_internal(x, add_item = TRUE, sorted = FALSE)
+  x_quf = to_index_internal(x, add_items = TRUE, sorted = FALSE)
 
   length(x_quf$items) + ANY_NA
 }

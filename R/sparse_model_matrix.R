@@ -226,7 +226,7 @@ sparse_model_matrix = function(object, data, type = "rhs", na.rm = TRUE,
             if (length(keep) == 0) stop("All values of the fixed-effect variable '", fe_var, "' are NA.")
 
             xi = xi[keep]
-            xi_quf = to_index_internal(xi, add_item = TRUE)
+            xi_quf = to_index_internal(xi, add_items = TRUE)
 
             col_id = xi_quf$x
             col_levels = as.character(xi_quf$items)

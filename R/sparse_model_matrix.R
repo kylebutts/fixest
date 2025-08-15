@@ -541,9 +541,9 @@ mult_sparse = function(...) {
       items_mat = do.call(rbind, strsplit(fact_as_int$items, " ; "))
     } else {
       # ... single elements are not
-      items_mat = rbind(as.character(fact_as_int$items))
+      items_mat = cbind(as.character(fact_as_int$items))
     }
-
+    
     # intersplice var_call with items 
     col_names = sapply(seq_len(nrow(items_mat)), function(i) {
       pasteable = var_call 

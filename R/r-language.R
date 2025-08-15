@@ -219,11 +219,17 @@ fml_split = function(fml, i, split.lhs = FALSE, text = FALSE, raw = FALSE){
 
 
 # fml_char = "x + y + u^factor(v1, v2) + x5"
-fml_combine = function(fml_char, fastCombine, vars = FALSE){
+fml_combine = function(fml_char, fixef.keep_names, vars = FALSE){
   # function that transforms "hat" interactions into a proper function call:
   # Origin^Destination^Product + Year becomes ~combine_clusters(Origin, Destination, Product) + Year
-
-  fun2combine = ifelse(fastCombine, "combine_clusters_fast", "combine_clusters")
+  
+  if(is.null(fixef.keep_names)){
+    fun2combine = "combine_fixef"
+  } else if(isTRUE(fixef.keep_names)){
+    fun2combine = "combine_fixef_keep_names"
+  } else {
+    fun2combine = "combine_fixef_drop_names"
+  }
 
   # we need to change ^ into %^% otherwise terms sends error
   labels = attr(terms(.xpd(rhs = gsub("\\^(?=[^0-9])", "%^%", fml_char, perl = TRUE))), 

@@ -4600,87 +4600,42 @@ prepare_cluster_mat = function(fml, data, fastCombine){
 }
 
 
-combine_fixef = function(...){
+combine_fixef = function(..., keep_names = NULL){
+  # we combine several variables into a single one and try to keep the information
+  # on the values we've combined
   
-  all_fixef = list(...)
-  index_info = cpp_to_index(all_fixef)
+  multi.df = is.null(keep_names) || isFALSE(keep_names)
   
+  index_info = to_integer(..., add_items = TRUE, items.list = TRUE, na.valid = FALSE, 
+                          multi.df = multi.df, internal = TRUE)
+  
+  index = index_info$x
+  items = index_info$items
+  
+  if(is.null(keep_names)){
+    if(nrow(items) < 50000){
+      arg_list = items
+      arg_list$sep = "_"
+      items = do.call("paste", arg_list)
+    } else {
+      items = 1:length(items[[1]])
+    }
+    
+  } else if(isFALSE(keep_names)){
+    items = 1:length(items[[1]])
+  }
+  
+  items[index]
 }
 
-combine_clusters_fast = function(...){
-  # This functions creates a new cluster from several clusters
-  # basically: paste(cluster1, cluster2, ... etc, sep = "__")
-  # but it tries to be faster than that because paste is very slow on large datasets
-
-  cluster = list(...)
-  Q = length(cluster)
-
-  # The problem is that the clusters can be of ANY type...
-  # So too much of a pain to take care of them in c++
-  # => when I have time I'll do it, but pfff...
-
-  # Not super efficient, but that's life
-  ANY_NA = FALSE
-  if(any(who_NA <- sapply(cluster, anyNA))){
-    ANY_NA = TRUE
-    who_NA = which(who_NA)
-    IS_NA = is.na(cluster[[who_NA[1]]])
-    for(i in who_NA[-1]){
-      IS_NA = IS_NA | is.na(cluster[[i]])
-    }
-
-    # Nice error message comes later
-    if(all(IS_NA)) return(rep(NA, length(IS_NA)))
-
-    # we recreate the clusters
-    for(i in 1:Q){
-      cluster[[i]] = cluster[[i]][!IS_NA]
-    }
-  }
-
-  # First we unclass
-  for(i in 1:Q){
-    cluster[[i]] = to_index_internal(cluster[[i]])
-  }
-
-  # Then we combine
-  power = floor(1 + log10(sapply(cluster, max)))
-
-  if(sum(power) > 14){
-    order_index = do.call(order, cluster)
-    index = cpp_combine_clusters(cluster, order_index)
-  } else {
-    # quicker, but limited by the precision of doubles
-    index = cluster[[1]]
-    for(q in 2:Q){
-      index = index + cluster[[q]]*10**sum(power[1:(q-1)])
-    }
-  }
-
-  if(ANY_NA){
-    # we recreate the return vector with appropriate NAs
-    res = rep(NA_real_, length(IS_NA))
-    res[!IS_NA] = index
-  } else {
-    res = index
-  }
-
-  return(res)
+combine_fixef_keep_names = function(...){
+  combine_fixef(..., keep_names = TRUE)
 }
 
-combine_clusters = function(...){
-  # This functions creates a new cluster from several clusters
-  # basically: paste(cluster1, cluster2, ... etc, sep = "_")
-  # No, it's mow much more fatser than that!!!! Thanks for my new algo
-  # => the paste only applies to the unique number of items
-
-
-  clusters = to_integer(..., add_items = TRUE, items.list = TRUE, internal = TRUE)
-
-  res = clusters$items[clusters$x]
-
-  return(res)
+combine_fixef_drop_names = function(...){
+  combine_fixef(..., keep_names = FALSE)
 }
+
 
 listDefault = function(x, variable, value){
   # This function puts 'value' into the element 'variable' of list 'x'

@@ -15,7 +15,7 @@ setFixest_estimation(
   lean = FALSE,
   verbose = 0,
   warn = TRUE,
-  combine.quick = NULL,
+  fixef.keep_names = NULL,
   demeaned = FALSE,
   mem.clean = FALSE,
   glm.iter = 25,
@@ -71,14 +71,15 @@ it can detail the number of iterations in the demeaning algorithm
 \item{warn}{Logical, default is \code{TRUE}. Whether warnings should be displayed
 (concerns warnings relating to convergence state).}
 
-\item{combine.quick}{Logical. When you combine different variables to transform them
-into a single fixed-effects you can do e.g. \code{y ~ x | paste(var1, var2)}.
+\item{fixef.keep_names}{Logical or \code{NULL} (default). When you combine different
+variables to transform them into a single fixed-effects you can do
+e.g. \code{y ~ x | paste(var1, var2)}.
 The algorithm provides a shorthand to do the same operation: \code{y ~ x | var1^var2}.
 Because pasting variables is a costly operation, the internal algorithm may use a
 numerical trick to hasten the process. The cost of doing so is that you lose the labels.
 If you are interested in getting the value of the fixed-effects coefficients
-after the estimation, you should use \code{combine.quick = FALSE}. By default it is
-equal to \code{FALSE} if the number of observations is lower than 50,000, and to \code{TRUE}
+after the estimation, you should use \code{fixef.keep_names = TRUE}. By default it is
+equal to \code{TRUE} if the number of unique values is lower than 50,000, and to \code{FALSE}
 otherwise.}
 
 \item{demeaned}{Logical, default is \code{FALSE}. Only used in the presence of fixed-effects: should

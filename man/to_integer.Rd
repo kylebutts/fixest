@@ -6,16 +6,22 @@
 \usage{
 to_integer(
   ...,
+  inputs = NULL,
   sorted = FALSE,
   add_items = FALSE,
   items.list = FALSE,
   multi.df = FALSE,
   multi.join = "_",
+  na.valid = FALSE,
   internal = FALSE
 )
 }
 \arguments{
-\item{...}{Vectors of any type, to be transformed in integer.}
+\item{...}{Vectors of any type, to be transformed into a single integer vector ranging
+from 1 to the number of unique elements.}
+
+\item{inputs}{A list of inputs, by default it is \code{NULL}. If provided, it completely
+replaces the elements in \code{...}.}
 
 \item{sorted}{Logical, default is \code{FALSE}. Whether the integer vector should make reference
 to sorted values?}
@@ -66,6 +72,10 @@ to_integer(x2, add_items = TRUE)
 # To have the sorted items:
 to_integer(x2, add_items = TRUE, sorted = TRUE)
 
+# placing the three side to side
+head(cbind(x2, as_index = to_integer(x2), 
+           as_index_sorted = to_integer(x2, sorted = TRUE)))
+
 # The result can safely be used as an index
 res = to_integer(x2, add_items = TRUE, sorted = TRUE, items.list = TRUE)
 all(res$items[res$x] == x2)
@@ -79,6 +89,30 @@ to_integer(x1, x2, add_items = TRUE)
 
 # You can use multi.join to handle the join of the items:
 to_integer(x1, x2, add_items = TRUE, multi.join = "; ")
+
+# alternatively, return the items as a data.frame
+to_integer(x1, x2, add_items = TRUE, multi.df = TRUE)
+
+#
+# NA values
+#
+
+x1_na = c("a", "a", "b", NA, NA, "b", "a", "c", NA)
+x2_na = c(NA,    1,  NA,  1,  1,   1,   2,   2,  2)
+
+# by default the NAs are propagated
+to_integer(x1_na, x2_na, add_items = TRUE)
+
+# but you can treat them as valid values with na.valid = TRUE
+to_integer(x1_na, x2_na, add_items = TRUE, na.valid = TRUE)
+
+#
+# programmatic use
+#
+
+# the argument `inputs` can be used for easy programmatic use
+all_vars = list(x1_na, x2_na)
+to_integer(inputs = all_vars)
 
 }
 \author{

@@ -33,7 +33,7 @@ femlm(
   warn = TRUE,
   notes = getFixest_notes(),
   theta.init,
-  combine.quick,
+  fixef.keep_names = NULL,
   mem.clean = FALSE,
   only.env = FALSE,
   only.coef = FALSE,
@@ -69,7 +69,7 @@ fenegbin(
   verbose = 0,
   warn = TRUE,
   notes = getFixest_notes(),
-  combine.quick,
+  fixef.keep_names = NULL,
   mem.clean = FALSE,
   only.env = FALSE,
   only.coef = FALSE,
@@ -254,14 +254,15 @@ remove these messages permanently by using \code{setFixest_notes(FALSE)}.}
 parameter if \code{family="negbin"}. By default, the algorithm uses as a starting value
 the theta obtained from the model with only the intercept.}
 
-\item{combine.quick}{Logical. When you combine different variables to transform them
-into a single fixed-effects you can do e.g. \code{y ~ x | paste(var1, var2)}.
+\item{fixef.keep_names}{Logical or \code{NULL} (default). When you combine different
+variables to transform them into a single fixed-effects you can do
+e.g. \code{y ~ x | paste(var1, var2)}.
 The algorithm provides a shorthand to do the same operation: \code{y ~ x | var1^var2}.
 Because pasting variables is a costly operation, the internal algorithm may use a
 numerical trick to hasten the process. The cost of doing so is that you lose the labels.
 If you are interested in getting the value of the fixed-effects coefficients
-after the estimation, you should use \code{combine.quick = FALSE}. By default it is
-equal to \code{FALSE} if the number of observations is lower than 50,000, and to \code{TRUE}
+after the estimation, you should use \code{fixef.keep_names = TRUE}. By default it is
+equal to \code{TRUE} if the number of unique values is lower than 50,000, and to \code{FALSE}
 otherwise.}
 
 \item{mem.clean}{Logical, default is \code{FALSE}. Only to be used if the data set is
@@ -358,14 +359,14 @@ of the two variables fe_1 and fe_2. This is identical to doing \code{paste0(fe_1
 but more convenient.
 
 Note that pasting is a costly operation, especially for large data sets.
-Thus, the internal algorithm uses a numerical trick which is fast, but the drawback is
-that the identity of each observation is lost (i.e. they are now equal to a meaningless
-number instead of being equal to \code{paste0(fe_1, "_", fe_2)}). These \dQuote{identities}
-are useful only if you're interested in the value of the fixed-effects (that you can
-extract with \code{\link{fixef.fixest}}). If you're only interested in coefficients of the variables,
-it doesn't matter. Anyway, you can use \code{combine.quick = FALSE} to tell the internal
-algorithm to use \code{paste} instead of the numerical trick. By default, the numerical
-trick is performed only for large data sets.
+Hence, by default this paste is done only when the number of unique values
+is lower than 50,000 observations.
+
+In case you are using a large data set and want to keep the identity of the fixed-effects,
+you need to use the argument \code{fixef.keep_names = TRUE}.
+
+Note that these \dQuote{identities} are useful only if you're interested in
+the value of the fixed-effects (that you can extract with \code{\link{fixef.fixest}}).
 }
 
 \section{Lagging variables}{

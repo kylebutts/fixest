@@ -975,7 +975,8 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
             if(length(my_rhs[[u]]) > 1) my_rhs[[u]] = my_rhs[[u]][!is_na_current, , drop = FALSE]
           }
 
-          my_env = reshape_env(env, obs2keep = which(!is_na_current), assign_lhs = FALSE, assign_rhs = FALSE)
+          my_env = reshape_env(env, obs2keep = which(!is_na_current), 
+                               assign_lhs = FALSE, assign_rhs = FALSE)
 
         } else {
           my_env = reshape_env(env)
@@ -1630,7 +1631,11 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
     return(res_second_stage)
 
   }
-
+  
+  # NA models from multiple estimations
+  if(isTRUE(env$NA_model)){
+    return(fixest_NA_results(env))
+  }
 
   #
   # Regular estimation ####
@@ -2679,6 +2684,11 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
     res = multi_LHS_RHS(env, feglm.fit)
 
     return(res)
+  }
+  
+  # NA models from multiple estimations
+  if(isTRUE(env$NA_model)){
+    return(fixest_NA_results(env))
   }
 
   #
@@ -4087,6 +4097,11 @@ feNmlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"
 
     return(res)
 
+  }
+  
+  # NA models from multiple estimations
+  if(isTRUE(env$NA_model)){
+    return(fixest_NA_results(env))
   }
 
   #

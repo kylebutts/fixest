@@ -2337,7 +2337,22 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
                           split.full = split.full, origin_type = origin_type,
                           isSlope = isSlope, slope_flag = slope_flag, slope_df = slope_df,
                           slope_vars_list = slope_vars_list, nthreads = nthreads)
-
+    
+    if(isTRUE(info_fe$all_removed)){
+      
+      if(origin_type == "feols"){
+        fixef.rm = "singleton"
+      }
+      
+      msg = switch(fixef.rm,
+                   singleton = "All observations are fixed-effects singletons.",
+                   perfect = "All observations are perfectly explained by the fixed-effects.",
+                   both = "All observations are either fixed-effects singletons or are perfectly explained by the fixed-effects.")
+      
+      stopi(msg, " The estimation cannot be done.")
+    }
+    
+    
     Q               = info_fe$Q
     fixef_id        = info_fe$fixef_id
     fixef_names     = info_fe$fixef_names
@@ -3361,7 +3376,11 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
   all_index_info = cpp_index_table_sum(fixef_list = fixef_df, y = lhs, save_sum_y = do_sum_y,
                                        rm_0 = rm_0, rm_1 = rm_1, rm_single = rm_single,
                                        only_slope = only_slope, nthreads = nthreads)
-
+  
+  if(isTRUE(all_index_info$all_removed)){
+    return(all_index_info)
+  }
+  
   fixef_id = all_index_info$index
 
   # table/sum_y/sizes
@@ -3700,6 +3719,31 @@ reshape_env = function(env, obs2keep = NULL, lhs = NULL, rhs = NULL, assign_lhs 
                           obs2keep = obs2keep, prev_order = prev_order, nthreads = nthreads)
 
     # gt("fixef, recompute")
+    
+    if(isTRUE(info_fe$all_removed)){
+      # The behavior here is complicated... given that reshape_env is called at  
+      # numerous places.
+      # 
+      # What I do is:
+      # 1) assign the flag NA_model = TRUE
+      # 2) in each estimation function => return NA_model if this flag is TRUE
+      # 3) do not remove fixed-effects, so that we don't end up with 0-obs cases to handle
+      # 
+      
+      assign("NA_model", TRUE, new_env)
+      
+      fixef.rm = "none"
+      assign("fixef.rm", "none", new_env)
+      
+      # we need to continue this function => now we don't RM the FEs
+      info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars,
+                          fixef.rm = fixef.rm, family = family, isSplit = FALSE,
+                          origin_type = origin_type, isSlope = isSlope, slope_flag = slope_flag,
+                          slope_df = slope_df, slope_vars_list = slope_vars_list,
+                          fixef_names_old = fixef_names_old, fixef_sizes = fixef_sizes,
+                          obs2keep = obs2keep, prev_order = prev_order, nthreads = nthreads)
+      
+    }
 
     Q               = info_fe$Q
     fixef_id        = info_fe$fixef_id

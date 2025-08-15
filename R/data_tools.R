@@ -1409,7 +1409,10 @@ fdim = function(x){
 #' Tool to transform any type of vector, or even combination of vectors, into an integer vector 
 #' ranging from 1 to the number of unique values. This actually creates an unique identifier vector.
 #'
-#' @param ... Vectors of any type, to be transformed in integer.
+#' @param ... Vectors of any type, to be transformed into a single integer vector ranging
+#' from 1 to the number of unique elements.
+#' @param inputs A list of inputs, by default it is `NULL`. If provided, it completely
+#' replaces the elements in `...`.
 #' @param sorted Logical, default is `FALSE`. Whether the integer vector should make reference 
 #' to sorted values?
 #' @param add_items Logical, default is `FALSE`. Whether to add the unique values of the 
@@ -1421,6 +1424,8 @@ fdim = function(x){
 #' unique elements is returned in the form of a data.frame. Ignored if `add_items = FALSE`.
 #' @param multi.join Character scalar used to join the items of multiple vectors. 
 #' The default is `"_"`. Ignored if `add_items = FALSE`.
+#' @na.valid Logical, default is `FALSE`. Whether to consider NAs as regular values. 
+#' If `TRUE`, the returned index will not contain any NA value.
 #' @param internal Logical, default is `FALSE`. For programming only. If this function 
 #' is used within another function, setting `internal = TRUE` is needed to make the 
 #' evaluation of `...` valid. End users of `to_integer` should not care.
@@ -1453,6 +1458,10 @@ fdim = function(x){
 #'
 #' # To have the sorted items:
 #' to_integer(x2, add_items = TRUE, sorted = TRUE)
+#' 
+#' # placing the three side to side
+#' head(cbind(x2, as_index = to_integer(x2), 
+#'            as_index_sorted = to_integer(x2, sorted = TRUE)))
 #'
 #' # The result can safely be used as an index
 #' res = to_integer(x2, add_items = TRUE, sorted = TRUE, items.list = TRUE)
@@ -1467,154 +1476,207 @@ fdim = function(x){
 #'
 #' # You can use multi.join to handle the join of the items:
 #' to_integer(x1, x2, add_items = TRUE, multi.join = "; ")
+#' 
+#' # alternatively, return the items as a data.frame
+#' to_integer(x1, x2, add_items = TRUE, multi.df = TRUE)
+#' 
+#' #
+#' # NA values
+#' #
+#' 
+#' x1_na = c("a", "a", "b", NA, NA, "b", "a", "c", NA)
+#' x2_na = c(NA,    1,  NA,  1,  1,   1,   2,   2,  2)
+#' 
+#' # by default the NAs are propagated
+#' to_integer(x1_na, x2_na, add_items = TRUE)
+#' 
+#' # but you can treat them as valid values with na.valid = TRUE
+#' to_integer(x1_na, x2_na, add_items = TRUE, na.valid = TRUE)
+#' 
+#' #
+#' # programmatic use
+#' #
+#' 
+#' # the argument `inputs` can be used for easy programmatic use
+#' all_vars = list(x1_na, x2_na)
+#' to_integer(inputs = all_vars)
 #'
-to_integer = function(..., sorted = FALSE, add_items = FALSE, items.list = FALSE,
-                      multi.df = FALSE, multi.join = "_", internal = FALSE){
+to_integer = function(..., inputs = NULL, sorted = FALSE, add_items = FALSE, items.list = FALSE,
+                      multi.df = FALSE, multi.join = "_", na.valid = FALSE, 
+                      internal = FALSE){
 
-  if(!internal) check_arg(..., "vector mbt")
-  check_arg(sorted, add_items, items.list, "logical scalar")
+  check_arg(sorted, add_items, items.list, na.valid, internal, "logical scalar")
+  check_arg(inputs, "NULL list")
+  if(!internal && is.null(inputs)){
+    check_arg(..., "vector mbt")
+  }
   check_arg(multi.join, "character scalar")
+  
+  IS_DOT = TRUE
+  if(!missing(inputs) && !is.null(inputs)){
+    if(!is.list(inputs)){
+      stop("The argument `inputs` must be a list of vectors of the same length.",
+           "\nPROBLEM: currently it is not a list.")
+    } else if(length(inputs) == 0){
+      stop("The argument `inputs` must be a list of vectors of the same length.",
+           "\nPROBLEM: currently this list is empty.")
+    }
+    
+    dots = inputs
+    IS_DOT = FALSE
+  } else {
+    dots = list(...)
+  }  
 
-  dots = list(...)
-
-  # Removing NAs
   Q = length(dots)
   n_all = lengths(dots)
   n = n_all[1]
 
   if(length(unique(n_all)) != 1){
-    stopi("All elements in `...` should be of the same length ",
-          "(current lenghts are {enum?n_all}).")
+    stopi("All the vector in input must be of the same length of the same length (current lenghts are {enum?n_all}).")
   }
-
-  is_na = is.na(dots[[1]])
-  for(q in seq(from = 2, length.out = Q - 1)){
-    is_na = is_na | is.na(dots[[q]])
-  }
-
+  
+  # NAs
   ANY_NA = FALSE
-  if(any(is_na)){
-    ANY_NA = TRUE
-
-    if(all(is_na)){
-      mema("NOTE: All values are NA.")
-      res = rep(NA, n)
-      if(add_items){
-        if(items.list){
-          res = list(x = res, items = NA)
-        } else {
-          attr(res, "items") = NA
-        }
+  if(!na.valid){
+    is_na = is.na(dots[[1]])
+    if(Q > 1){
+      for(q in 2:Q){
+        is_na = is_na | is.na(dots[[q]])
       }
-
-      return(res)
     }
 
-    for(q in 1:Q) dots[[q]] = dots[[q]][!is_na]
+    if(any(is_na)){
+      ANY_NA = TRUE
+      for(q in 1:Q){
+        dots[[q]] = dots[[q]][!is_na]
+      }
+        
+    }
   }
-
+  
+  # names of each vector (only if multi.df)
+  if(multi.df){
+    # Putting into a DF => we take care of names
+    user_names = names(dots)
+    if(is.null(user_names)){
+      user_names = character(Q)
+    }
+    
+    if(IS_DOT){
+      mc_dots = match.call(expand.dots = FALSE)[["..."]]
+    }
+    
+    for(q in 1:Q){
+      if(nchar(user_names[q]) == 0){
+        is_done = FALSE
+        if(IS_DOT){
+          mcq = mc_dots[[q]]
+          if(is.name(mcq)){
+            user_names[q] = as.character(mcq)[1]
+            is_done = TRUE
+          } else if(is.call(mcq) && as.character(mcq[[1]])[1] == "$"){
+            user_names[q] = as.character(mcq[[3]])[1]
+            is_done = TRUE
+          }
+        }
+        if(!is_done){
+          user_names[q] = paste0("x", q)
+        }          
+      }
+    }
+  }
+  
+  # special case: n = 0
+  if(n == 0 || (length(dots[[1]]) == 0 && ANY_NA)){
+    
+    if(ANY_NA){
+      res = rep(NA_integer_, n)
+    } else{
+      res = integer(0)
+    }
+    
+    if(add_items){
+      items = integer(0)
+      
+      if(multi.df){
+        items = as.data.frame(matrix(0, 1, Q))
+        items = items[-1, , drop = FALSE]
+        names(items) = user_names
+      } else if(Q > 0){
+        items = character(0)
+      }
+      
+      if(items.list){
+        res = list(x = res, items = items)
+      } else {
+        attr(res, "items") = items
+      }
+      
+    }
+    
+    return(res)
+  }
+  
+  
+  
   #
   # Creating the ID
   #
-
-  if(Q == 1){
-    if(sorted && !is.numeric(dots[[1]]) && !is.character(dots[[1]])){
-      # general way => works for any type with a sort method
-      f = dots[[1]]
-      res_raw = quickUnclassFactor(f, addItem = TRUE, sorted = FALSE)
-      obs_1st = cpp_get_first_item(res_raw$x, length(res_raw$items))
-      f_unik = f[obs_1st]
-      f_order = order(f_unik)
-      x_new = order(f_order)[res_raw$x]
-      if(add_items){
-        items_new = f_unik[f_order]
-        res = list(x = x_new, items = items_new)
-      } else {
-        res = x_new
-      }
-
-    } else {
-      res = quickUnclassFactor(dots[[1]], addItem = add_items, sorted = sorted)
+  
+  info = cpp_to_index(dots)
+  index = info$index
+  if(sorted || add_items){
+    
+    # vector of the first items
+    items_unik = vector("list", Q)
+    for (q in 1:Q) {
+      items_unik[[q]] = dots[[q]][info$first_obs]
     }
-
-  } else {
-
-    QUF_raw = list()
-    for(q in 1:Q){
-      QUF_raw[[q]] = quickUnclassFactor(dots[[q]], sorted = FALSE, addItem = TRUE)
-    }
-
-    # Then we combine
-    power = floor(1 + log10(sapply(QUF_raw, function(x) length(x$items))))
-
-    is_large = sum(power) > 14
-    if(is_large){
-      # 15 Aug 2021, finally found a solution. It was so obvious with hindsight...
-      QUF_raw_value = lapply(QUF_raw, `[[`, 1)
-      order_index = do.call(order, QUF_raw_value)
-      index = cpp_combine_clusters(QUF_raw_value, order_index)
-    } else {
-      # quicker, but limited by the precision of doubles
-      index = QUF_raw[[1]]$x
-      for(q in 2:Q){
-        index = index + QUF_raw[[q]]$x*10**sum(power[1:(q-1)])
-      }
-    }
-
-    res = quickUnclassFactor(index, addItem = add_items || sorted, sorted = sorted)
-
-    if(add_items || sorted){
-      # we re order appropriately
-      # f prefix means factor
-
-      obs_1st = cpp_get_first_item(res$x, length(res$items))
-
-      f_all = list()
-      for(q in 1:Q){
-        f_all[[q]] = dots[[q]][obs_1st]
-      }
-
-      f_order = do.call("order", f_all)
-
-      x_new = order(f_order)[res$x]
-
-      if(multi.df){
-        # Putting into a DF => we take care of names
-        mc_dots = match.call(expand.dots = FALSE)[["..."]]
-        n_dots = length(mc_dots)
-        mc_dots_names = names(mc_dots)
-        if(is.null(mc_dots_names)) mc_dots_names = character(n_dots)
-
-        my_names = character(n_dots)
-        for(q in 1:n_dots){
-          if(nchar(mc_dots_names[q]) > 0){
-            my_names[q] = mc_dots_names[q]
-          } else {
-            my_names[q] = deparse_long(mc_dots[[q]])
-          }
+    
+    if(sorted){
+      x_order = do.call(order, items_unik)
+      if(is.unsorted(x_order)){
+        index = order(x_order)[index]
+        for (q in 1:Q) {
+          items_unik[[q]] = items_unik[[q]][x_order]
         }
-
-        names(f_all) = my_names
-
-        f_df = as.data.frame(f_all)
-        items_new = f_df[f_order, , drop = FALSE]
-        row.names(items_new) = 1:nrow(items_new)
-      } else {
-        # we "paste" them
-        arg_list = f_all
-        arg_list$sep = multi.join
-        f_char = do.call("paste", arg_list)
-        items_new = f_char[f_order]
-      }
-
-      if(add_items){
-        res = list(x = x_new, items = items_new)
-      } else {
-        res = x_new
       }
     }
-  }
+    
+    items = NULL
+    if(multi.df){
+      # Putting into a DF => we take care of names
+      names(items_unik) = user_names
 
+      items = as.data.frame(items_unik)
+      row.names(items) = 1:nrow(items)
+      
+    } else if(Q > 1){ 
+      arg_list = items_unik
+      arg_list$sep = multi.join
+      items = do.call("paste", arg_list)
+      
+    } else {
+      items = items_unik[[1]]
+    }
+
+    if(add_items){
+      if(items.list){
+        res = list(x = index, items = items)
+      } else {
+        res = index
+        attr(res, "items") = items
+      }
+    } else {
+      res = index
+    }
+    
+  } else {
+    res = index
+  }
+  
+  
   if(ANY_NA){
     if(is.list(res)){
       x = res$x
@@ -1622,21 +1684,18 @@ to_integer = function(..., sorted = FALSE, add_items = FALSE, items.list = FALSE
       x = res
     }
 
-    x_na = rep(NA, n)
+    x_na = rep(NA_integer_, n)
     x_na[!is_na] = x
 
     if(is.list(res)){
       res$x = x_na
     } else {
       res = x_na
+      if(add_items){
+        attr(res, "items") = items
+      }
     }
 
-  }
-
-  if(add_items && isFALSE(items.list)){
-    res_tmp = res$x
-    attr(res_tmp, "items") = res$items
-    res = res_tmp
   }
 
   res

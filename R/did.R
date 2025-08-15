@@ -300,7 +300,7 @@ sunab = function(cohort, period, ref.c = NULL, ref.p = -1, bin, bin.rel,
   #  we find out the never/always treated
   #
 
-  cohort_int = quickUnclassFactor(cohort)
+  cohort_int = to_index_internal(cohort)
   c_order = order(cohort_int)
   info = cpp_find_never_always_treated(cohort_int[c_order], period[c_order])
 

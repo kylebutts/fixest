@@ -727,7 +727,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
         # if to_int => we do not have to check the type since it can be applied to any type
 
         if(!isTRUE(is_int_all[[vcov_var_name]])){
-          var_values_all[[vcov_var_name]] = quickUnclassFactor(value)
+          var_values_all[[vcov_var_name]] = to_index_internal(value)
         }
 
       } else if(!is.null(vcov_var_value$expected_type)){
@@ -1859,7 +1859,7 @@ vcovClust = function (cluster, myBread, scores, adj = FALSE, do.unclass = TRUE,
 
   # Control for cluster type
   if(do.unclass){
-    cluster = quickUnclassFactor(cluster)
+    cluster = to_index_internal(cluster)
   }
 
   Q = max(cluster)
@@ -1991,7 +1991,7 @@ vcov_cluster_internal = function(bread, scores, vars, ssc, object, n, K,
           }
         }
 
-        index = quickUnclassFactor(index)
+        index = to_index_internal(index)
 
       }
 
@@ -2525,7 +2525,7 @@ ssc_compute_K = function(ssc, object, vcov_select, vcov_vars, var_names_all){
       id_to_int = which(sapply(vcov_select$vars[nested_vcov_var_names], function(x) !isTRUE(x$to_int)))
 
       for(i in id_to_int){
-        vcov_vars_nesting[[i]] = quickUnclassFactor(vcov_vars_nesting[[i]])
+        vcov_vars_nesting[[i]] = to_index_internal(vcov_vars_nesting[[i]])
       }
 
       id2check = which(is_nested == FALSE)

@@ -4599,6 +4599,14 @@ prepare_cluster_mat = function(fml, data, fastCombine){
   res
 }
 
+
+combine_fixef = function(...){
+  
+  all_fixef = list(...)
+  index_info = cpp_to_index(all_fixef)
+  
+}
+
 combine_clusters_fast = function(...){
   # This functions creates a new cluster from several clusters
   # basically: paste(cluster1, cluster2, ... etc, sep = "__")
@@ -4632,7 +4640,7 @@ combine_clusters_fast = function(...){
 
   # First we unclass
   for(i in 1:Q){
-    cluster[[i]] = quickUnclassFactor(cluster[[i]])
+    cluster[[i]] = to_index_internal(cluster[[i]])
   }
 
   # Then we combine
@@ -6279,64 +6287,9 @@ char2num = function(x, addItem = FALSE){
 
 }
 
-quickUnclassFactor = function(x, addItem = FALSE, sorted = FALSE){
-  # does as unclass(as.factor(x))
-  # but waaaaay quicker
-
-  not_num = !is.numeric(x)
-  is_char_convert = not_num && !is.character(x)
-
-  if(is_char_convert){
-    res = cpp_quf_gnl(as.character(x))
-  } else {
-    res = cpp_quf_gnl(x)
-  }
-
-  if(sorted){
-
-    if(not_num){
-      items = x[res$x_unik]
-    } else {
-      items = res$x_unik
-    }
-
-    x = res$x_uf
-
-    new_order = order(items)
-    order_new_order = order(new_order)
-    x_uf = order_new_order[x]
-
-    if(addItem){
-      if(is_char_convert){
-        res = list(x = x_uf, items = as.character(items[new_order]))
-      } else {
-        res = list(x = x_uf, items = items[new_order])
-      }
-
-      return(res)
-    } else {
-      return(x_uf)
-    }
-  }
-
-  if(addItem){
-
-    if(not_num){
-      if(is_char_convert){
-        items = as.character(x[res$x_unik])
-      } else {
-        items = x[res$x_unik]
-      }
-
-      res = list(x = res$x_uf, items = items)
-    } else {
-      names(res) = c("x", "items")
-    }
-
-    return(res)
-  } else {
-    return(res$x_uf)
-  }
+to_index_internal = function(x, add_item = FALSE, sorted = FALSE){
+  to_integer(x, add_item = add_item, sorted = sorted, items.list = TRUE, 
+             na.valid = TRUE, internal = TRUE)
 }
 
 missnull = function(x) missing(x) || is.null(x)

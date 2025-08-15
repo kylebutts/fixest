@@ -142,8 +142,8 @@ panel_setup = function(data, panel.id, time.step = NULL, duplicate.method = "non
   }
 
   # Computation quf
-  id = quickUnclassFactor(id)
-  time_full = quickUnclassFactor(time, addItem = TRUE, sorted = TRUE)
+  id = to_index_internal(id)
+  time_full = to_index_internal(time, add_item = TRUE, sorted = TRUE)
 
   #
   # WIP: define this unitary time step!!!! not straightforward at all!

@@ -5097,7 +5097,7 @@ multi_fixef = function(env, estfun){
       lhs = get("lhs", my_env)
 
       # We delay the computation by using isSplit = TRUE and split.full = FALSE
-      # Real QUF will be done in the last reshape env
+      # Real indexing will be done in the last reshape env
       info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars, 
                             fixef.rm = fixef.rm, family = family, isSplit = TRUE, 
                             split.full = FALSE, origin_type = origin_type, 

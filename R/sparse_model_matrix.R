@@ -227,10 +227,10 @@ sparse_model_matrix = function(object, data, type = "rhs", na.rm = TRUE,
         if (length(keep) == 0) stop("All values of the fixed-effect variable '", fe_var, "' are NA.")
 
         xi = xi[keep]
-        xi_quf = to_index_internal(xi, add_items = TRUE)
+        index_info = to_index_internal(xi, add_items = TRUE)
 
-        col_id = xi_quf$x
-        col_levels = as.character(xi_quf$items)
+        col_id = index_info$x
+        col_levels = as.character(index_info$items)
 
         slope_vars = slope_var_list[[i]]
         n_slope_vars = if (is.null(slope_vars)) 0 else length(slope_vars)

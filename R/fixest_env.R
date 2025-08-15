@@ -2187,7 +2187,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
     if(debug) cat(" ---> NA handling\n")
 
-    # We change non-numeric to character (important for parallel qufing)
+    # We change non-numeric to character
     is_not_num = sapply(fixef_df, function(x) !is.numeric(x))
     if(any(is_not_num)){
       for(i in which(is_not_num)){
@@ -2327,10 +2327,10 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     }
     
     #
-    # ... QUF setup ####
+    # ... Indexing setup ####
     #
 
-    if(debug) cat(" ---> QUF\n")
+    if(debug) cat(" ---> Indexing\n")
 
     info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars,
                           fixef.rm = fixef.rm, family = family, isSplit = isSplit,

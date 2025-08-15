@@ -1336,7 +1336,7 @@ i = function(factor_var, var, ref, keep, bin, ref2, keep2, bin2, ...){
   }
 
   #
-  # QUFing + NA
+  # Indexing + NA
   #
 
   if(IS_INTER){

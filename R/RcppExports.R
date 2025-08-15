@@ -297,14 +297,6 @@ cpp_check_only_0 <- function(x_mat, nthreads) {
     .Call(`_fixest_cpp_check_only_0`, x_mat, nthreads)
 }
 
-cpp_quf_gnl <- function(x) {
-    .Call(`_fixest_cpp_quf_gnl`, x)
-}
-
-cpp_quf_table_sum <- function(x, y, do_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads, do_refactor, r_x_sizes, obs2keep) {
-    .Call(`_fixest_cpp_quf_table_sum`, x, y, do_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads, do_refactor, r_x_sizes, obs2keep)
-}
-
 cpp_colon_to_star <- function(Rstr) {
     .Call(`_fixest_cpp_colon_to_star`, Rstr)
 }

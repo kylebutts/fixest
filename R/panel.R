@@ -108,7 +108,7 @@ panel_setup = function(data, panel.id, time.step = NULL, duplicate.method = "non
   }
 
 
-  # unitary time.step: conversion to numeric before quf
+  # unitary time.step: conversion to numeric before indexing
   if(time.step == "unitary") {
     time_conversion = FALSE
     if(!is.numeric(time)){
@@ -141,7 +141,7 @@ panel_setup = function(data, panel.id, time.step = NULL, duplicate.method = "non
     }
   }
 
-  # Computation quf
+  # Creation of the indexes
   id = to_index_internal(id)
   time_full = to_index_internal(time, add_items = TRUE, sorted = TRUE)
 

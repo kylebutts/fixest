@@ -538,7 +538,7 @@ n_unik = function(x){
       x = x[!who_NA]
     }
 
-    res = len_unique(x, nthreads)
+    res = len_unique(x)
     names(res) = x_name
 
     attr(res, "na.info") = na.info
@@ -905,7 +905,7 @@ n_unik = function(x){
           vf_name = paste0(msg_start, msg_end)
 
         } else {
-          res_i = len_unique(val, nthreads)
+          res_i = len_unique(val)
         }
 
       }
@@ -1344,33 +1344,14 @@ sample_df = function(x, n = 10, previous = FALSE){
   }
 }
 
-len_unique = function(x, nthreads = getFixest_nthreads()){
+len_unique = function(x){
 
   if(!is.vector(x)){
     return(length(unique(x)))
   }
-
-  ANY_NA = FALSE
-  if(is.numeric(x)){
-    info_na = cpp_which_na_inf(x, nthreads)
-    if(info_na$any_na_inf){
-      ANY_NA = TRUE
-      x = x[!info_na$is_na_inf]
-    }
-  } else {
-    if(anyNA(x)){
-      ANY_NA = TRUE
-      x = x[!is.na(x)]
-    }
-  }
-
-  if(length(x) == 0){
-    return(0)
-  }
-
-  x_quf = to_index_internal(x, add_items = TRUE, sorted = FALSE)
-
-  length(x_quf$items) + ANY_NA
+  
+  info = to_index_internal(x, add_items = TRUE)
+  length(info$items)
 }
 
 

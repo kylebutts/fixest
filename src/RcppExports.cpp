@@ -1082,38 +1082,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cpp_quf_gnl
-List cpp_quf_gnl(SEXP x);
-RcppExport SEXP _fixest_cpp_quf_gnl(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_quf_gnl(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cpp_quf_table_sum
-List cpp_quf_table_sum(SEXP x, SEXP y, bool do_sum_y, bool rm_0, bool rm_1, bool rm_single, IntegerVector only_slope, int nthreads, bool do_refactor, SEXP r_x_sizes, IntegerVector obs2keep);
-RcppExport SEXP _fixest_cpp_quf_table_sum(SEXP xSEXP, SEXP ySEXP, SEXP do_sum_ySEXP, SEXP rm_0SEXP, SEXP rm_1SEXP, SEXP rm_singleSEXP, SEXP only_slopeSEXP, SEXP nthreadsSEXP, SEXP do_refactorSEXP, SEXP r_x_sizesSEXP, SEXP obs2keepSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< bool >::type do_sum_y(do_sum_ySEXP);
-    Rcpp::traits::input_parameter< bool >::type rm_0(rm_0SEXP);
-    Rcpp::traits::input_parameter< bool >::type rm_1(rm_1SEXP);
-    Rcpp::traits::input_parameter< bool >::type rm_single(rm_singleSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type only_slope(only_slopeSEXP);
-    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
-    Rcpp::traits::input_parameter< bool >::type do_refactor(do_refactorSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type r_x_sizes(r_x_sizesSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type obs2keep(obs2keepSEXP);
-    rcpp_result_gen = Rcpp::wrap(cpp_quf_table_sum(x, y, do_sum_y, rm_0, rm_1, rm_single, only_slope, nthreads, do_refactor, r_x_sizes, obs2keep));
-    return rcpp_result_gen;
-END_RCPP
-}
 // cpp_colon_to_star
 StringVector cpp_colon_to_star(SEXP Rstr);
 RcppExport SEXP _fixest_cpp_colon_to_star(SEXP RstrSEXP) {
@@ -1273,8 +1241,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fixest_cpp_which_na_inf_df", (DL_FUNC) &_fixest_cpp_which_na_inf_df, 2},
     {"_fixest_cpp_cond_means", (DL_FUNC) &_fixest_cpp_cond_means, 3},
     {"_fixest_cpp_check_only_0", (DL_FUNC) &_fixest_cpp_check_only_0, 2},
-    {"_fixest_cpp_quf_gnl", (DL_FUNC) &_fixest_cpp_quf_gnl, 1},
-    {"_fixest_cpp_quf_table_sum", (DL_FUNC) &_fixest_cpp_quf_table_sum, 11},
     {"_fixest_cpp_colon_to_star", (DL_FUNC) &_fixest_cpp_colon_to_star, 1},
     {"_fixest_cpp_to_index", (DL_FUNC) &_fixest_cpp_to_index, 1},
     {"_fixest_cpp_newey_west", (DL_FUNC) &_fixest_cpp_newey_west, 3},

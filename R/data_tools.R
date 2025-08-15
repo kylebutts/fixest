@@ -1405,7 +1405,7 @@ fdim = function(x){
 #' unique elements is returned in the form of a data.frame. Ignored if `add_items = FALSE`.
 #' @param multi.join Character scalar used to join the items of multiple vectors. 
 #' The default is `"_"`. Ignored if `add_items = FALSE`.
-#' @na.valid Logical, default is `FALSE`. Whether to consider NAs as regular values. 
+#' @param na.valid Logical, default is `FALSE`. Whether to consider NAs as regular values. 
 #' If `TRUE`, the returned index will not contain any NA value.
 #' @param internal Logical, default is `FALSE`. For programming only. If this function 
 #' is used within another function, setting `internal = TRUE` is needed to make the 

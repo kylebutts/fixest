@@ -1055,7 +1055,7 @@ unpanel = function(x){
   return(res)
 }
 
-terms_hat = function(fml, fastCombine = TRUE, n_unik = FALSE){
+terms_hat = function(fml, fixef.keep_names = FALSE, n_unik = FALSE){
 
   fml_char = as.character(fml)[length(fml)]
 
@@ -1095,7 +1095,7 @@ terms_hat = function(fml, fastCombine = TRUE, n_unik = FALSE){
 
   if(grepl("^", fml_char, fixed = TRUE)){
     # special indicator to combine factors
-    fml = fml_combine(fml_char, fastCombine)
+    fml = fml_combine(fml_char, fixef.keep_names)
   }
 
   t = terms(fml)

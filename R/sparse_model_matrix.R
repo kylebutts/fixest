@@ -187,7 +187,7 @@ sparse_model_matrix = function(object, data, type = "rhs", na.rm = TRUE,
           fe_vars = fixef_terms_full$fe_vars
           slope_var_list = fixef_terms_full$slope_vars_list
 
-          fixef_df = prepare_df(fe_vars, data, fastCombine = FALSE)
+          fixef_df = prepare_df(fe_vars, data, fixef.keep_names = TRUE)
 
           # Check for slope vars
           if (any(fixef_terms_full$slope_flag > 0)) {

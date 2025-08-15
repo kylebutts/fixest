@@ -2646,12 +2646,12 @@ predict.fixest = function(object, newdata, type = c("response", "link"), se.fit 
 
       # Checking if ^ is present
       if(grepl("\\^", fe_var)){
-        # If fastCombine was used => we're screwed, impossible to recover
+        # If fixef.keep_names was used => we're screwed, impossible to recover
         if(!all(grepl("_", fixef_values_possible, fixed = TRUE))){
           stop("You cannot use predict() based on the initial regression since the fixed-effect '", fe_var, "' was combined using an algorithm dropping the FE values (but fast). Please re-run the regression using the argument 'fixef.keep_names=TRUE'.")
         }
 
-        fe_var = fml_combine(fe_var, fastCombine = FALSE, vars = TRUE)
+        fe_var = fml_combine(fe_var, fixef.keep_names = TRUE, vars = TRUE)
       }
 
       # Obtaining the vector of fixed-effect
@@ -3789,7 +3789,7 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
     fixef_terms_full = fixef_terms(object$fml_all$fixef)
     fixef_terms = fixef_terms_full$fml_terms
 
-    fixef_df = error_sender(prepare_df(fixef_terms_full$fe_vars, data, fastCombine = FALSE),
+    fixef_df = error_sender(prepare_df(fixef_terms_full$fe_vars, data, fixef.keep_names = TRUE),
                 "In 'model.matrix', problem evaluating the fixed-effects part of the formula:\n")
 
     isSlope = any(fixef_terms_full$slope_flag != 0)

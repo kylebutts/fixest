@@ -2146,22 +2146,12 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       # ... Regular ####
       #
 
-      # Managing fast combine
-      if(missnull(fixef.keep_names)){
-        if(NROW(data) > 5e4){
-          fixef.keep_names = TRUE
-        } else {
-          fixef.keep_names = FALSE
-        }
-      }
-
       # fixef_terms_full computed in the formula section
       fixef_terms = fixef_terms_full$fml_terms
 
       # FEs
       fixef_df = error_sender(prepare_df(fixef_terms_full$fe_vars, data, fixef.keep_names),
                    "Problem evaluating the fixed-effects part of the formula:\n")
-      
       fixef_vars = names(fixef_df)
 
       # Slopes
@@ -2203,7 +2193,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       for(i in which(is_not_num)){
         # we don't convert Dates to numeric because conversion can lead to NA in some cases!
         # e.g dates < 1970 with non-robust parsers
-        if(!is.character(fixef_df[[i]])){
+        if(!is.character(fixef_df[[i]]) && !is.factor(fixef_df[[i]])){
           fixef_df[[i]] = as.character(fixef_df[[i]])
         }
       }
@@ -2918,7 +2908,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     assign("multi_fixef_fml_full", fixef_info_stepwise$fml_all_full, env)
 
     if(missnull(fixef.keep_names)){
-      fixef.keep_names = TRUE
+      fixef.keep_names = FALSE
     }
     assign("fixef.keep_names", fixef.keep_names, env)
 

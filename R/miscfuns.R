@@ -4505,23 +4505,22 @@ fixef_terms = function(fml, stepwise = FALSE, origin_type = "feols"){
   res
 }
 
-prepare_df = function(vars, data, fastCombine = NA){
+prepare_df = function(vars, data, fixef.keep_names = NA_integer_){
   # vars: vector of variables to evaluate
   # data: a data.frame#
   # note that this is an internal function and the data should be checked beforehand
-
+  
   # we drop NAs and make it unique
   vars = unique(vars[!is.na(vars)])
   all_var_names = vars
 
-  do_combine = !is.na(fastCombine)
+  do_combine = !identical(fixef.keep_names, NA_integer_)
 
   changeNames = FALSE
   if(do_combine && any(grepl("^", vars, fixed = TRUE))){
     # special indicator to combine factors
     # ^ is a special character: only used to combine variables!!!
-
-    vars = fml_combine(vars, fastCombine, vars = TRUE)
+    vars = fml_combine(vars, fixef.keep_names, vars = TRUE)
 
     changeNames = TRUE
   }
@@ -4559,14 +4558,14 @@ prepare_df = function(vars, data, fastCombine = NA){
 }
 
 
-prepare_cluster_mat = function(fml, data, fastCombine){
+prepare_cluster_mat = function(fml, data, fixef.keep_names){
   # prepares the data.frame of the cluster variables
 
   fml_char = as.character(fml[2])
   changeNames = FALSE
   if(grepl("^", fml_char, fixed = TRUE)){
     # special indicator to combine factors
-    fml = fml_combine(fml_char, fastCombine)
+    fml = fml_combine(fml_char, fixef.keep_names)
     changeNames = TRUE
   }
 

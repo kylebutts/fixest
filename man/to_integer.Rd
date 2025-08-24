@@ -39,6 +39,9 @@ unique elements is returned in the form of a data.frame. Ignored if \code{add_it
 \item{multi.join}{Character scalar used to join the items of multiple vectors.
 The default is \code{"_"}. Ignored if \code{add_items = FALSE}.}
 
+\item{na.valid}{Logical, default is \code{FALSE}. Whether to consider NAs as regular values.
+If \code{TRUE}, the returned index will not contain any NA value.}
+
 \item{internal}{Logical, default is \code{FALSE}. For programming only. If this function
 is used within another function, setting \code{internal = TRUE} is needed to make the
 evaluation of \code{...} valid. End users of \code{to_integer} should not care.}

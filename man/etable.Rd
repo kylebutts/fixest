@@ -440,7 +440,7 @@ default this line is displayed when at least two models are from different famil
 \code{10**(powerBelow+1)} is written with a power in Latex. For example \code{0.0000456} would be written
 \verb{4.56$\\\\times 10^\{-5\}$} by default. Setting \code{powerBelow = -6} would lead to \code{0.00004} in Latex.}
 
-\item{interaction.combine}{Character scalar, defaults to \code{" $\\\\times$ "} for Tex and to \code{" = "}
+\item{interaction.combine}{Character scalar, defaults to \code{" $\\\\times$ "} for Tex and to \code{" x "}
 otherwise. When the estimation contains interactions, then the variables names (after aliasing)
 are combined with this argument. For example: if \code{dict = c(x1="Wind", x2="Rain")} and you have
 the following interaction \code{x1:x2}, then it will be renamed (by default)
@@ -448,7 +448,7 @@ the following interaction \code{x1:x2}, then it will be renamed (by default)
 
 \item{interaction.order}{Character vector of regular expressions. Only affects variables that
 are interacted like x1 and x2 in \code{feols(y ~ x1*x2, data)}. You can change the order in which the
-interacted variables are displayed: e.g. \code{interaction.order = "x2"} would lead to "x1 x x2"
+interacted variables are displayed: e.g. \code{interaction.order = "x2"} would lead to "x2 x x1"
 instead of "x1 x x2". Please look at the argument 'order' and the dedicated section in the help
 page for more information.}
 

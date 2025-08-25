@@ -130,7 +130,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       old = args_deprec[i]
       new = names(args_deprec)[i]
       
-      if(not_too_many_messages("combine.quick")){
+      if(was_not_recently_used("combine.quick")){
         mema("Argument {q ? old} is deprecated. Please use {q ? new} instead.")
       }
       
@@ -3470,12 +3470,16 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
 
     # Then the "Notes"
     nb_missing = lengths(fixef_removed)
-    if(rm_0 == FALSE){
-      n_single = sum(nb_missing)
-      message_fixef = sma("{n?n_single} fixed-effect singleton{#s, were} removed ({len?obs2remove} observation{$s}", "{&Q == 1 ; , breakup: {n, '/'c ? nb_missing}}).")
-    } else {
+    if(isFALSE(rm_0)){
+      message_fixef = sma("{n, '/'c ? nb_missing} fixed-effect singleton{#s, were} removed",
+                          " ({len ? obs2remove} observation{$s})")
       
-      message_fixef = sma("{n, '/'c ? nb_missing} fixed-effect{#s ? sum(nb_missing)} ({len?obs2remove} observation{$s}) removed because of only 0{&rm_1; (or only 1)} outcomes{&rm_single && !rm_1; or singletons}.")
+    } else {
+      msg_rm = if(rm_1) "only 0 or only 1 outcomes" else "only 0 outcomes"
+      if(rm_single){
+        msg_rm = paste0(msg_rm, " or singletons")
+      } 
+      message_fixef = sma("{n, '/'c ? nb_missing} fixed-effect{#s ? sum(nb_missing)} ({len?obs2remove} observation{$s}) removed because of {msg_rm}.")
     }
 
   }

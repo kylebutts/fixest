@@ -6,9 +6,10 @@
 \usage{
 \method{model.matrix}{fixest}(
   object,
-  data,
+  data = NULL,
   type = "rhs",
-  na.rm = TRUE,
+  sample = "estimation",
+  na.rm = FALSE,
   subset = FALSE,
   as.matrix = FALSE,
   as.df = FALSE,
@@ -19,17 +20,27 @@
 \arguments{
 \item{object}{A \code{fixest} object. Obtained using the functions \code{\link{femlm}}, \code{\link{feols}} or \code{\link{feglm}}.}
 
-\item{data}{If missing (default) then the original data is obtained by evaluating
-the \code{call}. Otherwise, it should be a \code{data.frame}.}
+\item{data}{A data.frame or \code{NULL} (the default). If missing or \code{NULL}, then the
+original data is obtained by evaluating  the \code{call}.}
 
 \item{type}{Character vector or one sided formula, default is "rhs". Contains the type of
 matrix/data.frame to be returned. Possible values are: "lhs", "rhs", "fixef", "iv.rhs1"
 (1st stage RHS), "iv.rhs2" (2nd stage RHS), "iv.endo" (endogenous vars.), "iv.exo"
 (exogenous vars), "iv.inst" (instruments).}
 
-\item{na.rm}{Default is \code{TRUE}. Should observations with NAs be removed from the matrix?}
+\item{sample}{Character scalar equal to "estimation" (default) or "original". Only
+used when \code{data=NULL} (i.e. the original data is requested). By default,
+only the observations effectively used in the estimation are returned (it includes
+the observations with NA values or the fully explained by the fixed-effects \link{FE}, or
+due to NAs in the weights).
+If \code{sample="original"}, all the observations are returned. In that case, if
+you use \code{na.rm=TRUE} (which is not the default), you can withdraw the observations
+with NA values (and keep the ones fully explained by the FEs).}
 
-\item{subset}{Logical or character vector. Default is \code{FALSE}. If \code{TRUE}, then the
+\item{na.rm}{Logical scalar, default is \code{FALSE}. Should observations with NAs be
+removed from the resulting matrix or data.frame? Note that if \code{data=NULL}}
+
+\item{subset}{Logical scalar or character vector. Default is \code{FALSE}. If \code{TRUE}, then the
 matrix created will be restricted only to the variables contained in the argument \code{data},
 which can then contain a subset of the variables used in the estimation. If a
 character vector, then only the variables matching the elements of the vector via
@@ -39,7 +50,8 @@ regular expressions will be created.}
 
 \item{as.df}{Logical scalar, default is \code{FALSE}. Whether to coerce the result to a data.frame.}
 
-\item{collin.rm}{Logical scalar, default is \code{TRUE}. Whether to remove variables that were
+\item{collin.rm}{Logical scalar, default is \code{TRUE}. Only used when \code{data=NULL} (i.e.
+the data used in the estimation is requested). Whether to remove variables that were
 found to be collinear during the estimation. Beware: it does not perform a
 collinearity check.}
 
@@ -56,13 +68,32 @@ This function creates the left-hand-side or the right-hand-side(s) of a \code{\l
 }
 \examples{
 
-base = iris
-names(base) = c("y", "x1", "x2", "x3", "species")
+# we use a data set with NAs and fixed-effect singletons
+base = setNames(iris, c("y", "x1", "x2", "x3", "fe"))
+# adding NAs
+base$x1[1:4] = NA
+# adding singletons
+base$fe = as.character(base$fe)
+base$fe[10 + 1:5] = letters[1:5]
 
-est = feols(y ~ poly(x1, 2) + x2, base)
+# OLS estimation where we remove singletons
+est = feols(y ~ x1 + poly(x2, 2) | fe, base, fixef.rm = "singleton")
+
+# by default, we have the data set used in the estimation
 head(model.matrix(est))
+nrow(model.matrix(est))
 
+# to have the original data set: we need to use sample="original"
+head(model.matrix(est, sample = "original"))
+nrow(model.matrix(est, sample = "original"))
+
+# we can drop only the NA values (and not the singletons) with na.rm=TRUE
+head(model.matrix(est, sample = "original", na.rm = TRUE))
+nrow(model.matrix(est, sample = "original", na.rm = TRUE))
+
+#
 # Illustration of subset
+#
 
 # subset => character vector
 head(model.matrix(est, subset = "x1"))

@@ -92,6 +92,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - new algorithm removing the fixed-effects from the estimation due to singletons or perfect fits: now the algorithm is recursive
 
+- the method `model.matrix` gains the argument `sample` which can be equal to "estimation" or "original". The argument `na.rm` is now more coherent as it does not do more than what is suggests (as was the case earlier).
+
 ## New vignette and data set
 
 - add a new vignette on collinearity

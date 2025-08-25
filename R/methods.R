@@ -3599,21 +3599,31 @@ formula.fixest_multi = function(x, type = "full", fml.update = NULL,
 #'
 #' @inheritParams nobs.fixest
 #'
-#' @param data If missing (default) then the original data is obtained by evaluating 
-#' the `call`. Otherwise, it should be a `data.frame`.
+#' @param data A data.frame or `NULL` (the default). If missing or `NULL`, then the 
+#' original data is obtained by evaluating  the `call`.
 #' @param type Character vector or one sided formula, default is "rhs". Contains the type of 
 #' matrix/data.frame to be returned. Possible values are: "lhs", "rhs", "fixef", "iv.rhs1" 
 #' (1st stage RHS), "iv.rhs2" (2nd stage RHS), "iv.endo" (endogenous vars.), "iv.exo" 
 #' (exogenous vars), "iv.inst" (instruments).
-#' @param na.rm Default is `TRUE`. Should observations with NAs be removed from the matrix?
-#' @param subset Logical or character vector. Default is `FALSE`. If `TRUE`, then the 
+#' @param sample Character scalar equal to "estimation" (default) or "original". Only
+#' used when `data=NULL` (i.e. the original data is requested). By default, 
+#' only the observations effectively used in the estimation are returned (it includes 
+#' the observations with NA values or the fully explained by the fixed-effects [FE], or
+#' due to NAs in the weights).
+#' If `sample="original"`, all the observations are returned. In that case, if 
+#' you use `na.rm=TRUE` (which is not the default), you can withdraw the observations 
+#' with NA values (and keep the ones fully explained by the FEs).
+#' @param na.rm Logical scalar, default is `FALSE`. Should observations with NAs be 
+#' removed from the resulting matrix or data.frame? Note that if `data=NULL`
+#' @param subset Logical scalar or character vector. Default is `FALSE`. If `TRUE`, then the 
 #' matrix created will be restricted only to the variables contained in the argument `data`, 
 #' which can then contain a subset of the variables used in the estimation. If a 
 #' character vector, then only the variables matching the elements of the vector via 
 #' regular expressions will be created.
 #' @param as.matrix Logical scalar, default is `FALSE`. Whether to coerce the result to a matrix.
 #' @param as.df Logical scalar, default is `FALSE`. Whether to coerce the result to a data.frame.
-#' @param collin.rm Logical scalar, default is `TRUE`. Whether to remove variables that were 
+#' @param collin.rm Logical scalar, default is `TRUE`. Only used when `data=NULL` (i.e. 
+#' the data used in the estimation is requested). Whether to remove variables that were 
 #' found to be collinear during the estimation. Beware: it does not perform a 
 #' collinearity check.
 #' @param ... Not currently used.
@@ -3632,13 +3642,32 @@ formula.fixest_multi = function(x, type = "full", fml.update = NULL,
 #'
 #' @examples
 #'
-#' base = iris
-#' names(base) = c("y", "x1", "x2", "x3", "species")
-#'
-#' est = feols(y ~ poly(x1, 2) + x2, base)
+#' # we use a data set with NAs and fixed-effect singletons
+#' base = setNames(iris, c("y", "x1", "x2", "x3", "fe"))
+#' # adding NAs
+#' base$x1[1:4] = NA
+#' # adding singletons
+#' base$fe = as.character(base$fe)
+#' base$fe[10 + 1:5] = letters[1:5]
+#' 
+#' # OLS estimation where we remove singletons
+#' est = feols(y ~ x1 + poly(x2, 2) | fe, base, fixef.rm = "singleton")
+#' 
+#' # by default, we have the data set used in the estimation
 #' head(model.matrix(est))
-#'
+#' nrow(model.matrix(est))
+#' 
+#' # to have the original data set: we need to use sample="original"
+#' head(model.matrix(est, sample = "original"))
+#' nrow(model.matrix(est, sample = "original"))
+#' 
+#' # we can drop only the NA values (and not the singletons) with na.rm=TRUE
+#' head(model.matrix(est, sample = "original", na.rm = TRUE))
+#' nrow(model.matrix(est, sample = "original", na.rm = TRUE))
+#' 
+#' #
 #' # Illustration of subset
+#' #
 #'
 #' # subset => character vector
 #' head(model.matrix(est, subset = "x1"))
@@ -3648,8 +3677,9 @@ formula.fixest_multi = function(x, type = "full", fml.update = NULL,
 #'
 #'
 #'
-model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset = FALSE,
-                               as.matrix = FALSE, as.df = FALSE, collin.rm = TRUE, ...){
+model.matrix.fixest = function(object, data = NULL, type = "rhs", sample = "estimation",
+                               na.rm = FALSE, subset = FALSE, as.matrix = FALSE, 
+                               as.df = FALSE, collin.rm = TRUE, ...){
   # We evaluate the formula with the past call
   # type: lhs, rhs, fixef, iv.endo, iv.inst, iv.rhs1, iv.rhs2
   # if fixef => return a DF
@@ -3660,7 +3690,7 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
   }
 
   # We allow type to be used in the location of data if data is missing
-  if(!missing(data) && missing(type)){
+  if(!missnull(data) && missing(type)){
     sc = sys.call()
     if(!"data" %in% names(sc)){
       if(!is.null(data) && (is.character(data) || "formula" %in% class(data))){
@@ -3670,7 +3700,6 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
       }
     }
   }
-
 
   type = check_set_types(type, c("lhs", "rhs", "fixef", "iv.endo", "iv.inst", "iv.exo", 
                                  "iv.rhs1", "iv.rhs2"))
@@ -3684,17 +3713,17 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
   }
 
   check_arg(subset, "logical scalar | character vector no na")
-
-  check_set_arg(as.matrix, as.df, collin.rm, "logical scalar")
+  check_set_arg(sample, "match(estimation, original)")
+  check_set_arg(na.rm, as.matrix, as.df, collin.rm, "logical scalar")
 
   # The formulas
   fml_full = formula(object, type = "full")
   fml_linear = formula(object, type = "linear")
 
   # Evaluation with the data
-  original_data = FALSE
+  is_original_data = FALSE
   if(missnull(data)){
-    original_data = TRUE
+    is_original_data = TRUE
 
     data = fetch_data(object, "To apply 'model.matrix.fixest', ")
 
@@ -3747,7 +3776,7 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
     }
 
     linear.mat = error_sender(fixest_model_matrix_extra(
-      object = object, newdata = data, original_data = original_data,
+      object = object, newdata = data, original_data = is_original_data,
       fml = fml, fake_intercept = fake_intercept,
       subset = subset),
       "In 'model.matrix', the RHS could not be evaluated: ")
@@ -3807,7 +3836,7 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
     fml = object$iv_endo_fml
 
     endo.mat = error_sender(fixest_model_matrix_extra(object = object, newdata = data, 
-                                                      original_data = original_data, fml = fml,
+                                                      original_data = is_original_data, fml = fml,
                                                       fake_intercept = TRUE), 
                             "In 'model.matrix', the endogenous variables could not be evaluated: ")
 
@@ -3827,7 +3856,7 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
     fml = object$fml_all$iv
 
     inst.mat = error_sender(fixest_model_matrix_extra(object = object, newdata = data, 
-                                                      original_data = original_data, fml = fml, 
+                                                      original_data = is_original_data, fml = fml, 
                                                       fake_intercept = TRUE), 
                             "In 'model.matrix', the instruments could not be evaluated: ")
 
@@ -3849,7 +3878,7 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
     fml = object$fml_all$linear
 
     exo.mat = error_sender(fixest_model_matrix_extra(object = object, newdata = data, 
-                                                     original_data = original_data, fml = fml, fake_intercept = fake_intercept), 
+                                                     original_data = is_original_data, fml = fml, fake_intercept = fake_intercept), 
                            "In 'model.matrix', the instruments could not be evaluated: ")
 
     if(is.atomic(exo.mat) && length(exo.mat) == 1){
@@ -3895,7 +3924,7 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
     # iv_rhs1 = error_sender(fixest_model_matrix(fml, data, fake_intercept = fake_intercept),
     #                        "In 'model.matrix', the RHS of the 1st stage could not be evaluated: ")
     iv_rhs1 = error_sender(fixest_model_matrix_extra(object = object, newdata = data, 
-                                                     original_data = original_data, fml = fml, 
+                                                     original_data = is_original_data, fml = fml, 
                                                      fake_intercept = fake_intercept, 
                                                      subset = subset), 
                            "In 'model.matrix', the RHS of the 1st stage could not be evaluated: ")
@@ -3944,7 +3973,7 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
     # iv_rhs2 = error_sender(fixest_model_matrix(fml, data, fake_intercept = fake_intercept),
     #                        "In 'model.matrix', the RHS of the 2nd stage could not be evaluated: ")
     iv_rhs2 = error_sender(fixest_model_matrix_extra(object = object, newdata = data, 
-                                                     original_data = original_data, fml = fml, 
+                                                     original_data = is_original_data, fml = fml, 
                                                      fake_intercept = fake_intercept, 
                                                      subset = subset), 
                            "In 'model.matrix', the RHS of the 2nd stage could not be evaluated: ")
@@ -3976,34 +4005,17 @@ model.matrix.fixest = function(object, data, type = "rhs", na.rm = TRUE, subset 
   #
 
   check_0 = FALSE
-  if(original_data){
+  if(is_original_data){
 
-    if(na.rm == FALSE){
-      # We do nothing. Or shall I add NA values for obs not
-      # included in the estimation?
-      if(FALSE && length(object$obs_selection) > 0){
-
-        # we reconstruct the full vector of obs
-        # and we fill with NA
-        obs_id = 1:nrow(data)
-        for(i in seq_along(object$obs_selection)){
-          obs_id = select_obs(obs_id, object$obs_selection[[i]])
-        }
-
-        res[!1:nrow(res) %in% obs_id, ] = NA
-
-      }
-
-    } else {
+    if(sample == "estimation"){
       for(i in seq_along(object$obs_selection)){
         check_0 = TRUE
         res = select_obs(res, object$obs_selection[[i]])
       }
+      
+      na.rm = FALSE
     }
-
-
-
-    na.rm = FALSE
+    
   }
 
   if(na.rm){

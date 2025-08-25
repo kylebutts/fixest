@@ -2011,7 +2011,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
           df.t = tryCatch(nobs(object) - length(coef(object)), 
                   error = function(e) NULL)
           if(is.null(df.t)){
-            if(not_too_many_messages("coefplot_df")){
+            if(was_not_recently_used("coefplot_df")){
               mema("The degrees of freedom for the t distribution could",
                   " not be deduced. Using a Normal distribution instead.\n",
                   "Note that you can provide the argument `df.t` directly.")

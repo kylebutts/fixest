@@ -6963,7 +6963,7 @@ char_to_vars = function(x){
   rev(res)
 }
 
-not_too_many_messages = function(key){
+was_not_recently_used = function(key){
   # we don't proc in less than 2 seconds
   # avoid ugly looping issues
   all_times = getOption("fixest_all_timings")

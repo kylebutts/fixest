@@ -2478,12 +2478,12 @@ m1 = model.matrix(res, type = "lhs")
 test(length(m1), res$nobs)
 
 # we check this is identical
-m1_na = model.matrix(res, type = "lhs", na.rm = FALSE)
+m1_na = model.matrix(res, type = "lhs", sample = "origin")
 test(length(m1_na), res$nobs_origin)
 test(max(abs(m1_na - base$y1), na.rm = TRUE), 0)
 
-y = model.matrix(res, type = "lhs", data = base, na.rm = FALSE)
-X = model.matrix(res, type = "rhs", data = base, na.rm = FALSE)
+y = model.matrix(res, type = "lhs", data = base, sample = "origin")
+X = model.matrix(res, type = "rhs", data = base, sample = "origin")
 obs_rm = res$obs_selection$obsRemoved
 res_bis = lm.fit(X[obs_rm, ], y[obs_rm])
 test(res_bis$coefficients, res$coefficients)
@@ -2501,8 +2501,13 @@ test(ncol(m_lag_x1), 2)
 mbis_lag_x1 = model.matrix(res_lag, base_bis[, c("x1", "x2", "id", "time")], subset = TRUE)
 # l(x1, 1) + l(x1, 2) + x2
 test(ncol(mbis_lag_x1), 3)
+# no observation removed (default)
+test(nrow(mbis_lag_x1), 50)
+
+mbis_lag_x1_na = model.matrix(res_lag, base_bis[, c("x1", "x2", "id", "time")], 
+                              subset = TRUE, na.rm = TRUE)
 # 13 NAs: 2 per ID for the lags, 3 for x2
-test(nrow(mbis_lag_x1), 37)
+test(nrow(mbis_lag_x1_na), 37)
 
 # With poly
 res_poly = feols(y1 ~ poly(x1, 2), base)
@@ -2517,7 +2522,7 @@ m_fe = model.matrix(res, type = "fixef")
 test(ncol(m_fe), 2)
 
 # lhs
-m_lhs = model.matrix(res, type = "lhs", na.rm = FALSE)
+m_lhs = model.matrix(res, type = "lhs", sample = "original")
 test(m_lhs, base$y1)
 
 # IV

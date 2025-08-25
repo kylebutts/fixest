@@ -3608,7 +3608,7 @@ formula.fixest_multi = function(x, type = "full", fml.update = NULL,
 #' @param sample Character scalar equal to "estimation" (default) or "original". Only
 #' used when `data=NULL` (i.e. the original data is requested). By default, 
 #' only the observations effectively used in the estimation are returned (it includes 
-#' the observations with NA values or the fully explained by the fixed-effects [FE], or
+#' the observations with NA values or the fully explained by the fixed-effects (FE), or
 #' due to NAs in the weights).
 #' If `sample="original"`, all the observations are returned. In that case, if 
 #' you use `na.rm=TRUE` (which is not the default), you can withdraw the observations 
@@ -3958,7 +3958,7 @@ model.matrix.fixest = function(object, data = NULL, type = "rhs", sample = "esti
     fit_vars = c()
     for(i in seq_along(stage_1)){
       fit_vars[i] = v = paste0("fit_", names(stage_1)[i])
-      data[[v]] = predict(stage_1[[i]], newdata = data, sample = "original")
+      data[[v]] = predict(stage_1[[i]], newdata = data)
     }
 
     # II) we create the variables

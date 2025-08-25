@@ -382,7 +382,7 @@ sparse_model_matrix = function(object, data, type = "rhs", na.rm = TRUE,
     fit_vars = c()
     for (i in seq_along(stage_1)) {
       fit_vars[i] = v = paste0("fit_", names(stage_1)[i])
-      data[[v]] = predict(stage_1[[i]], newdata = data, sample = "original")
+      data[[v]] = predict(stage_1[[i]], newdata = data)
     }
 
     # II) we create the variables

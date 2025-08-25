@@ -72,7 +72,7 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - when using `feols` estimations with `sunab(att = TRUE)`, now `iplot` reports the graph of the treatment effect aggregated by periods (i.e. as if `att = FALSE`)
 
-- in estimations, allow `subset` to accept negative integers
+- in estimations, `subset` now accepts negative integers
 
 - function `xpd` gains the argument `add.after_pipe` to add components to the formula after a pipe (`|`)
 

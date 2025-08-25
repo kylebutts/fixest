@@ -5,6 +5,10 @@
 #----------------------------------------------#
 
 
+startup_msg = function(version, ..., trigger = NULL){
+  msg = paste(..., sep = "\n")
+  list(version = version, msg = paste0("fixest ", version, ":\n", msg), trigger = trigger)
+}
 
 #' Permanently removes the fixest package startup message
 #'
@@ -28,7 +32,7 @@ fixest_startup_msg = function(x){
 
 }
 
-initialize_startup_msg = function(startup_msg){
+initialize_startup_msg = function(all_startup_msg){
   # When new versions of the package are installed => we reset the display of the startup message
   # we need to keep track of the versions for which this default has been set
 
@@ -104,12 +108,14 @@ initialize_startup_msg = function(startup_msg){
       # version of fixest used was anterior => all msgs should pop
 
       config_update("fixest_startup_msg", TRUE)
-      return(TRUE)
+      msg = build_startup_msg(all_startup_msg)
+      
+      return(msg)
     } else {
       # fixest was never used or the version was corrupt
       # => we don't show any message since it will not break any existing code
       config_update("fixest_startup_msg", FALSE)
-      return(FALSE)
+      return(NULL)
     }
 
     # message("updating done ")
@@ -132,7 +138,7 @@ initialize_startup_msg = function(startup_msg){
       #    only if the previous_version is anterior to the version that introduced the
       #    message (means the message SHOULD pop since it would be the first time)
 
-      max_version_msg = names(startup_msg)[1]
+      max_version_msg = all_startup_msg[[1]]$version
 
       if(version2num(previous_version) < version2num(max_version_msg)){
         # You force a startup message even if it was turned off in a previous version
@@ -144,28 +150,76 @@ initialize_startup_msg = function(startup_msg){
         #
 
         config_update("fixest_startup_msg", previous_version)
-        return(previous_version)
+        
+        msg = build_startup_msg(all_startup_msg, previous_version)
+        
+        return(msg)
 
       } else {
         # The previous version is already posterior to the last message
         # => no startup message any more
 
         config_update("fixest_startup_msg", FALSE)
-        return(FALSE)
+        return(NULL)
       }
     }
   }
 
   # If null, we'll get the value thanks to renvir_get("fixest_startup_msg")
   # but in some instances, it may be corrupt, so we fix it
-  res = config_get("fixest_startup_msg")
-  if(is.null(res)){
+  prev_version = config_get("fixest_startup_msg")
+  if(is.null(prev_version)){
     # corrupt situation (can occur in dev)
     config_update("fixest_startup_msg", FALSE)
-    return(FALSE)
+    return(NULL)
+  }
+  
+  if(isFALSE(prev_version)){
+    return(NULL)
+  } else if(isTRUE(prev_version)){
+    msg = build_startup_msg(all_startup_msg)
+  } else {
+    msg = build_startup_msg(all_startup_msg, prev_version)
   }
 
-  return(res)
+  return(msg)
+}
+
+build_startup_msg = function(all_startup_msg, previous_version = NULL){
+  
+  v = if(is.null(previous_version) || isTRUE(previous_version)) 0 else version2num(previous_version)
+  
+  msg = c()
+  big_text = "init"
+  for(msg_info in all_startup_msg){
+    
+    do_msg = TRUE
+    
+    # check version
+    if(version2num(msg_info$version) <= v){
+      break
+    }
+    
+    # check trigger
+    
+    if(!is.null(msg_info$trigger)){
+      files = get_project_R_files()
+      if(identical(big_text, "init")){
+        big_text = lapply(files, readLines, warn = FALSE)
+      }
+      do_msg = any(sapply(big_text, function(x) any(grepl(msg_info$trigger, x))))
+    }
+    
+    if(do_msg){
+      msg = c(msg, msg_info$msg)
+    }
+  }
+  
+  if(length(msg) == 0){
+    return(NULL)
+  }
+  
+  msg = paste(msg, collapse = "\n")
 }
 
 version2num = function(x){
@@ -180,6 +234,34 @@ is_pkg_version = function(x){
   length(x) == 1 && is.character(x) && length(strsplit(x, "\\.")[[1]]) == 3
 }
 
+get_project_R_files = function(){
+  
+  files = getOption("fixest_project_R_files")
+  
+  if(identical(files, "none")){
+    return(NULL)
+    
+  } else if(is.null(files)){
+    # Only level 1 recursivity
+    files = list.files(pattern = "\\.(r|R)$")
+    dirs = c("./", list.dirs(recursive = FALSE))
+    sub_files = unlist(lapply(dirs, list.files, pattern = "\\.(r|R)$", full.names = TRUE))
+    file_extra = if(file.exists(".Rprofile")) ".Rprofile" else NULL
+
+    files = c(files, file_extra, sub_files)
+    files = files[!dir.exists(files)]
+    
+    if(length(files) == 0){
+      options(fixest_project_R_files = "none")
+    } else {
+      options(fixest_project_R_files = files)
+    }
+    
+  }
+  
+  files
+}
+
 is_fixest_used = function(){
   # To return TRUE:
   # - fixest in the files
@@ -187,14 +269,7 @@ is_fixest_used = function(){
   #
   # - if fixest but file saved < 7 days, very likely a new project
 
-  # Only level 1 recursivity
-  files = list.files(pattern = "\\.(r|R)$")
-  dirs = c("./", list.dirs(recursive = FALSE))
-  sub_files = unlist(lapply(dirs, list.files, pattern = "\\.(r|R)$", full.names = TRUE))
-  file_extra = if(file.exists(".Rprofile")) ".Rprofile" else NULL
-
-  files = c(files, file_extra, sub_files)
-  files = files[!dir.exists(files)]
+  files = get_project_R_files()
 
   if(length(files) == 0) return(FALSE)
 
@@ -451,5 +526,11 @@ config_get = function(key){
   value
 }
 
+
+
+# set the fixest version of the current project: only used for debugging
+set_fixest_version = function(version){
+  config_update("fixest_version", version)
+}
 
 

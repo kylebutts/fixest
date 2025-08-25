@@ -116,8 +116,6 @@ if(is.factor(data.frame(x = "bonjour")$x)){
 	invisible()
 }
 
-
-
 .onAttach = function(libname, pkgname) {
 
   # The startup message mechanism ends up being a bit complex because I try to avoid
@@ -125,30 +123,34 @@ if(is.factor(data.frame(x = "bonjour")$x)){
   # I also want to keep track of all the breaking changes so that someone that didn't update for
   # a while is fully informed on how to change his/her old code
 
-  startup_msg = c(
-    "0.10.0" = "fixest 0.10.0:\n- vcov: new argument 'vcov' that replaces 'se' and 'cluster' in all functions (retro compatibility is ensured).\n- Breaking: arg. 'vcov' now comes after 'data'/'family', hence code using an offset w/t the arg. name may break (just use 'offset = stuff' now). \n- function 'dof()' has been renamed into 'ssc()' (i.e. small sample correction).",
-    "0.9.0" = "From fixest 0.9.0 onward: BREAKING changes! \n- In i():\n    + the first two arguments have been swapped! Now it's i(factor_var, continuous_var) for interactions. \n    + argument 'drop' has been removed (put everything in 'ref' now).\n- In feglm(): \n    + the default family becomes 'gaussian' to be in line with glm(). Hence, for Poisson estimations, please use fepois() instead.")
+  all_startup_msg = list(
+    startup_msg(
+      "0.13.0",
+      "- MAJOR BREAKING CHANGE: the new default VCOV is `iid` for all estimations. To change the default to the way it was, place ",
+      "  `setFixest_vcov(all = \"cluster\", no_FE = \"iid\")` in your .Rprofile",
+      "- `coefplot` and `iplot`: the argument `object` is removed, now all models need to be passed in `...`"
+    ),
+    startup_msg(
+      "0.10.0",
+      " - vcov: new argument 'vcov', it replaces the arguments 'se' and 'cluster' in all functions (retro compatibility is ensured)",
+      "- BREAKING: arg. 'vcov' now comes after 'data'/'family', hence code using an offset w/t the arg. name may break (just use 'offset = stuff' now)",
+      "- function 'dof()' has been renamed into 'ssc()' (i.e. small sample correction)"
+    ),
+    startup_msg(
+      "0.9.0",
+      "- in i():",
+      "  + the first two arguments have been swapped! Now it's i(factor_var, continuous_var) for interactions",
+      "  + argument 'drop' has been removed (put everything in 'ref' now)",
+      "- in feglm(): the default family becomes 'gaussian' to be in line with glm(). Hence, for Poisson estimations, please use fepois() instead.",
+      trigger = "\\bi\\(|feglm\\("
+    )
+  )
 
-  fixest_startup_msg = initialize_startup_msg(startup_msg)
+  fixest_startup_msg = initialize_startup_msg(all_startup_msg)
 
-  if(isTRUE(fixest_startup_msg)){
-    msg = startup_msg
-
-  } else if(isFALSE(fixest_startup_msg)){
-    msg = NULL
-
-  } else {
-    v = version2num(fixest_startup_msg)
-    msg = c()
-    for(i in seq_along(startup_msg)){
-      if(version2num(names(startup_msg)[i]) > v){
-        msg = c(msg, startup_msg[i])
-      }
-    }
-  }
-
-  if(length(msg) > 0) {
-    msg = c("(Permanently remove the following message with fixest_startup_msg(FALSE).)", msg)
+  if(length(fixest_startup_msg) > 0) {
+    msg = c("(Permanently remove the following message with fixest_startup_msg(FALSE).)", 
+            fixest_startup_msg)
     packageStartupMessage(fit_screen(paste(msg, collapse = "\n"), 1))
   }
 

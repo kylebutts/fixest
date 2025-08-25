@@ -206,6 +206,20 @@ res = feols(c(y, x1) ~ 1 | fe1 | x2 ~ x3, base)
 res = feols(y ~ x1 | fe1[x2] + fe2[x2], base)
 
 #
+# singletons
+#
+
+# all variables removed bc of singleton
+base$singletons = 1:nrow(base)
+test(feols(y ~ x1 | singletons, base, fixef.rm = "singleton"), "err")
+
+# in multiple estimations => no error
+res = feols(y ~ x1 | sw0(singletons), base, fixef.rm = "singleton")
+res_bis = feols(y ~ x1, base)
+test(coef(res[[1]]), coef(res_bis))
+test(is.null(coef(res[[2]])), TRUE)
+
+#
 # NA models (ie all variables are collinear with the FEs)
 #
 

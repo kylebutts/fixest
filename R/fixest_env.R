@@ -3472,7 +3472,7 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
     nb_missing = lengths(fixef_removed)
     if(rm_0 == FALSE){
       n_single = sum(nb_missing)
-      message_fixef = sma("{n?n_single} fixed-effect singleton{$s, were} removed ({len?obs2remove} observation{$s}", "{&Q == 1 ; , breakup: {n, '/'c ? nb_missing}}).")
+      message_fixef = sma("{n?n_single} fixed-effect singleton{#s, were} removed ({len?obs2remove} observation{$s}", "{&Q == 1 ; , breakup: {n, '/'c ? nb_missing}}).")
     } else {
       
       message_fixef = sma("{n, '/'c ? nb_missing} fixed-effect{#s ? sum(nb_missing)} ({len?obs2remove} observation{$s}) removed because of only 0{&rm_1; (or only 1)} outcomes{&rm_single && !rm_1; or singletons}.")

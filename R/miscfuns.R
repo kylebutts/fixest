@@ -6790,7 +6790,7 @@ insert_at = function(x, values, pos){
     return(c(x, values))
   }
   
-  c(x[1:(pos - 1)], values, x[(pos + 1): n_x])
+  c(x[1:(pos - 1)], values, x[pos:n_x])
 }
 
 replace_at = function(x, values, pos){

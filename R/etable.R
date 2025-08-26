@@ -2385,7 +2385,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
               .message = "Argument 'fitstat' must be a one sided formula (or a character vector) containing valid types from the function fitstat (see details in ?fitstat).")
 
   }
-
+  
   if("." %in% fitstat_all){
     
     if(length(fitstat_default) > 0){
@@ -2398,7 +2398,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
       #   - if all OLS: typical R2
       #   - if any non-OLS: pseudo R2 + squared cor.
       is_ols = sapply(all_models, function(x) x$method_type == "feols")
-
+      
       if(all(is_ols)){
         if(any(sapply(all_models, function(x) "fixef_vars" %in% names(x)))){
           # means any FE model
@@ -2415,7 +2415,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
       if(any(sapply(all_models, function(x) !is.null(x$theta)))){
         fitstat_default = c(fitstat_default, "theta")
       }
-
+      
       fitstat_default = setdiff(fitstat_default, fitstat_all)
 
       if(length(fitstat_default) > 0){

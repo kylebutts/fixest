@@ -381,7 +381,8 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
     # We shouldn't have a prior on the name of the first argument
     arg_names = formalArgs(vcov)
     arg_list[[arg_names[1]]] = object
-
+    arg_list = arg_list[names(arg_list) %in% arg_names]
+    
     vcov = do.call(vcov, arg_list)
 
     n_coef = length(object$coefficients)

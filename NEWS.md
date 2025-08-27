@@ -3,7 +3,9 @@
 
 ## New Features
 
-- new function: `sparse_model_matrix` which creates sparse model matrices from regression objects in a memory-efficient way
+- new VCOVs: heteroskedaticity-robust HC2 and HC3 VCOVs available thanks to @kylebutts
+
+- new function: `sparse_model_matrix` which creates sparse model matrices from regression objects in a memory-efficient way. Contribution by @kylebutts.
 
 ```R
 est = feols(mpg ~ drat | cyl, mtcars)

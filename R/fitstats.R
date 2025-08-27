@@ -703,7 +703,20 @@ fitstat = function(x, type, vcov = NULL, cluster = NULL, ssc = NULL,
       res_all[[type]] = BIC(x)
 
     } else if(type == "rmse"){
-      res_all[[type]] = if(!is.null(x$ssr)) sqrt(x$ssr / x$nobs) else sqrt(cpp_ssq(resid(x)) / x$nobs)
+      
+      w = x[["weights"]] # don't use '$'
+      ssr = x$ssr
+      nobs = x$nobs
+      
+      if(!is.null(w)){
+        nobs = sum(w)
+      }
+      
+      if(is.null(ssr)){
+        ssr = cpp_ssq(resid(x), if(is.null(w)) numeric(0) else w)
+      }
+      
+      res_all[[type]] = sqrt(ssr/nobs)
 
     } else if(type == "g"){
       my_vcov = x$cov.scaled

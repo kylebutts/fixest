@@ -220,6 +220,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - fix fatal crash in `feols` when: i) multiple estimations were used, ii) samples were different across estimations, iii) singletons were removed. Reported by @marco-t3, #486
 
+- fix bug RMSE with weights, reported by @alegalluzzi, #594
+
 # fixest 0.12.1
 
 ## Major bugs affecting R versions <= 4.1.2

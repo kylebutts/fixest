@@ -3798,13 +3798,13 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #' after the estimation, you should use `fixef.keep_names = TRUE`. By default it is 
 #' equal to `TRUE` if the number of unique values is lower than 50,000, and to `FALSE` 
 #' otherwise.
-#' @param only.env (Advanced users.) Logical, default is `FALSE`. If `TRUE`, then only 
+#' @param only.env (Advanced users.) Logical scalar, default is `FALSE`. If `TRUE`, then only 
 #' the environment used to make the estimation is returned.
-#' @param mem.clean Logical, default is `FALSE`. Only to be used if the data set is 
+#' @param mem.clean Logical scalar, default is `FALSE`. Only to be used if the data set is 
 #' large compared to the available RAM. If `TRUE` then intermediary objects are removed as 
 #' much as possible and [`gc`] is run before each substantial C++ section in the internal 
 #' code to avoid memory issues.
-#' @param lean Logical, default is `FALSE`. If `TRUE` then all large objects are removed 
+#' @param lean Logical scalar, default is `FALSE`. If `TRUE` then all large objects are removed 
 #' from the returned result: this will save memory but will block the possibility to 
 #' use many methods. It is recommended to use the arguments `se` or `cluster` to 
 #' obtain the appropriate standard-errors at estimation time, since obtaining different 
@@ -3812,7 +3812,7 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #' @param env (Advanced users.) A `fixest` environment created by a `fixest` estimation 
 #' with `only.env = TRUE`. Default is missing. If provided, the data from this environment 
 #' will be used to perform the estimation.
-#' @param only.coef Logical, default is `FALSE`. If `TRUE`, then only the estimated 
+#' @param only.coef Logical scalar, default is `FALSE`. If `TRUE`, then only the estimated 
 #' coefficients are returned. Note that the length of the vector returned is always 
 #' the length of the number of coefficients to be estimated: this means that the 
 #' variables found to be collinear are returned with an NA value.

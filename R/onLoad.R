@@ -126,8 +126,14 @@ if(is.factor(data.frame(x = "bonjour")$x)){
   all_startup_msg = list(
     startup_msg(
       "0.13.0",
-      "- MAJOR BREAKING CHANGE: the new default VCOV is `iid` for all estimations. To change the default to the way it was, place ",
-      "  `setFixest_vcov(all = \"cluster\", no_FE = \"iid\")` in your .Rprofile",
+      "Beware, several BREAKING CHANGES:",
+      "- By default the VCOV becomes `iid` for all estimations. Now you need to use the argument `vcov` explicitly to have clustered standard-errors.",
+      "  To change the default to the way it was, add this to your .Rprofile:",
+      "  `setFixest_vcov(all = \"cluster\", no_FE = \"iid\")`",
+      "- Now by default fixed-effect singletons are removed: the coefficients of the estimations will not change but the standard-errors may differ (if you had singletons in your estimations).",
+      "  Use the argument `fixef.rm = \"infinite_coef\"`` to get back to the previous results.",
+      "  To change the default to the way it was, add this in your .Rprofile:",
+      "  `setFixest_estimation(fixef.rm = \"infinite_coef\")`",
       "- `coefplot` and `iplot`: the argument `object` is removed, now all models need to be passed in `...`"
     ),
     startup_msg(

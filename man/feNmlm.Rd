@@ -11,7 +11,7 @@ feNmlm(
   NL.fml,
   vcov,
   fixef,
-  fixef.rm = "perfect",
+  fixef.rm = "perfect_fit",
   NL.start,
   lower,
   upper,
@@ -93,15 +93,33 @@ These variables should contain the identifier of each observation (e.g., think o
 as a panel identifier). Note that the recommended way to include fixed-effects is to
 insert them directly in the formula.}
 
-\item{fixef.rm}{Can be equal to "perfect" (default), "singleton", "both" or "none".
-Controls which observations are to be removed. If "perfect", then observations
-having a fixed-effect with perfect fit (e.g. only 0 outcomes in Poisson estimations)
-will be removed. If "singleton", all observations for which a fixed-effect appears
-only once will be removed. The meaning of "both" and "none" is direct.
+\item{fixef.rm}{Can be equal to "perfect_fit" (default), "singletons", "infinite_coef"
+or "none".
 
-The algorithm is recursive, meaning that, in the presence of several fixed-effects (FEs),
-removing singletons in one FE can create singletons (or prefect fits) in another FE.
-The algorithm continues until there is no singleton/perfect fit remaining.}
+This option controls which observations should be removed prior to the estimation.
+If "singletons", fixed-effects associated to a single observation are removed
+(since they perfectly explain it).
+
+The value "infinite_coef" only works with GLM families with limited left hand sides (LHS)
+and exponential link.
+For instance the Poisson family for which the LHS cannot be lower than 0, or the logit
+family for which the LHS lies within 0 and 1.
+In that case the fixed-effects (FEs) with only-0 LHS would lead to infinite coefficients
+(FE = -Inf would explain perfectly the LHS).
+The value \code{fixef.rm="infinite_coef"} removes all observations associated to FEs with
+infinite coefficients.
+
+If "perfect_fit", it is equivalent to "singletons" and "infinite_coef" combined.
+That means all observations that are perfectly explained by the FEs are removed.
+
+If "none": no observation is removed.
+
+Note that whathever the value of this options: the coefficient estimates
+will remain the same. It only affects inference (the standard-errors).
+
+The algorithm is recursive, meaning that, e.g. in the presence of several fixed-effects (FEs),
+removing singletons in one FE can create singletons (or perfect fits) in another FE.
+The algorithm continues until there is no singleton/perfect-fit remaining.}
 
 \item{NL.start}{(For NL models only) A list of starting values for the non-linear parameters.
 ALL the parameters are to be named and given a staring value.
@@ -242,7 +260,7 @@ c) a number strictly between 0 and 1 which represents the fraction of all thread
 The default is to use 50\% of all threads. You can set permanently the number
 of threads used within this package using the function \code{\link{setFixest_nthreads}}.}
 
-\item{lean}{Logical, default is \code{FALSE}. If \code{TRUE} then all large objects are removed
+\item{lean}{Logical scalar, default is \code{FALSE}. If \code{TRUE} then all large objects are removed
 from the returned result: this will save memory but will block the possibility to
 use many methods. It is recommended to use the arguments \code{se} or \code{cluster} to
 obtain the appropriate standard-errors at estimation time, since obtaining different
@@ -294,15 +312,15 @@ after the estimation, you should use \code{fixef.keep_names = TRUE}. By default 
 equal to \code{TRUE} if the number of unique values is lower than 50,000, and to \code{FALSE}
 otherwise.}
 
-\item{mem.clean}{Logical, default is \code{FALSE}. Only to be used if the data set is
+\item{mem.clean}{Logical scalar, default is \code{FALSE}. Only to be used if the data set is
 large compared to the available RAM. If \code{TRUE} then intermediary objects are removed as
 much as possible and \code{\link{gc}} is run before each substantial C++ section in the internal
 code to avoid memory issues.}
 
-\item{only.env}{(Advanced users.) Logical, default is \code{FALSE}. If \code{TRUE}, then only
+\item{only.env}{(Advanced users.) Logical scalar, default is \code{FALSE}. If \code{TRUE}, then only
 the environment used to make the estimation is returned.}
 
-\item{only.coef}{Logical, default is \code{FALSE}. If \code{TRUE}, then only the estimated
+\item{only.coef}{Logical scalar, default is \code{FALSE}. If \code{TRUE}, then only the estimated
 coefficients are returned. Note that the length of the vector returned is always
 the length of the number of coefficients to be estimated: this means that the
 variables found to be collinear are returned with an NA value.}

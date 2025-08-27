@@ -507,7 +507,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
                  split.drop, cluster, se,
                  ssc, panel.id, panel.time.step = NULL, 
                  panel.duplicate.method = "none", 
-                 fixef, fixef.rm = "none", fixef.tol = 1e-6,
+                 fixef, fixef.rm = "perfect_fit", fixef.tol = 1e-6,
                  fixef.iter = 10000, fixef.algo = NULL,
                  collin.tol = 1e-9, nthreads = getFixest_nthreads(),
                  lean = FALSE, verbose = 0, warn = TRUE, notes = getFixest_notes(),
@@ -2224,7 +2224,7 @@ check_conv = function(y, X, fixef_id_list, slope_flag, slope_vars, weights, full
 #' @rdname feols
 feols.fit = function(y, X, fixef_df, vcov, offset, split, fsplit, split.keep, split.drop,
                      cluster, se, ssc, weights,
-                     subset, fixef.rm = "perfect", fixef.tol = 1e-6, fixef.iter = 10000,
+                     subset, fixef.rm = "perfect_fit", fixef.tol = 1e-6, fixef.iter = 10000,
                      fixef.algo = NULL, collin.tol = 1e-9,
                      nthreads = getFixest_nthreads(), lean = FALSE,
                      warn = TRUE, notes = getFixest_notes(), mem.clean = FALSE, verbose = 0,
@@ -2458,7 +2458,7 @@ feglm = function(fml, data, family = "gaussian", vcov, offset, weights, subset, 
                  fsplit, split.keep, split.drop, cluster, se, ssc, panel.id, 
                  panel.time.step = NULL, panel.duplicate.method = "none",
                  start = NULL,
-                 etastart = NULL, mustart = NULL, fixef, fixef.rm = "perfect",
+                 etastart = NULL, mustart = NULL, fixef, fixef.rm = "perfect_fit",
                  fixef.tol = 1e-6, fixef.iter = 10000, fixef.algo = NULL, 
                  collin.tol = 1e-9,
                  glm.iter = 25, glm.tol = 1e-8, nthreads = getFixest_nthreads(),
@@ -2524,7 +2524,7 @@ feglm = function(fml, data, family = "gaussian", vcov, offset, weights, subset, 
 feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
                      fsplit, split.keep, split.drop, cluster, se, ssc, 
                      weights, subset, start = NULL,
-                     etastart = NULL, mustart = NULL, fixef.rm = "perfect",
+                     etastart = NULL, mustart = NULL, fixef.rm = "perfect_fit",
                      fixef.tol = 1e-6, fixef.iter = 10000, fixef.algo = NULL, 
                      collin.tol = 1e-9,
                      glm.iter = 25, glm.tol = 1e-8, nthreads = getFixest_nthreads(),
@@ -3504,7 +3504,7 @@ feglm.fit = function(y, X, fixef_df, family = "gaussian", vcov, offset, split,
 #'
 #'
 femlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"), vcov,
-                 start = 0, fixef, fixef.rm = "perfect", offset, subset,
+                 start = 0, fixef, fixef.rm = "perfect_fit", offset, subset,
                  split, fsplit, split.keep, split.drop,
                  cluster, se, ssc, panel.id, panel.time.step = NULL, 
                  panel.duplicate.method = "none", 
@@ -3544,7 +3544,7 @@ femlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian")
 }
 
 #' @rdname femlm
-fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "perfect",
+fenegbin = function(fml, data, vcov, theta.init, start = 0, fixef, fixef.rm = "perfect_fit",
                     offset, subset, split, fsplit, split.keep, split.drop,
                     cluster, se, ssc, panel.id, panel.time.step = NULL, 
                     panel.duplicate.method = "none",
@@ -3589,7 +3589,7 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
                   split.keep, split.drop,
                   cluster, se, ssc, panel.id, panel.time.step = NULL, 
                   panel.duplicate.method = "none", start = NULL, etastart = NULL,
-                  mustart = NULL, fixef, fixef.rm = "perfect", fixef.tol = 1e-6,
+                  mustart = NULL, fixef, fixef.rm = "perfect_fit", fixef.tol = 1e-6,
                   fixef.iter = 10000, fixef.algo = NULL,
                   collin.tol = 1e-9, glm.iter = 25, glm.tol = 1e-8,
                   nthreads = getFixest_nthreads(), lean = FALSE, 
@@ -3760,15 +3760,33 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #' @param theta.init Positive numeric scalar. The starting value of the dispersion 
 #' parameter if `family="negbin"`. By default, the algorithm uses as a starting value 
 #' the theta obtained from the model with only the intercept.
-#' @param fixef.rm Can be equal to "perfect" (default), "singleton", "both" or "none". 
-#' Controls which observations are to be removed. If "perfect", then observations 
-#' having a fixed-effect with perfect fit (e.g. only 0 outcomes in Poisson estimations) 
-#' will be removed. If "singleton", all observations for which a fixed-effect appears 
-#' only once will be removed. The meaning of "both" and "none" is direct. 
+#' @param fixef.rm Can be equal to "perfect_fit" (default), "singletons", "infinite_coef" 
+#' or "none". 
 #' 
-#' The algorithm is recursive, meaning that, in the presence of several fixed-effects (FEs),
-#' removing singletons in one FE can create singletons (or prefect fits) in another FE. 
-#' The algorithm continues until there is no singleton/perfect fit remaining.
+#' This option controls which observations should be removed prior to the estimation.
+#' If "singletons", fixed-effects associated to a single observation are removed 
+#' (since they perfectly explain it).
+#' 
+#' The value "infinite_coef" only works with GLM families with limited left hand sides (LHS) 
+#' and exponential link. 
+#' For instance the Poisson family for which the LHS cannot be lower than 0, or the logit
+#' family for which the LHS lies within 0 and 1. 
+#' In that case the fixed-effects (FEs) with only-0 LHS would lead to infinite coefficients 
+#' (FE = -Inf would explain perfectly the LHS). 
+#' The value `fixef.rm="infinite_coef"` removes all observations associated to FEs with 
+#' infinite coefficients.
+#' 
+#' If "perfect_fit", it is equivalent to "singletons" and "infinite_coef" combined. 
+#' That means all observations that are perfectly explained by the FEs are removed.
+#' 
+#' If "none": no observation is removed.
+#' 
+#' Note that whathever the value of this options: the coefficient estimates 
+#' will remain the same. It only affects inference (the standard-errors).
+#' 
+#' The algorithm is recursive, meaning that, e.g. in the presence of several fixed-effects (FEs),
+#' removing singletons in one FE can create singletons (or perfect fits) in another FE. 
+#' The algorithm continues until there is no singleton/perfect-fit remaining.
 #' @param fixef.tol Precision used to obtain the fixed-effects. Defaults to `1e-5`. 
 #' It corresponds to the maximum absolute difference allowed between two coefficients 
 #' of successive iterations. Argument `fixef.tol` cannot be lower 
@@ -3995,7 +4013,7 @@ fepois = function(fml, data, vcov, offset, weights, subset, split, fsplit,
 #'
 #'
 feNmlm = function(fml, data, family = c("poisson", "negbin", "logit", "gaussian"), NL.fml, vcov,
-                  fixef, fixef.rm = "perfect", NL.start, lower, upper, NL.start.init,
+                  fixef, fixef.rm = "perfect_fit", NL.start, lower, upper, NL.start.init,
                   offset, subset, split, fsplit, split.keep, split.drop,
                   cluster, se, ssc, panel.id, panel.time.step = NULL, 
                   panel.duplicate.method = "none",
@@ -5095,8 +5113,11 @@ multi_fixef = function(env, estfun){
 
       # We delay the computation by using isSplit = TRUE and split.full = FALSE
       # Real indexing will be done in the last reshape env
+      res = get("res", my_env)
+      family.linkbounds = res$family.linkbounds
       info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars, 
-                            fixef.rm = fixef.rm, family = family, isSplit = TRUE, 
+                            fixef.rm = fixef.rm, family = family, 
+                            family.linkbounds = family.linkbounds, isSplit = TRUE, 
                             split.full = FALSE, origin_type = origin_type, 
                             isSlope = isSlope, slope_flag = slope_flag, 
                             slope_df = slope_df, slope_vars_list = slope_vars_list, 

@@ -365,8 +365,29 @@ cat("\n")
 est = feols(y ~ x1 + y, base)
 test(ncol(model.matrix(est)), 2)
 
+####
+#### ... obs removal ####
+####
 
+base_rm = base_did
+base_rm$y = abs(base_rm$y)
+# we add 0-values
+is_only_0 = base_rm$id <= 10
+base_rm$y[is_only_0] = 0
+# we add singletons
+is_single = base_rm$id %in% 50:55
+base_rm$period[is_single] = runif(sum(is_single))
 
+est_none = fepois(y ~ x1 | id + period, base_rm, fixef.rm = "none")
+est_single = fepois(y ~ x1 | id + period, base_rm, fixef.rm = "singletons")
+est_inf = fepois(y ~ x1 | id + period, base_rm, fixef.rm = "infinite")
+est_perfect = fepois(y ~ x1 | id + period, base_rm, fixef.rm = "perfect")
+
+n = nrow(base_rm)
+test(nobs(est_none), n)
+test(nobs(est_single), n - sum(is_single))
+test(nobs(est_inf), n - sum(is_only_0))
+test(nobs(est_perfect), n - sum(is_single) - sum(is_only_0))
 
 ####
 #### ... Fit methods ####

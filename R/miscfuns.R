@@ -7461,13 +7461,13 @@ getFixest_fml = function(){
 #'
 #'
 #'
-setFixest_estimation = function(data = NULL, panel.id = NULL, fixef.rm = "perfect",
+setFixest_estimation = function(data = NULL, panel.id = NULL, fixef.rm = "perfect_fit",
                                 fixef.tol = 1e-6, fixef.iter = 10000, collin.tol = 1e-10,
                                 lean = FALSE, verbose = 0, warn = TRUE, fixef.keep_names = NULL,
                                 demeaned = FALSE, mem.clean = FALSE, glm.iter = 25,
                                 glm.tol = 1e-8, data.save = FALSE, reset = FALSE){
 
-  check_set_arg(fixef.rm, "match(none, perfect, singleton, both)")
+  check_set_arg(fixef.rm, "match(singletons, infinite_coef, perfect_fit, none)")
   check_arg(fixef.tol, collin.tol, glm.tol, "numeric scalar GT{0}")
   check_arg(fixef.iter, glm.iter, "integer scalar GE{1}")
   check_arg(verbose, "integer scalar GE{0}")

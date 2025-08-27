@@ -122,6 +122,10 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - in the functions `coefplot` and `iplot`: the argument `object` is removed, now all models need to be passed in `...`. The dots do not accept arguments to summary methods any more. Retro-compatibility partly ensured.
 
+- in all estimations, now the default is to remove all observations that are perfectly fit by the fixed-effects (this includes the singletons). To go back to the previous case, use the argument `fixef.rm="infinite_coef"`, or add the following command in your `.Rprofile`: `setFixest_estimation(fixef.rm = "infinite_coef")`.
+
+- the argument `fixef.rm` is modified, the accepted values now become "singletons", "infinite_coef", "perfect_fit" (new default), or "none" (formerly it was "singleton", "perfect", "both", "none"). It leads to the removal of i) fixed-effects associated to a single observation, ii) fixed-effects fitting perfectly the outcome and leading to infinite coefficients (in GLM families, e.g. think to only 0 outcomes in a Poisson estimation), iii) the observations removed in the first two cases, iv) no observations is removed. In any case: the point estimates (coefficients) do not vary depending on the value of this argument. The inference on the other hand may vary (that is the standard-errors of the coefficients may change).
+
 ## Other changes
 
 - in `vcov`: if the VCOV fails to be positive semi-definite (having negative eigenvalues), a warning is reported. This should be relatively rare and typically only very slightly changes the standard errors.

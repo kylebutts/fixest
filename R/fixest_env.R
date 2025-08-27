@@ -16,7 +16,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
                       opt.control = list(), vcov = NULL, cluster, se, ssc, y, X, fixef_df,
                       panel.id, panel.time.step = NULL, 
                       panel.duplicate.method = "none", 
-                      fixef.rm = "perfect", nthreads = getFixest_nthreads(),
+                      fixef.rm = "perfect_fit", nthreads = getFixest_nthreads(),
                       lean = FALSE, verbose = 0, theta.init, fixef.tol = 1e-5,
                       fixef.iter = 10000, collin.tol = 1e-14, deriv.iter = 5000,
                       deriv.tol = 1e-4, glm.iter = 25, glm.tol = 1e-8, etastart, mustart,
@@ -173,6 +173,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
   # we check the family => only for femlm/feNmlm and feglm
   # PROBLEM: the argument family has the same name in femlm and feglm but different meanings
+  family.linkbounds = list()
   if(origin_type == "feNmlm"){
     family_name = try(match.arg(family), silent = TRUE)
     if("try-error" %in% class(family_name)){
@@ -190,6 +191,14 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       }
     }
     family = family_name
+    
+    if(family %in% c("poisson", "logit", "negbin")){
+      family.linkbounds$zero = TRUE
+    }
+    
+    if(family == "logit"){
+      family.linkbounds$zero = TRUE
+    }
 
   } else if(origin_type == "feglm"){
     # We construct the family function, with some more variables
@@ -227,11 +236,11 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     }
 
     family_type = switch(family$family,
-               poisson = "poisson",
-               quasipoisson = "poisson",
-               binomial = "logit",
-               quasibinomial = "logit",
-               "gaussian")
+                         poisson = "poisson",
+                         quasipoisson = "poisson",
+                         binomial = "logit",
+                         quasibinomial = "logit",
+                         "gaussian")
 
     if(family_type == "poisson" && family$link != "log") family_type = "gaussian"
 
@@ -241,6 +250,14 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
     family$family_type = family_type
     family$family_equiv = family_equiv
+    
+    if(abs(family$linkinv(-100)) < 1e-15){
+      family.linkbounds$zero = TRUE
+    }
+    
+    if(abs(family$linkinv(100) - 1) < 1e-15){
+      family.linkbounds$one = TRUE
+    }
 
     #
     # Custom functions -> now in the estimation fun
@@ -269,7 +286,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     }
   }
 
-  check_set_arg(fixef.rm, "match(singleton, perfect, both, none)")
+  check_set_arg(fixef.rm, "match(singletons, infinite_coef, perfect_fit, none)")
 
   check_arg(collin.tol, "numeric scalar GT{0}")
 
@@ -2333,7 +2350,8 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     if(debug) cat(" ---> Indexing\n")
 
     info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars,
-                          fixef.rm = fixef.rm, family = family, isSplit = isSplit,
+                          fixef.rm = fixef.rm, family = family, 
+                          family.linkbounds = family.linkbounds, isSplit = isSplit,
                           split.full = split.full, origin_type = origin_type,
                           isSlope = isSlope, slope_flag = slope_flag, slope_df = slope_df,
                           slope_vars_list = slope_vars_list, nthreads = nthreads)
@@ -2341,13 +2359,13 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     if(isTRUE(info_fe$all_removed)){
       
       if(origin_type == "feols"){
-        fixef.rm = "singleton"
+        fixef.rm = "singletons"
       }
       
       msg = switch(fixef.rm,
-                   singleton = "All observations are fixed-effects singletons.",
-                   perfect = "All observations are perfectly explained by the fixed-effects.",
-                   both = "All observations are either fixed-effects singletons or are perfectly explained by the fixed-effects.")
+                   singletons = "All observations are fixed-effects singletons.",
+                   infinite_coef = "All observations are perfectly explained by the fixed-effects.",
+                   perfect_fit = "All observations are either fixed-effects singletons or are perfectly explained by the fixed-effects.")
       
       stopi(msg, " The estimation cannot be done.")
     }
@@ -3260,6 +3278,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
   if(origin_type == "feglm"){
     res$family = family_funs
   }
+  res$family.linkbounds = family.linkbounds
 
   # Panel information
   if(!is.null(panel.id)){
@@ -3286,7 +3305,8 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 }
 
 
-setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, split.full = FALSE,
+setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, family.linkbounds, 
+                       isSplit, split.full = FALSE,
                        origin_type, isSlope, slope_flag, slope_df, slope_vars_list,
                        fixef_names_old = NULL, fixef_sizes = NULL, obs2keep = NULL,
                        prev_order = NULL, nthreads){
@@ -3296,9 +3316,9 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
 
   Q = length(fixef_vars) # terms: contains FEs + slopes
 
-  rm_0 = !family == "gaussian" && !fixef.rm %in% c("none", "singleton")
-  rm_1 = family == "logit" && !fixef.rm %in% c("none", "singleton")
-  rm_single = fixef.rm %in% c("singleton", "both")
+  rm_0 = isTRUE(family.linkbounds$zero) && fixef.rm %in% c("infinite_coef", "perfect_fit")
+  rm_1 = isTRUE(family.linkbounds$one) && fixef.rm %in% c("infinite_coef", "perfect_fit")
+  rm_single = fixef.rm %in% c("singletons", "perfect_fit")
   do_sum_y = !origin_type %in% c("feols", "feglm")
 
   multi_lhs = is.list(lhs)
@@ -3465,14 +3485,15 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, isSplit, spl
     for(i in 1:length(fixef_id)){
       fixef_removed[[i]] = fixef_df[[i]][all_index_info$firstobs_removed[[i]]]
     }
-
+    
     names(fixef_removed) = fixef_vars
 
     # Then the "Notes"
     nb_missing = lengths(fixef_removed)
     if(isFALSE(rm_0)){
-      message_fixef = sma("{n, '/'c ? nb_missing} fixed-effect singleton{#s, were} removed",
-                          " ({len ? obs2remove} observation{$s})")
+      message_fixef = sma("{n, '/'c ? nb_missing} fixed-effect ",
+                          "singleton{#s, were ? sum(nb_missing)} removed ",
+                          "({len ? obs2remove} observation{$s}).")
       
     } else {
       msg_rm = if(rm_1) "only 0 or only 1 outcomes" else "only 0 outcomes"
@@ -3716,7 +3737,9 @@ reshape_env = function(env, obs2keep = NULL, lhs = NULL, rhs = NULL, assign_lhs 
 
     # We refactor the fixed effects => we may remove even more obs
     info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars,
-                          fixef.rm = fixef.rm, family = family, isSplit = FALSE,
+                          fixef.rm = fixef.rm, family = family, 
+                          family.linkbounds = res$family.linkbounds,
+                          isSplit = FALSE,
                           origin_type = origin_type, isSlope = isSlope, slope_flag = slope_flag,
                           slope_df = slope_df, slope_vars_list = slope_vars_list,
                           fixef_names_old = fixef_names_old, fixef_sizes = fixef_sizes,
@@ -3741,7 +3764,8 @@ reshape_env = function(env, obs2keep = NULL, lhs = NULL, rhs = NULL, assign_lhs 
       
       # we need to continue this function => now we don't RM the FEs
       info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars,
-                          fixef.rm = fixef.rm, family = family, isSplit = FALSE,
+                          fixef.rm = fixef.rm, family = family, 
+                          family.linkbounds = res$family.linkbounds, isSplit = FALSE,
                           origin_type = origin_type, isSlope = isSlope, slope_flag = slope_flag,
                           slope_df = slope_df, slope_vars_list = slope_vars_list,
                           fixef_names_old = fixef_names_old, fixef_sizes = fixef_sizes,

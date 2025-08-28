@@ -53,14 +53,14 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">setFixest_estimation</span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel.id <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  fixef.rm <span class="op">=</span> <span class="st">"perfect"</span>,</span>
+<span>  fixef.rm <span class="op">=</span> <span class="st">"perfect_fit"</span>,</span>
 <span>  fixef.tol <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  fixef.iter <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>  collin.tol <span class="op">=</span> <span class="fl">1e-10</span>,</span>
 <span>  lean <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  warn <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  combine.quick <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  fixef.keep_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  demeaned <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  mem.clean <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  glm.iter <span class="op">=</span> <span class="fl">25</span>,</span>
@@ -91,12 +91,27 @@ with <code>^</code> only inside formulas (see the dedicated section in <code><a 
 
 
 <dt id="arg-fixef-rm">fixef.rm<a class="anchor" aria-label="anchor" href="#arg-fixef-rm"></a></dt>
-<dd><p>Can be equal to "perfect" (default), "singleton", "both" or "none".
-Controls which observations are to be removed. If "perfect", then observations
-having a fixed-effect with perfect fit (e.g. only 0 outcomes in Poisson estimations)
-will be removed. If "singleton", all observations for which a fixed-effect appears
-only once will be removed. Note, importantly, that singletons are removed in just one pass,
-there is no recursivity implemented. The meaning of "both" and "none" is direct.</p></dd>
+<dd><p>Can be equal to "perfect_fit" (default), "singletons", "infinite_coef"
+or "none".</p>
+<p>This option controls which observations should be removed prior to the estimation.
+If "singletons", fixed-effects associated to a single observation are removed
+(since they perfectly explain it).</p>
+<p>The value "infinite_coef" only works with GLM families with limited left hand sides (LHS)
+and exponential link.
+For instance the Poisson family for which the LHS cannot be lower than 0, or the logit
+family for which the LHS lies within 0 and 1.
+In that case the fixed-effects (FEs) with only-0 LHS would lead to infinite coefficients
+(FE = -Inf would explain perfectly the LHS).
+The value <code>fixef.rm="infinite_coef"</code> removes all observations associated to FEs with
+infinite coefficients.</p>
+<p>If "perfect_fit", it is equivalent to "singletons" and "infinite_coef" combined.
+That means all observations that are perfectly explained by the FEs are removed.</p>
+<p>If "none": no observation is removed.</p>
+<p>Note that whathever the value of this options: the coefficient estimates
+will remain the same. It only affects inference (the standard-errors).</p>
+<p>The algorithm is recursive, meaning that, e.g. in the presence of several fixed-effects (FEs),
+removing singletons in one FE can create singletons (or perfect fits) in another FE.
+The algorithm continues until there is no singleton/perfect-fit remaining.</p></dd>
 
 
 <dt id="arg-fixef-tol">fixef.tol<a class="anchor" aria-label="anchor" href="#arg-fixef-tol"></a></dt>
@@ -120,7 +135,7 @@ collinearity is t-stats that are extremely low (for instance when t-stats &lt; 1
 
 
 <dt id="arg-lean">lean<a class="anchor" aria-label="anchor" href="#arg-lean"></a></dt>
-<dd><p>Logical, default is <code>FALSE</code>. If <code>TRUE</code> then all large objects are removed
+<dd><p>Logical scalar, default is <code>FALSE</code>. If <code>TRUE</code> then all large objects are removed
 from the returned result: this will save memory but will block the possibility to
 use many methods. It is recommended to use the arguments <code>se</code> or <code>cluster</code> to
 obtain the appropriate standard-errors at estimation time, since obtaining different
@@ -138,15 +153,16 @@ it can detail the number of iterations in the demeaning algorithm
 (concerns warnings relating to convergence state).</p></dd>
 
 
-<dt id="arg-combine-quick">combine.quick<a class="anchor" aria-label="anchor" href="#arg-combine-quick"></a></dt>
-<dd><p>Logical. When you combine different variables to transform them
-into a single fixed-effects you can do e.g. <code>y ~ x | paste(var1, var2)</code>.
+<dt id="arg-fixef-keep-names">fixef.keep_names<a class="anchor" aria-label="anchor" href="#arg-fixef-keep-names"></a></dt>
+<dd><p>Logical or <code>NULL</code> (default). When you combine different
+variables to transform them into a single fixed-effects you can do
+e.g. <code>y ~ x | paste(var1, var2)</code>.
 The algorithm provides a shorthand to do the same operation: <code>y ~ x | var1^var2</code>.
 Because pasting variables is a costly operation, the internal algorithm may use a
 numerical trick to hasten the process. The cost of doing so is that you lose the labels.
 If you are interested in getting the value of the fixed-effects coefficients
-after the estimation, you should use <code>combine.quick = FALSE</code>. By default it is
-equal to <code>FALSE</code> if the number of observations is lower than 50,000, and to <code>TRUE</code>
+after the estimation, you should use <code>fixef.keep_names = TRUE</code>. By default it is
+equal to <code>TRUE</code> if the number of unique values is lower than 50,000, and to <code>FALSE</code>
 otherwise.</p></dd>
 
 
@@ -157,7 +173,7 @@ the centered variables be returned? If <code>TRUE</code>, it creates the items
 
 
 <dt id="arg-mem-clean">mem.clean<a class="anchor" aria-label="anchor" href="#arg-mem-clean"></a></dt>
-<dd><p>Logical, default is <code>FALSE</code>. Only to be used if the data set is
+<dd><p>Logical scalar, default is <code>FALSE</code>. Only to be used if the data set is
 large compared to the available RAM. If <code>TRUE</code> then intermediary objects are removed as
 much as possible and <code><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></code> is run before each substantial C++ section in the internal
 code to avoid memory issues.</p></dd>
@@ -205,13 +221,14 @@ at each iteration, such that postprocessing can be done outside the loop without
 <span class="r-in"><span><span class="va">base</span><span class="op">$</span><span class="va">fe_singletons</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span> <span class="op">=</span> <span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">res</span>          <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">|</span> <span class="va">fe_singletons</span>, <span class="va">base</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: 5 fixed-effect singletons were removed (5 observations).</span>
 <span class="r-in"><span><span class="va">res_noSingle</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">|</span> <span class="va">fe_singletons</span>, <span class="va">base</span>, fixef.rm <span class="op">=</span> <span class="st">"single"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: 5 fixed-effect singleton was removed (5 observations, breakup: 5).</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: 5 fixed-effect singletons were removed (5 observations).</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># New defaults</span></span></span>
 <span class="r-in"><span><span class="fu">setFixest_estimation</span><span class="op">(</span>fixef.rm <span class="op">=</span> <span class="st">"single"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">res_newDefault</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">|</span> <span class="va">fe_singletons</span>, <span class="va">base</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: 5 fixed-effect singleton was removed (5 observations, breakup: 5).</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: 5 fixed-effect singletons were removed (5 observations).</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="etable.html">etable</a></span><span class="op">(</span><span class="va">res</span>, <span class="va">res_noSingle</span>, <span class="va">res_newDefault</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                res       res_noSingle     res_newDefault</span>
@@ -223,8 +240,8 @@ at each iteration, such that postprocessing can be done outside the loop without
 <span class="r-out co"><span class="r-pr">#&gt;</span> fe_singletons                  Yes                Yes                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________ __________________</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID                IID</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   150                145                145</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.86452            0.85729            0.85729</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   145                145                145</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.85729            0.85729            0.85729</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                  0.64201            0.64201            0.64201</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>

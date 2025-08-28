@@ -47,7 +47,8 @@
 <h2 class="pkg-version" data-toc-text="0.13.0" id="fixest-0130">fixest 0.13.0<a class="anchor" aria-label="anchor" href="#fixest-0130"></a></h2>
 <div class="section level3">
 <h3 id="new-features-0-13-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-13-0"></a></h3>
-<ul><li>new function: <code>sparse_model_matrix</code> which creates sparse model matrices from regression objects in a memory-efficient way</li>
+<ul><li><p>new VCOVs: heteroskedaticity-robust HC2 and HC3 VCOVs available thanks to <a href="https://github.com/kylebutts" class="external-link">@kylebutts</a></p></li>
+<li><p>new function: <code>sparse_model_matrix</code> which creates sparse model matrices from regression objects in a memory-efficient way. Contribution by <a href="https://github.com/kylebutts" class="external-link">@kylebutts</a>.</p></li>
 </ul><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">est</span> <span class="op">=</span> <span class="fu"><a href="../reference/feols.html">feols</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">drat</span> <span class="op">|</span> <span class="va">cyl</span>, <span class="va">mtcars</span><span class="op">)</span></span>
 <span></span>
@@ -102,6 +103,19 @@
 <li><p>in <code>coefplot</code>: the argument <code>dict</code> now updates the entries in the global dictionnary (instead of replacing them)</p></li>
 <li><p>improve the display of the numbers in <code>fitstat</code></p></li>
 <li><p>use perl regular expressions (instead of standard RE) in all instances of the arguments <code>keep</code>, <code>drop</code>, <code>order</code></p></li>
+<li><p>when using <code>feols</code> estimations with <code>sunab(att = TRUE)</code>, now <code>iplot</code> reports the graph of the treatment effect aggregated by periods (i.e. as if <code>att = FALSE</code>)</p></li>
+<li><p>in estimations, <code>subset</code> now accepts negative integers</p></li>
+<li><p>function <code>xpd</code> gains the argument <code>add.after_pipe</code> to add components to the formula after a pipe (<code>|</code>)</p></li>
+<li><p>the <code>update.fixest</code> and <code>update.fixest_multi</code> now handle the formula updates much better, in particular for IVs</p></li>
+<li><p><code>update.(fixest|fixest_multi)</code> gain the new argument <code>fml</code> which can override the <code>fml.update</code> argument</p></li>
+<li><p><code>update.(fixest|fixest_multi)</code> gain the new argument <code>use_calling_env</code> which default to <code>TRUE</code>, so that <code>fixest</code> objects created within a function can be updated without problem even outside of the function</p></li>
+<li><p>greatly improve the <code>formula.fixest</code> method, with now a wide range of possibilities to compose the resulting formula</p></li>
+<li><p>in <code>formula.fixest</code>, add the new arguments <code>fml.update</code> and <code>fml.build</code> to easily modify the formula of the original object</p></li>
+<li><p>add new method <code>formula.fixest_multi</code></p></li>
+<li><p>complete rewrite of the internal algorithm turning the fixed-effects into indexes, it is now: i) faster (much faster when combining mutliple fixed effects), ii) more consistent for character vectors</p></li>
+<li><p>new algorithm removing the fixed-effects from the estimation due to singletons or perfect fits: now the algorithm is recursive</p></li>
+<li><p>the method <code>model.matrix</code> gains the argument <code>sample</code> which can be equal to “estimation” or “original”. The argument <code>na.rm</code> is now more coherent as it does not do more than what is suggests (as was the case earlier).</p></li>
+<li><p>the function <code>demean</code> gains the argument <code>sample</code> to decide whether to get the demeaned variables: i) for only for the observations used in the estimation, or ii) for all the observations of the original data set.</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="new-vignette-and-data-set-0-13-0">New vignette and data set<a class="anchor" aria-label="anchor" href="#new-vignette-and-data-set-0-13-0"></a></h3>
@@ -130,9 +144,11 @@
 <li>
 <code>cluster.df</code> =&gt; <code>G.df</code>
 </li>
-</ul><p>Retro compatibility is ensured. Thanls to Kyle Butts and Grant McDermott for the brainstorm!</p>
+</ul><p>Retro compatibility is ensured. Thanks to Kyle Butts and Grant McDermott for the brainstorm!</p>
 </li>
-<li><p>in the functions <code>coefplot</code> and <code>iplot</code>: the argument <code>object</code> is removed, now all models need to be passed in <code>...</code>. The dots do not accept arguments to summary methods any more. Retro-compatibility ensured.</p></li>
+<li><p>in the functions <code>coefplot</code> and <code>iplot</code>: the argument <code>object</code> is removed, now all models need to be passed in <code>...</code>. The dots do not accept arguments to summary methods any more. Retro-compatibility partly ensured.</p></li>
+<li><p>in all estimations, now the default is to remove all observations that are perfectly fit by the fixed-effects (this includes the singletons). To go back to the previous case, use the argument <code>fixef.rm="infinite_coef"</code>, or add the following command in your <code>.Rprofile</code>: <code>setFixest_estimation(fixef.rm = "infinite_coef")</code>.</p></li>
+<li><p>the argument <code>fixef.rm</code> is modified, the accepted values now become “singletons”, “infinite_coef”, “perfect_fit” (new default), or “none” (formerly it was “singleton”, “perfect”, “both”, “none”). It leads to the removal of i) fixed-effects associated to a single observation, ii) fixed-effects fitting perfectly the outcome and leading to infinite coefficients (in GLM families, e.g. think to only 0 outcomes in a Poisson estimation), iii) the observations removed in the first two cases, iv) no observations is removed. In any case: the point estimates (coefficients) do not vary depending on the value of this argument. The inference on the other hand may vary (that is the standard-errors of the coefficients may change).</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="other-changes-0-13-0">Other changes<a class="anchor" aria-label="anchor" href="#other-changes-0-13-0"></a></h3>
@@ -144,10 +160,16 @@
 <li><p>in IV estimations, the R2 reported in the second stage is based on the residuals of the second stage estimation and <strong>not</strong> the corrected residuals (using the original variables with the second stage coefficients)</p></li>
 <li><p>slight performance increase for estimations with single variables</p></li>
 <li><p>in multiple estimations for which, after NA removal, the variables in the step-wise part are vectors of only 0s can now be estimated. The stepwise part is simply ignored. Feature request by <a href="https://github.com/shoonlee" class="external-link">@shoonlee</a>, <a href="https://github.com/lrberge/fixest/issues/483" class="external-link">#483</a></p></li>
+<li><p>add explicit linkage to the <code>numDeriv</code> package in the manual to fix CRAN notes</p></li>
+<li><p>add suggestions when some variables are misspelled in estimations</p></li>
+<li><p>substantially improve the robustness (and speed) of the internal algorithms handling formulas</p></li>
+<li><p>in all estimations: the argument <code>combine.quick</code> is renamed into <code>fixef.keep_names</code></p></li>
+<li><p>the removal of the fixed-effects due to infinite coefficients is now triggered more accurately for any GLM family (even uncommon ones)</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="etable-0-13-0">etable<a class="anchor" aria-label="anchor" href="#etable-0-13-0"></a></h3>
-<ul><li><p><code>setFixest_etable</code> now accepts the argument <code>div.class</code></p></li>
+<ul><li><p>add a section in the documentation documenting the Latex depdencies</p></li>
+<li><p><code>setFixest_etable</code> now accepts the arguments <code>div.class</code> and <code>signif.code</code></p></li>
 <li>
 <p>when a file is created and the containing folders do not exist:</p>
 <ul><li>the new default is to create up to the grand parent folder</li>
@@ -180,6 +202,13 @@
 <li><p>fix bug when a custom <code>vcov</code> is passed to <code><a href="../reference/feols.html">fixest::feols</a></code> with the <code>fixest::</code> prefix. Thanks to Kyle Butts, <a href="https://github.com/lrberge/fixest/issues/540" class="external-link">#540</a></p></li>
 <li><p>fix bug R crashing when data set with 0-observation was provided by the user. Reported by <a href="https://github.com/luciowasserman" class="external-link">@luciowasserman</a>, <a href="https://github.com/lrberge/fixest/issues/577" class="external-link">#577</a></p></li>
 <li><p>fix bug which included the intercept in stepwise estimation even when the user asked for no intercept</p></li>
+<li><p>fix various bugs in <code>coefplot</code>/<code>iplot</code>. Among others, the one reported by <a href="https://github.com/raffaem" class="external-link">@raffaem</a>, <a href="https://github.com/lrberge/fixest/issues/546" class="external-link">#546</a></p></li>
+<li><p>fix bug regarding the display of the x-axis in coefplot</p></li>
+<li><p>fix bug preventing to jointly use the arguments <code>subset</code> and <code>fixef</code>. Reported by <a href="https://github.com/MaelAstruc" class="external-link">@MaelAstruc</a>, <a href="https://github.com/lrberge/fixest/issues/503" class="external-link">#503</a></p></li>
+<li><p>fix bug preventing the display of named custom vcov in <code>etable</code></p></li>
+<li><p>fix bug in <code>etable</code> when <code>headers</code>/<code>extralines</code> receive a list of numeric and character values at the same time. Reported by <a href="https://github.com/Oravishayrizi" class="external-link">@Oravishayrizi</a>, <a href="https://github.com/lrberge/fixest/issues/574" class="external-link">#574</a></p></li>
+<li><p>fix fatal crash in <code>feols</code> when: i) multiple estimations were used, ii) samples were different across estimations, iii) singletons were removed. Reported by <a href="https://github.com/marco-t3" class="external-link">@marco-t3</a>, <a href="https://github.com/lrberge/fixest/issues/486" class="external-link">#486</a></p></li>
+<li><p>fix bug RMSE with weights, reported by <a href="https://github.com/alegalluzzi" class="external-link">@alegalluzzi</a>, <a href="https://github.com/lrberge/fixest/issues/594" class="external-link">#594</a></p></li>
 </ul></div>
 </div>
     <div class="section level2">

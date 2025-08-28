@@ -56,9 +56,10 @@ feols or feglm estimation."></head><body>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'fixest'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
-<span>  <span class="va">data</span>,</span>
+<span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"rhs"</span>,</span>
-<span>  na.rm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  sample <span class="op">=</span> <span class="st">"estimation"</span>,</span>
+<span>  na.rm <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  subset <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  as.matrix <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  as.df <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -76,8 +77,8 @@ feols or feglm estimation."></head><body>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>If missing (default) then the original data is obtained by evaluating
-the <code>call</code>. Otherwise, it should be a <code>data.frame</code>.</p></dd>
+<dd><p>A data.frame or <code>NULL</code> (the default). If missing or <code>NULL</code>, then the
+original data is obtained by evaluating  the <code>call</code>.</p></dd>
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
@@ -87,12 +88,24 @@ matrix/data.frame to be returned. Possible values are: "lhs", "rhs", "fixef", "i
 (exogenous vars), "iv.inst" (instruments).</p></dd>
 
 
+<dt id="arg-sample">sample<a class="anchor" aria-label="anchor" href="#arg-sample"></a></dt>
+<dd><p>Character scalar equal to "estimation" (default) or "original". Only
+used when <code>data=NULL</code> (i.e. the original data is requested). By default,
+only the observations effectively used in the estimation are returned (it includes
+the observations with NA values or the fully explained by the fixed-effects (FE), or
+due to NAs in the weights).</p>
+<p>If <code>sample="original"</code>, all the observations are returned. In that case, if
+you use <code>na.rm=TRUE</code> (which is not the default), you can withdraw the observations
+with NA values (and keep the ones fully explained by the FEs).</p></dd>
+
+
 <dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
-<dd><p>Default is <code>TRUE</code>. Should observations with NAs be removed from the matrix?</p></dd>
+<dd><p>Logical scalar, default is <code>FALSE</code>. Should observations with NAs be
+removed from the resulting matrix or data.frame? Note that if <code>data=NULL</code></p></dd>
 
 
 <dt id="arg-subset">subset<a class="anchor" aria-label="anchor" href="#arg-subset"></a></dt>
-<dd><p>Logical or character vector. Default is <code>FALSE</code>. If <code>TRUE</code>, then the
+<dd><p>Logical scalar or character vector. Default is <code>FALSE</code>. If <code>TRUE</code>, then the
 matrix created will be restricted only to the variables contained in the argument <code>data</code>,
 which can then contain a subset of the variables used in the estimation. If a
 character vector, then only the variables matching the elements of the vector via
@@ -108,7 +121,8 @@ regular expressions will be created.</p></dd>
 
 
 <dt id="arg-collin-rm">collin.rm<a class="anchor" aria-label="anchor" href="#arg-collin-rm"></a></dt>
-<dd><p>Logical scalar, default is <code>TRUE</code>. Whether to remove variables that were
+<dd><p>Logical scalar, default is <code>TRUE</code>. Only used when <code>data=NULL</code> (i.e.
+the data used in the estimation is requested). Whether to remove variables that were
 found to be collinear during the estimation. Beware: it does not perform a
 collinearity check.</p></dd>
 
@@ -135,40 +149,78 @@ for any other type.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">base</span> <span class="op">=</span> <span class="va">iris</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">base</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"y"</span>, <span class="st">"x1"</span>, <span class="st">"x2"</span>, <span class="st">"x3"</span>, <span class="st">"species"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># we use a data set with NAs and fixed-effect singletons</span></span></span>
+<span class="r-in"><span><span class="va">base</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="va">iris</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"y"</span>, <span class="st">"x1"</span>, <span class="st">"x2"</span>, <span class="st">"x3"</span>, <span class="st">"fe"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># adding NAs</span></span></span>
+<span class="r-in"><span><span class="va">base</span><span class="op">$</span><span class="va">x1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span> <span class="op">=</span> <span class="cn">NA</span></span></span>
+<span class="r-in"><span><span class="co"># adding singletons</span></span></span>
+<span class="r-in"><span><span class="va">base</span><span class="op">$</span><span class="va">fe</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">base</span><span class="op">$</span><span class="va">fe</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">base</span><span class="op">$</span><span class="va">fe</span><span class="op">[</span><span class="fl">10</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span> <span class="op">=</span> <span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">est</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/stats/poly.html" class="external-link">poly</a></span><span class="op">(</span><span class="va">x1</span>, <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">x2</span>, <span class="va">base</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># OLS estimation where we remove singletons</span></span></span>
+<span class="r-in"><span><span class="va">est</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/poly.html" class="external-link">poly</a></span><span class="op">(</span><span class="va">x2</span>, <span class="fl">2</span><span class="op">)</span> <span class="op">|</span> <span class="va">fe</span>, <span class="va">base</span>, fixef.rm <span class="op">=</span> <span class="st">"singleton"</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> NOTES: 4 observations removed because of NA values (RHS: 4).</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>        5 fixed-effect singletons were removed (5 observations).</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># by default, we have the data set used in the estimation</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      (Intercept) poly(x1, 2)1 poly(x1, 2)2  x2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]           1  0.083201357 -0.016039377 1.4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]           1 -0.010776079 -0.053252127 1.4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]           1  0.026814895 -0.056361540 1.3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]           1  0.008019408 -0.057805919 1.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,]           1  0.101996844  0.009397687 1.4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,]           1  0.158383306  0.121697905 1.7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       x1 poly(x2, 2)1 poly(x2, 2)2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 3.6  -0.10942904   0.04837527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 3.9  -0.09550677   0.00559656</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 3.4  -0.10942904   0.04837527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 3.4  -0.10478828   0.03339136</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 2.9  -0.10942904   0.04837527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 3.1  -0.10478828   0.03339136</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 141</span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># to have the original data set: we need to use sample="original"</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">est</span>, sample <span class="op">=</span> <span class="st">"original"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       x1 poly(x2, 2)1 poly(x2, 2)2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  NA  -0.10942904   0.04837527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]  NA  -0.10942904   0.04837527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]  NA  -0.11406979   0.06408354</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]  NA  -0.10478828   0.03339136</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 3.6  -0.10942904   0.04837527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 3.9  -0.09550677   0.00559656</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">est</span>, sample <span class="op">=</span> <span class="st">"original"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 150</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># we can drop only the NA values (and not the singletons) with na.rm=TRUE</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">est</span>, sample <span class="op">=</span> <span class="st">"original"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       x1 poly(x2, 2)1 poly(x2, 2)2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 3.6  -0.10942904   0.04837527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 3.9  -0.09550677   0.00559656</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 3.4  -0.10942904   0.04837527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 3.4  -0.10478828   0.03339136</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 2.9  -0.10942904   0.04837527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 3.1  -0.10478828   0.03339136</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">est</span>, sample <span class="op">=</span> <span class="st">"original"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 146</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#</span></span></span>
 <span class="r-in"><span><span class="co"># Illustration of subset</span></span></span>
+<span class="r-in"><span><span class="co">#</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># subset =&gt; character vector</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">est</span>, subset <span class="op">=</span> <span class="st">"x1"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      poly(x1, 2)1 poly(x1, 2)2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  0.083201357 -0.016039377</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -0.010776079 -0.053252127</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]  0.026814895 -0.056361540</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]  0.008019408 -0.057805919</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,]  0.101996844  0.009397687</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,]  0.158383306  0.121697905</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       x1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 3.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 3.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 3.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] 3.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 2.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 3.1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># subset =&gt; TRUE, only works with data argument!!</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">est</span>, data <span class="op">=</span> <span class="va">base</span><span class="op">[</span>, <span class="st">"x1"</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span>, subset <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   poly(x1, 2)1 poly(x1, 2)2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  0.083201357 -0.016039377</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 -0.010776079 -0.053252127</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  0.026814895 -0.056361540</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  0.008019408 -0.057805919</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0.101996844  0.009397687</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  0.158383306  0.121697905</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       x1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]  NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]  NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]  NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] 3.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,] 3.9</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>

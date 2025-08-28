@@ -141,12 +141,12 @@ and leads using the functions <code><a href="l.html">l</a></code> and <code><a h
 <span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: 324 observations removed because of NA values (LHS: 108, RHS: 324).</span>
 <span class="r-in"><span><span class="fu"><a href="etable.html">etable</a></span><span class="op">(</span><span class="va">est1</span>, <span class="va">est2</span>, <span class="va">est3</span>, order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"f"</span>, <span class="st">"^x"</span><span class="op">)</span>, drop<span class="op">=</span><span class="st">"Int"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                               est1               est2               est3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                  y             f(y,1)             l(y,1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dependent Var.:                  y               f(y)               l(y)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                                                         </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> f(x1,1)                            0.9940*** (0.0579)                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1              0.9948*** (0.0532)    0.0081 (0.0584)   -0.0534 (0.0599)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Constant         2.235*** (0.1577)  2.464*** (0.1697)  2.196*** (0.1750)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,0)         0.9948*** (0.0532)    0.0081 (0.0584)   -0.0534 (0.0599)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,1)            0.0410 (0.0540)    0.0157 (0.0585) 0.9871*** (0.0613)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,-1)                           0.9940*** (0.0579)                   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,2)                                                  0.0220 (0.0607)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> l(x1,3)                                                  0.0102 (0.0598)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________ __________________</span>
@@ -160,13 +160,13 @@ and leads using the functions <code><a href="l.html">l</a></code> and <code><a h
 <span class="r-in"><span><span class="co"># or using the argument panel.id</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="fu"><a href="l.html">f</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">~</span><span class="fu"><a href="l.html">l</a></span><span class="op">(</span><span class="va">x1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">:</span><span class="fl">1</span><span class="op">)</span>, <span class="va">base_did</span>, panel.id <span class="op">=</span> <span class="op">~</span><span class="va">id</span><span class="op">+</span><span class="va">period</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: 216 observations removed because of NA values (LHS: 108, RHS: 216).</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: f(y, 1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> OLS estimation, Dep. Var.: f(y)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 864</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Standard-errors: IID </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error   t value  Pr(&gt;|t|)    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.464313   0.169710 14.520756 &lt; 2.2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> f(x1, 1)    0.994018   0.057861 17.179278 &lt; 2.2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.008072   0.058400  0.138217   0.89010    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1, -1)   0.994018   0.057861 17.179278 &lt; 2.2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> l(x1, 0)    0.008072   0.058400  0.138217   0.89010    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> l(x1, 1)    0.015693   0.058540  0.268068   0.78871    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>

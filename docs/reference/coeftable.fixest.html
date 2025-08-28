@@ -285,17 +285,17 @@ coefficient with <code>res$x1$coef</code>, etc.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="coeftable.html">tstat</a></span><span class="op">(</span><span class="va">est_iv</span>, keep <span class="op">=</span> <span class="st">"x1"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       x1 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5.911718 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7.960735 </span>
 <span class="r-in"><span><span class="fu"><a href="coeftable.html">coeftable</a></span><span class="op">(</span><span class="va">est_iv</span>, keep <span class="op">=</span> <span class="st">"x1|Int"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             Estimate Std. Error  t value     Pr(&gt;|t|)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.438955 0.34136243 7.144766 3.882920e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.559183 0.09458892 5.911718 2.269464e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.438955 0.25349903 9.621160 2.688392e-17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.559183 0.07024264 7.960735 4.261663e-13</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="coeftable.html">coeftable</a></span><span class="op">(</span><span class="va">est_iv</span>, order <span class="op">=</span> <span class="st">"!Int"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>              Estimate Std. Error   t value     Pr(&gt;|t|)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> fit_x2      0.4509765 0.02416890 18.659374 1.336716e-40</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.5591830 0.09458892  5.911718 2.269464e-08</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.4389548 0.34136243  7.144766 3.882920e-11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> fit_x2      0.4509765 0.01794806 25.126759 4.556383e-55</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1          0.5591830 0.07024264  7.960735 4.261663e-13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 2.4389548 0.25349903  9.621160 2.688392e-17</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#</span></span></span>
 <span class="r-in"><span><span class="co"># Using lists</span></span></span>
@@ -315,7 +315,7 @@ coefficient with <code>res$x1$coef</code>, etc.</p>
 <span class="r-in"><span><span class="co"># pvalue of x1</span></span></span>
 <span class="r-in"><span><span class="va">res</span><span class="op">$</span><span class="va">x1</span><span class="op">$</span><span class="va">pvalue</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Pr(&gt;|t|) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2.269464e-08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4.261663e-13 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>

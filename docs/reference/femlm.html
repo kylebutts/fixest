@@ -57,7 +57,7 @@
 <span>  <span class="va">vcov</span>,</span>
 <span>  start <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  <span class="va">fixef</span>,</span>
-<span>  fixef.rm <span class="op">=</span> <span class="st">"perfect"</span>,</span>
+<span>  fixef.rm <span class="op">=</span> <span class="st">"perfect_fit"</span>,</span>
 <span>  <span class="va">offset</span>,</span>
 <span>  <span class="va">subset</span>,</span>
 <span>  <span class="va">split</span>,</span>
@@ -78,7 +78,7 @@
 <span>  warn <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  notes <span class="op">=</span> <span class="fu"><a href="setFixest_notes.html">getFixest_notes</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="va">theta.init</span>,</span>
-<span>  <span class="va">combine.quick</span>,</span>
+<span>  fixef.keep_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mem.clean <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  only.env <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  only.coef <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -94,7 +94,7 @@
 <span>  <span class="va">theta.init</span>,</span>
 <span>  start <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  <span class="va">fixef</span>,</span>
-<span>  fixef.rm <span class="op">=</span> <span class="st">"perfect"</span>,</span>
+<span>  fixef.rm <span class="op">=</span> <span class="st">"perfect_fit"</span>,</span>
 <span>  <span class="va">offset</span>,</span>
 <span>  <span class="va">subset</span>,</span>
 <span>  <span class="va">split</span>,</span>
@@ -114,7 +114,7 @@
 <span>  verbose <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  warn <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  notes <span class="op">=</span> <span class="fu"><a href="setFixest_notes.html">getFixest_notes</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  <span class="va">combine.quick</span>,</span>
+<span>  fixef.keep_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mem.clean <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  only.env <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  only.coef <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -179,12 +179,27 @@ insert them directly in the formula.</p></dd>
 
 
 <dt id="arg-fixef-rm">fixef.rm<a class="anchor" aria-label="anchor" href="#arg-fixef-rm"></a></dt>
-<dd><p>Can be equal to "perfect" (default), "singleton", "both" or "none".
-Controls which observations are to be removed. If "perfect", then observations
-having a fixed-effect with perfect fit (e.g. only 0 outcomes in Poisson estimations)
-will be removed. If "singleton", all observations for which a fixed-effect appears
-only once will be removed. Note, importantly, that singletons are removed in just one pass,
-there is no recursivity implemented. The meaning of "both" and "none" is direct.</p></dd>
+<dd><p>Can be equal to "perfect_fit" (default), "singletons", "infinite_coef"
+or "none".</p>
+<p>This option controls which observations should be removed prior to the estimation.
+If "singletons", fixed-effects associated to a single observation are removed
+(since they perfectly explain it).</p>
+<p>The value "infinite_coef" only works with GLM families with limited left hand sides (LHS)
+and exponential link.
+For instance the Poisson family for which the LHS cannot be lower than 0, or the logit
+family for which the LHS lies within 0 and 1.
+In that case the fixed-effects (FEs) with only-0 LHS would lead to infinite coefficients
+(FE = -Inf would explain perfectly the LHS).
+The value <code>fixef.rm="infinite_coef"</code> removes all observations associated to FEs with
+infinite coefficients.</p>
+<p>If "perfect_fit", it is equivalent to "singletons" and "infinite_coef" combined.
+That means all observations that are perfectly explained by the FEs are removed.</p>
+<p>If "none": no observation is removed.</p>
+<p>Note that whathever the value of this options: the coefficient estimates
+will remain the same. It only affects inference (the standard-errors).</p>
+<p>The algorithm is recursive, meaning that, e.g. in the presence of several fixed-effects (FEs),
+removing singletons in one FE can create singletons (or perfect fits) in another FE.
+The algorithm continues until there is no singleton/perfect-fit remaining.</p></dd>
 
 
 <dt id="arg-offset">offset<a class="anchor" aria-label="anchor" href="#arg-offset"></a></dt>
@@ -323,7 +338,7 @@ of threads used within this package using the function <code><a href="setFixest_
 
 
 <dt id="arg-lean">lean<a class="anchor" aria-label="anchor" href="#arg-lean"></a></dt>
-<dd><p>Logical, default is <code>FALSE</code>. If <code>TRUE</code> then all large objects are removed
+<dd><p>Logical scalar, default is <code>FALSE</code>. If <code>TRUE</code> then all large objects are removed
 from the returned result: this will save memory but will block the possibility to
 use many methods. It is recommended to use the arguments <code>se</code> or <code>cluster</code> to
 obtain the appropriate standard-errors at estimation time, since obtaining different
@@ -357,32 +372,33 @@ parameter if <code>family="negbin"</code>. By default, the algorithm uses as a s
 the theta obtained from the model with only the intercept.</p></dd>
 
 
-<dt id="arg-combine-quick">combine.quick<a class="anchor" aria-label="anchor" href="#arg-combine-quick"></a></dt>
-<dd><p>Logical. When you combine different variables to transform them
-into a single fixed-effects you can do e.g. <code>y ~ x | paste(var1, var2)</code>.
+<dt id="arg-fixef-keep-names">fixef.keep_names<a class="anchor" aria-label="anchor" href="#arg-fixef-keep-names"></a></dt>
+<dd><p>Logical or <code>NULL</code> (default). When you combine different
+variables to transform them into a single fixed-effects you can do
+e.g. <code>y ~ x | paste(var1, var2)</code>.
 The algorithm provides a shorthand to do the same operation: <code>y ~ x | var1^var2</code>.
 Because pasting variables is a costly operation, the internal algorithm may use a
 numerical trick to hasten the process. The cost of doing so is that you lose the labels.
 If you are interested in getting the value of the fixed-effects coefficients
-after the estimation, you should use <code>combine.quick = FALSE</code>. By default it is
-equal to <code>FALSE</code> if the number of observations is lower than 50,000, and to <code>TRUE</code>
+after the estimation, you should use <code>fixef.keep_names = TRUE</code>. By default it is
+equal to <code>TRUE</code> if the number of unique values is lower than 50,000, and to <code>FALSE</code>
 otherwise.</p></dd>
 
 
 <dt id="arg-mem-clean">mem.clean<a class="anchor" aria-label="anchor" href="#arg-mem-clean"></a></dt>
-<dd><p>Logical, default is <code>FALSE</code>. Only to be used if the data set is
+<dd><p>Logical scalar, default is <code>FALSE</code>. Only to be used if the data set is
 large compared to the available RAM. If <code>TRUE</code> then intermediary objects are removed as
 much as possible and <code><a href="https://rdrr.io/r/base/gc.html" class="external-link">gc</a></code> is run before each substantial C++ section in the internal
 code to avoid memory issues.</p></dd>
 
 
 <dt id="arg-only-env">only.env<a class="anchor" aria-label="anchor" href="#arg-only-env"></a></dt>
-<dd><p>(Advanced users.) Logical, default is <code>FALSE</code>. If <code>TRUE</code>, then only
+<dd><p>(Advanced users.) Logical scalar, default is <code>FALSE</code>. If <code>TRUE</code>, then only
 the environment used to make the estimation is returned.</p></dd>
 
 
 <dt id="arg-only-coef">only.coef<a class="anchor" aria-label="anchor" href="#arg-only-coef"></a></dt>
-<dd><p>Logical, default is <code>FALSE</code>. If <code>TRUE</code>, then only the estimated
+<dd><p>Logical scalar, default is <code>FALSE</code>. If <code>TRUE</code>, then only the estimated
 coefficients are returned. Note that the length of the vector returned is always
 the length of the number of coefficients to be estimated: this means that the
 variables found to be collinear are returned with an NA value.</p></dd>
@@ -541,14 +557,12 @@ The syntax is as follows: <code>fe_1^fe_2</code>. Here you created a new variabl
 of the two variables fe_1 and fe_2. This is identical to doing <code>paste0(fe_1, "_", fe_2)</code>
 but more convenient.</p>
 <p>Note that pasting is a costly operation, especially for large data sets.
-Thus, the internal algorithm uses a numerical trick which is fast, but the drawback is
-that the identity of each observation is lost (i.e. they are now equal to a meaningless
-number instead of being equal to <code>paste0(fe_1, "_", fe_2)</code>). These “identities”
-are useful only if you're interested in the value of the fixed-effects (that you can
-extract with <code><a href="fixef.fixest.html">fixef.fixest</a></code>). If you're only interested in coefficients of the variables,
-it doesn't matter. Anyway, you can use <code>combine.quick = FALSE</code> to tell the internal
-algorithm to use <code>paste</code> instead of the numerical trick. By default, the numerical
-trick is performed only for large data sets.</p>
+Hence, by default this paste is done only when the number of unique values
+is lower than 50,000 observations.</p>
+<p>In case you are using a large data set and want to keep the identity of the fixed-effects,
+you need to use the argument <code>fixef.keep_names = TRUE</code>.</p>
+<p>Note that these “identities” are useful only if you're interested in
+the value of the fixed-effects (that you can extract with <code><a href="fixef.fixest.html">fixef.fixest</a></code>).</p>
     </div>
     <div class="section level2">
     <h2 id="lagging-variables">Lagging variables<a class="anchor" aria-label="anchor" href="#lagging-variables"></a></h2>
@@ -686,33 +700,37 @@ This is particulary useful to batch multiple estimations with multiple left hand
 
 
 
-<p>In a formula, the dot square bracket (DSB) operator can: i) create manifold variables at once,
-or ii) capture values from the current environment and put them verbatim in the formula.</p>
+<p>In a formula, the dot square bracket (DSB) operator can: i) create manifold variables
+at once, or ii) capture values from the current environment and put them
+verbatim in the formula.</p>
 <p>Say you want to include the variables <code>x1</code> to <code>x3</code> in your formula. You can use
 <code>xpd(y ~ x.[1:3])</code> and you'll get <code>y ~ x1 + x2 + x3</code>.</p>
-<p>To summon values from the environment, simply put the variable in square brackets. For example:
-<code>for(i in 1:3) xpd(y.[i] ~ x)</code> will create the formulas <code>y1 ~ x</code> to <code>y3 ~ x</code> depending on the
-value of <code>i</code>.</p>
+<p>To summon values from the environment, simply put the variable in square brackets.
+For example:
+<code>for(i in 1:3) xpd(y.[i] ~ x)</code> will create the formulas <code>y1 ~ x</code> to <code>y3 ~ x</code>
+depending on the value of <code>i</code>.</p>
 <p>You can include a full variable from the environment in the same way:
 <code>for(y in c("a", "b")) xpd(.[y] ~ x)</code> will create the two formulas <code>a ~ x</code> and <code>b ~ x</code>.</p>
 <p>The DSB can even be used within variable names, but then the variable must be nested in
 character form. For example <code>y ~ .["x.[1:2]_sq"]</code> will create <code>y ~ x1_sq + x2_sq</code>. Using the
-character form is important to avoid a formula parsing error. Double quotes must be used. Note
-that the character string that is nested will be parsed with the function <code><a href="dsb.html">dsb</a></code>, and thus it
-will return a vector.</p>
-<p>By default, the DSB operator expands vectors into sums. You can add a comma, like in <code>.[, x]</code>,
+character form is important to avoid a formula parsing error.
+Double quotes must be used. Note that the character string that is nested will
+be parsed with the function <code><a href="dsb.html">dsb</a></code>, and thus it will return a vector.</p>
+<p>By default, the DSB operator expands vectors into sums. You can add a comma,
+like in <code>.[, x]</code>,
 to expand with commas–the content can then be used within functions. For instance:
 <code>c(x.[, 1:2])</code> will create <code>c(x1, x2)</code> (and <em>not</em> <code>c(x1 + x2)</code>).</p>
 <p>In all <code>fixest</code> estimations, this special parsing is enabled, so you don't need to use <code>xpd</code>.</p>
 <p>One-sided formulas can be expanded with the DSB operator: let <code>x = ~sepal + petal</code>, then
 <code>xpd(y ~ .[x])</code> leads to <code>color ~ sepal + petal</code>.</p>
-<p>You can even use multiple square brackets within a single variable, but then the use of nesting
-is required. For example, the following <code>xpd(y ~ .[".[letters[1:2]]_.[1:2]"])</code> will create
+<p>You can even use multiple square brackets within a single variable,
+but then the use of nesting is required.
+For example, the following <code>xpd(y ~ .[".[letters[1:2]]_.[1:2]"])</code> will create
 <code>y ~ a_1 + b_2</code>. Remember that the nested character string is parsed with <code><a href="dsb.html">dsb</a></code>,
 which explains this behavior.</p>
-<p>When the element to be expanded i) is equal to the empty string or, ii) is of length 0, it is
-replaced with a neutral element, namely <code>1</code>. For example, <code>x = "" ; xpd(y ~ .[x])</code> leads to
-<code>y ~ 1</code>.</p>
+<p>When the element to be expanded i) is equal to the empty string or,
+ii) is of length 0, it is replaced with a neutral element, namely <code>1</code>.
+For example, <code>x = "" ; xpd(y ~ .[x])</code> leads to <code>y ~ 1</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

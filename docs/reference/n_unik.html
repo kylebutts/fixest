@@ -186,17 +186,17 @@ cardinal product of all double negatived conditions is returned.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># number of unique id values and id x period pairs</span></span></span>
 <span class="r-in"><span><span class="fu">n_unik</span><span class="op">(</span><span class="va">data</span> <span class="op">~</span><span class="va">.N</span> <span class="op">+</span> <span class="va">id</span> <span class="op">+</span> <span class="va">id</span><span class="op">^</span><span class="va">period</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Observations: 1,080 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##             id:   108 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##      id^period: 1,080 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                       # Observations: 1,080 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                                   id:   108 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## combine_fixef_drop_names(id, period): 1,080 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># use the %^% operator to include the terms on the two sides at once</span></span></span>
 <span class="r-in"><span><span class="co"># =&gt; same as id*period</span></span></span>
 <span class="r-in"><span><span class="fu">n_unik</span><span class="op">(</span><span class="va">data</span> <span class="op">~</span><span class="va">.N</span> <span class="op">+</span> <span class="va">id</span> <span class="op">%^%</span> <span class="va">period</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Observations: 1,080 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##             id:   108 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##         period:    10 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##      id^period: 1,080 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                       # Observations: 1,080 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                                   id:   108 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                               period:    10 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## combine_fixef_drop_names(id, period): 1,080 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># using sub selection with []</span></span></span>
 <span class="r-in"><span><span class="fu">n_unik</span><span class="op">(</span><span class="va">data</span> <span class="op">~</span><span class="va">.N</span> <span class="op">+</span> <span class="va">period</span><span class="op">[</span><span class="op">!</span><span class="cn">NA</span><span class="op">(</span><span class="va">x1.L1</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></span>
@@ -255,24 +255,24 @@ cardinal product of all double negatived conditions is returned.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># You can use db1:db2 to compare the common keys in two data sets</span></span></span>
 <span class="r-in"><span> <span class="fu">n_unik</span><span class="op">(</span><span class="va">base_main</span><span class="op">:</span><span class="va">base_extra</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##                 base_main base_extra </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Observations:     1,080        100 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##             id:       108         66 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Exclusive   |        52         10 # Common: 56</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##         period:        10         20 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Exclusive   |         0         10 # Common: 10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##      id^period:     1,080        100 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Exclusive   |     1,000         20 # Common: 80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                                       base_main base_extra </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                       # Observations:     1,080        100 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                                   id:       108         66 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Exclusive                         |        52         10 # Common:  56</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                               period:        10         20 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Exclusive                         |         0         10 # Common:  10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## combine_fixef_drop_names(id, period):     1,080        100 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## # Exclusive                         |       980          0 # Common: 100</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">tmp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">base_main</span>, <span class="va">base_extra</span>, all.x <span class="op">=</span> <span class="cn">TRUE</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"period"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># You can show unique values for any variable, as before</span></span></span>
 <span class="r-in"><span><span class="fu">n_unik</span><span class="op">(</span><span class="va">tmp</span> <span class="op">+</span> <span class="va">base_main</span> <span class="op">+</span> <span class="va">base_extra</span> <span class="op">~</span> <span class="va">id</span><span class="op">[</span><span class="op">!</span><span class="op">!</span><span class="cn">NA</span><span class="op">(</span><span class="va">z</span><span class="op">)</span><span class="op">]</span> <span class="op">+</span> <span class="va">id</span><span class="op">^</span><span class="va">period</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##               tmp base_main base_extra</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##         id:   108       108         66</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##  id[NA(z)]:   108        --          0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ## id[!NA(z)]:    51        --         66</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ##  id^period: 1,080     1,080        100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                                         tmp base_main base_extra</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                                   id:   108       108         66</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                            id[NA(z)]:   108        --          0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ##                           id[!NA(z)]:    51        --         66</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ## combine_fixef_drop_names(id, period): 1,080     1,080        100</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>

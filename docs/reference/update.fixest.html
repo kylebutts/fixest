@@ -57,10 +57,26 @@ This function updates the formulas and use previous starting values to estimate 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'fixest'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">fml.update</span>, nframes <span class="op">=</span> <span class="fl">1</span>, evaluate <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  fml.update <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  fml <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nframes <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  use_calling_env <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  evaluate <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'fixest_multi'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">fml.update</span>, nframes <span class="op">=</span> <span class="fl">1</span>, evaluate <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  fml.update <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  fml <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nframes <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  use_calling_env <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  evaluate <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -73,15 +89,37 @@ This function updates the formulas and use previous starting values to estimate 
 
 
 <dt id="arg-fml-update">fml.update<a class="anchor" aria-label="anchor" href="#arg-fml-update"></a></dt>
-<dd><p>Changes to be made to the original argument <code>fml</code>. See more information
-on <code><a href="https://rdrr.io/r/stats/update.formula.html" class="external-link">update.formula</a></code>. You can add/withdraw both variables
-and fixed-effects. E.g. <code>. ~ . + x2 | . + z2</code> would add the variable <code>x2</code> and the
-fixed-effect <code>z2</code> to the former estimation.</p></dd>
+<dd><p>A formula representing the changes to be made to the original
+formula. By default it is <code>NULL</code>.
+Use a dot to refer to the previous variables in the current part.
+For example: <code>. ~ . + xnew</code> will add the variable <code>xnew</code> as an explanatory variable.
+Note that the previous fixed-effects (FEs) and IVs are implicitly forwarded.
+To rerun without the FEs or the IVs, you need to set them to 0 in their respective slot.
+Ex, assume the original formula is: <code>y ~ x | fe | endo ~ inst</code>, passing <code>. ~ . + xnew</code>
+to fml.update leads to <code>y ~ x + xnew | fe | endo ~ inst</code> (FEs and IVs are forwarded).
+To add xnew and remove the IV part: use <code>. ~ . + xnew | . | 0</code> which leads to
+<code>y ~ x + xnew | fe</code>.</p></dd>
+
+
+<dt id="arg-fml">fml<a class="anchor" aria-label="anchor" href="#arg-fml"></a></dt>
+<dd><p>A formula, default is <code>NULL</code>. If provided, it will completely override
+the value in <code>fml.update</code>, which will be ignored. Note that this formula will be
+used for the new estimation, without any modification.</p></dd>
 
 
 <dt id="arg-nframes">nframes<a class="anchor" aria-label="anchor" href="#arg-nframes"></a></dt>
-<dd><p>(Advanced users.) Defaults to 1. Number of frames up the stack where
-to perform the evaluation of the updated call. By default, this is the parent frame.</p></dd>
+<dd><p>(Advanced users.) Defaults to 1. Only used if the argument
+<code>use_calling_env</code> is <code>FALSE</code>.
+Number of frames up the stack where to perform the evaluation of the updated call.
+By default, this is the parent frame.</p></dd>
+
+
+<dt id="arg-use-calling-env">use_calling_env<a class="anchor" aria-label="anchor" href="#arg-use-calling-env"></a></dt>
+<dd><p>Logical scalar, default is <code>TRUE</code>. If <code>TRUE</code> then the evaluation
+of the call will be done within the environment that called the initial estimation.
+This is mostly useful when the <code>fixest</code> object has been created through a custom
+function, so that the new evaluation can use the variables within the enclosure of
+the function.</p></dd>
 
 
 <dt id="arg-evaluate">evaluate<a class="anchor" aria-label="anchor" href="#arg-evaluate"></a></dt>
@@ -98,7 +136,8 @@ to perform the evaluation of the updated call. By default, this is the parent fr
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p>See also the main estimation functions <code><a href="femlm.html">femlm</a></code>, <code><a href="feols.html">feols</a></code> or <code><a href="feglm.html">feglm</a></code>. <code><a href="predict.fixest.html">predict.fixest</a></code>, <code><a href="summary.fixest.html">summary.fixest</a></code>, <code><a href="vcov.fixest.html">vcov.fixest</a></code>, <code><a href="fixef.fixest.html">fixef.fixest</a></code>.</p></div>
+    <div class="dont-index"><p>See also the main estimation functions <code><a href="femlm.html">femlm</a></code>, <code><a href="feols.html">feols</a></code> or <code><a href="feglm.html">feglm</a></code>.
+<code><a href="predict.fixest.html">predict.fixest</a></code>, <code><a href="summary.fixest.html">summary.fixest</a></code>, <code><a href="vcov.fixest.html">vcov.fixest</a></code>, <code><a href="fixef.fixest.html">fixef.fixest</a></code>.</p></div>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>

@@ -649,24 +649,28 @@ of regular expressions, I urge you to learn it, since it is an extremely powerfu
 to manipulate character strings (and it exists across most programming languages).</p>
 <p>For example drop = "Wind" would drop any variable whose name contains "Wind". Note that
 variables such as "Temp:Wind" or "StrongWind" do contain "Wind", so would be dropped.
-To drop only the variable named "Wind", you need to use <code>drop = "^Wind$"</code> (with "^" meaning
-beginning, resp. "$" meaning end, of the string =&gt; this is the language of regular expressions).</p>
-<p>Although you can combine several regular expressions in a single character string using pipes,
-<code>drop</code> also accepts a vector of regular expressions.</p>
-<p>You can use the special character "!" (exclamation mark) to reverse the effect of the regular
-expression (this feature is specific to this function). For example <code>drop = "!Wind"</code> would drop
-any variable that does not contain "Wind".</p>
-<p>You can use the special character "%" (percentage) to make reference to the original variable
-name instead of the aliased name. For example, you have a variable named <code>"Month6"</code>, and use a
-dictionary <code>dict = c(Month6="June")</code>. Thus the variable will be displayed as <code>"June"</code>. If you
-want to delete that variable, you can use either <code>drop="June"</code>, or <code>drop="%Month6"</code> (which makes
-reference to its original name).</p>
+To drop only the variable named "Wind", you need to use
+<code>drop = "^Wind$"</code> (with "^" meaning beginning, resp. "$" meaning end,
+of the string =&gt; this is the language of regular expressions).</p>
+<p>Although you can combine several regular expressions in a single character
+string using pipes, <code>drop</code> also accepts a vector of regular expressions.</p>
+<p>You can use the special character "!" (exclamation mark) to reverse the effect
+of the regular expression (this feature is specific to this function).
+For example <code>drop = "!Wind"</code> would drop any variable that does not contain "Wind".</p>
+<p>You can use the special character "%" (percentage) to make reference to the
+original variable name instead of the aliased name. For example, you have a
+variable named <code>"Month6"</code>, and use a dictionary <code>dict = c(Month6="June")</code>.
+Thus the variable will be displayed as <code>"June"</code>.
+If you want to delete that variable, you can use either <code>drop="June"</code>,
+or <code>drop="%Month6"</code> (which makes reference to its original name).</p>
 <p>The argument <code>order</code> takes in a vector of regular expressions, the order will follow the
-elements of this vector. The vector gives a list of priorities, on the left the elements with
-highest priority. For example, order = c("Wind", "!Inter", "!Temp") would give highest
-priorities to the variables containing "Wind" (which would then appear first), second highest
-priority is the variables not containing "Inter", last, with lowest priority, the variables not
-containing "Temp". If you had the following variables: (Intercept), Temp:Wind, Wind, Temp you
+elements of this vector. The vector gives a list of priorities,
+on the left the elements with highest priority.
+For example, order = c("Wind", "!Inter", "!Temp") would give highest priorities to
+the variables containing "Wind" (which would then appear first),
+second highest priority is the variables not containing "Inter", last,
+with lowest priority, the variables not containing "Temp".
+If you had the following variables: (Intercept), Temp:Wind, Wind, Temp you
 would end up with the following order: Wind, Temp:Wind, Temp, (Intercept).</p>
     </div>
     <div class="section level2">

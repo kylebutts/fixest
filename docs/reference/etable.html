@@ -259,6 +259,7 @@ render properly. See <code>setFixest_etable</code> to set the default values, an
 <span>  <span class="va">order</span>,</span>
 <span>  <span class="va">dict</span>,</span>
 <span>  <span class="va">float</span>,</span>
+<span>  signif.code <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fixef_sizes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  fixef_sizes.simplify <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">family</span>,</span>
@@ -551,7 +552,7 @@ default this line is displayed when at least two models are from different famil
 
 
 <dt id="arg-interaction-combine">interaction.combine<a class="anchor" aria-label="anchor" href="#arg-interaction-combine"></a></dt>
-<dd><p>Character scalar, defaults to <code>" $\\times$ "</code> for Tex and to <code>" = "</code>
+<dd><p>Character scalar, defaults to <code>" $\\times$ "</code> for Tex and to <code>" x "</code>
 otherwise. When the estimation contains interactions, then the variables names (after aliasing)
 are combined with this argument. For example: if <code>dict = c(x1="Wind", x2="Rain")</code> and you have
 the following interaction <code>x1:x2</code>, then it will be renamed (by default)
@@ -561,7 +562,7 @@ the following interaction <code>x1:x2</code>, then it will be renamed (by defaul
 <dt id="arg-interaction-order">interaction.order<a class="anchor" aria-label="anchor" href="#arg-interaction-order"></a></dt>
 <dd><p>Character vector of regular expressions. Only affects variables that
 are interacted like x1 and x2 in <code>feols(y ~ x1*x2, data)</code>. You can change the order in which the
-interacted variables are displayed: e.g. <code>interaction.order = "x2"</code> would lead to "x1 x x2"
+interacted variables are displayed: e.g. <code>interaction.order = "x2"</code> would lead to "x2 x x1"
 instead of "x1 x x2". Please look at the argument 'order' and the dedicated section in the help
 page for more information.</p></dd>
 
@@ -674,7 +675,8 @@ respectively for dot-, parenthesis-, left-, center- and right-aligned.</p></dd>
 <dd><p>List containing coefficients to highlight.
 Highlighting is of the form <code>.("options1" = "coefs1", "options2" = "coefs2", etc)</code>.
 The coefficients to be highlighted can be written in three forms: 1) row, eg <code>"x1"</code> will
-highlight the full row of the variable <code>x1</code>; 2) cells, use <code>'@'</code> after the coefficient name to
+highlight the full row of the variable <code>x1</code>;
+2) cells, use <code>'@'</code> after the coefficient name to
 give the column, it accepts ranges, eg <code>"x1@2, 4-6, 8"</code> will highlight only the columns
 2, 4, 5, 6, and 8 of the variable <code>x1</code>; 3) range, by giving the top-left and
 bottom-right values separated with a semi-colon, eg <code>"x1@2 ; x3@5"</code> will highlight
@@ -688,7 +690,10 @@ row color instead. Here are the other options: <code>'se'</code> to highlight th
 to monitor the width of the box; <code>'sep0'</code> to <code>'sep9'</code> to monitor the inner spacing.
 Finally the remaining option is the color: simply add an R color (it must be a valid R color!).
 You can use <code>"color!alpha"</code> with "alpha" a number between 0 to 100 to change
-the alpha channel of the color.</p></dd>
+the alpha channel of the color.</p>
+<p>To be able to use use the highlighting feature, you need the
+following lines in your latex preamble: <code>\\usepackage{tikz}</code> and
+<code>\\usetikzlibrary{matrix, shapes, arrows, fit, tikzmark}</code></p></dd>
 
 
 <dt id="arg-coef-style">coef.style<a class="anchor" aria-label="anchor" href="#arg-coef-style"></a></dt>
@@ -903,10 +908,10 @@ if 'dir': the directory of the log files is returned.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>If <code>tex = TRUE</code>, the lines composing the Latex table are returned invisibly while the table
-is directly prompted on the console.</p>
-<p>If <code>tex = FALSE</code>, the data.frame is directly returned. If the argument <code>file</code> is not missing,
-the <code>data.frame</code> is printed and returned invisibly.</p>
+    <p>If <code>tex = TRUE</code>, the lines composing the Latex table are returned invisibly while
+the table is directly prompted on the console.</p>
+<p>If <code>tex = FALSE</code>, the data.frame is directly returned. If the argument <code>file</code> is
+not missing, the <code>data.frame</code> is printed and returned invisibly.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -917,10 +922,11 @@ the <code>\\toprule</code>, <code>\\midrule</code> and <code>\\bottomrule</code>
 <p>You can permanently change the way your table looks in Latex by using <code>setFixest_etable</code>.
 The following vignette gives an example as well as illustrates how to use the <code>style</code> and
 postprocessing functions: <a href="https://lrberge.github.io/fixest/articles/exporting_tables.html">Exporting estimation tables</a>.</p>
-<p>When the argument <code>postprocess.tex</code> is not missing, two additional tags will be included in the
-character vector returned by <code>etable</code>: <code>"%start:tab\\n"</code> and <code>"%end:tab\\n"</code>. These can be used
-to identify the start and end of the tabular and are useful to insert code within the <code>table</code>
-environment.</p>
+<p>When the argument <code>postprocess.tex</code> is not missing, two additional tags will
+be included in the character vector returned by <code>etable</code>:
+<code>"%start:tab\\n"</code> and <code>"%end:tab\\n"</code>. These can be used
+to identify the start and end of the tabular and are useful to insert code
+within the <code>table</code> environment.</p>
     </div>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
@@ -929,22 +935,60 @@ environment.</p>
 <li><p><code>esttex()</code>: Exports the results of multiple <code>fixest</code> estimations in a Latex table.</p></li>
 </ul></div>
     <div class="section level2">
+    <h2 id="latex-dependencies">Latex dependencies<a class="anchor" aria-label="anchor" href="#latex-dependencies"></a></h2>
+
+
+
+<p>Some features require specific Latex dependencies, these are:</p><ul><li><p>always needed: <code>\\usepackage{booktabs}</code>, <code>\\usepackage{array}</code>,
+<code>\\usepackage{multirow}</code>, <code>\\usepackage{amsmath}</code>, <code>\\usepackage{amssymb}</code></p></li>
+<li><p>if there are line break within cells: <code>\\usepackage{makecell}</code></p></li>
+<li><p>if the tabularx environment is used: <code>\\usepackage{tabularx}</code></p></li>
+<li><p>if threeparttable notes are used: <code>\\usepackage[flushleft]{threeparttable}</code></p></li>
+<li><p>if you use adjustbox: <code>\\usepackage{adjustbox}</code></p></li>
+<li><p>if you use any kind of colors in the table: <code>\\usepackage[dvipsnames,table]{xcolor}</code></p></li>
+<li><p>if you highlight cells with a box: <code>\\usepackage{tikz}</code> and
+<code>\\usetikzlibrary{matrix, shapes, arrows, fit, tikzmark}</code></p></li>
+<li><p>if you highlight rows using the background color: <code>\\usepackage{colortbl}</code></p></li>
+</ul><p>Here is a summary:</p>
+<div class="sourceCode"><pre><code>
+% required
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% optionnal, dependent on context
+\usepackage{makecell}
+\usepackage{tabularx}
+\usepackage[flushleft]{threeparttable}
+\usepackage{adjustbox}
+\usepackage[dvipsnames,table]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{matrix, shapes, arrows, fit, tikzmark}
+\usepackage{colortbl}
+</code></pre></div>
+
+    </div>
+    <div class="section level2">
     <h2 id="how-does-digits-handle-the-number-of-decimals-displayed-">How does <code>digits</code> handle the number of decimals displayed?<a class="anchor" aria-label="anchor" href="#how-does-digits-handle-the-number-of-decimals-displayed-"></a></h2>
 
 
 
 <p>The default display of decimals is the outcome of an algorithm. Let's take the example
 of <code>digits = 3</code> which "kind of" requires 3 significant digits to be displayed.</p>
-<p>For numbers greater than 1 (in absolute terms), their integral part is always displayed and
-the number of decimals shown is equal to <code>digits</code> minus the number of digits in the integral
-part. This means that <code>12.345</code> will be displayed as <code>12.3</code>. If the number of decimals should
-be 0, then a single decimal is displayed to suggest that the number is not whole. This means
-that <code>1234.56</code> will be displayed as <code>1234.5</code>. Note that if the number is whole, no decimals
-are shown.</p>
+<p>For numbers greater than 1 (in absolute terms), their integral part is
+always displayed and the number of decimals shown is equal to <code>digits</code>
+minus the number of digits in the integral part.
+This means that <code>12.345</code> will be displayed as <code>12.3</code>.
+If the number of decimals should be 0, then a single decimal is displayed
+to suggest that the number is not whole. This means that <code>1234.56</code> will
+be displayed as <code>1234.5</code>. Note that if the number is whole, no decimals are shown.</p>
 <p>For numbers lower than 1 (in absolute terms), the number of decimals displayed is equal
-to <code>digits</code> except if there are only 0s in which case the first significant digit is shown.
-This means that <code>0.01234</code> will be displayed as <code>0.012</code> (first rule), and that 0.000123 will
-be displayed as <code>0.0001</code> (second rule).</p>
+to <code>digits</code> except if there are only 0s in which case the first significant
+digit is shown.
+This means that <code>0.01234</code> will be displayed as <code>0.012</code> (first rule),
+and that 0.000123 will be displayed as <code>0.0001</code> (second rule).</p>
     </div>
     <div class="section level2">
     <h2 id="arguments-keep-drop-and-order">Arguments keep, drop and order<a class="anchor" aria-label="anchor" href="#arguments-keep-drop-and-order"></a></h2>
@@ -955,24 +999,28 @@ of regular expressions, I urge you to learn it, since it is an extremely powerfu
 to manipulate character strings (and it exists across most programming languages).</p>
 <p>For example drop = "Wind" would drop any variable whose name contains "Wind". Note that
 variables such as "Temp:Wind" or "StrongWind" do contain "Wind", so would be dropped.
-To drop only the variable named "Wind", you need to use <code>drop = "^Wind$"</code> (with "^" meaning
-beginning, resp. "$" meaning end, of the string =&gt; this is the language of regular expressions).</p>
-<p>Although you can combine several regular expressions in a single character string using pipes,
-<code>drop</code> also accepts a vector of regular expressions.</p>
-<p>You can use the special character "!" (exclamation mark) to reverse the effect of the regular
-expression (this feature is specific to this function). For example <code>drop = "!Wind"</code> would drop
-any variable that does not contain "Wind".</p>
-<p>You can use the special character "%" (percentage) to make reference to the original variable
-name instead of the aliased name. For example, you have a variable named <code>"Month6"</code>, and use a
-dictionary <code>dict = c(Month6="June")</code>. Thus the variable will be displayed as <code>"June"</code>. If you
-want to delete that variable, you can use either <code>drop="June"</code>, or <code>drop="%Month6"</code> (which makes
-reference to its original name).</p>
+To drop only the variable named "Wind", you need to use
+<code>drop = "^Wind$"</code> (with "^" meaning beginning, resp. "$" meaning end,
+of the string =&gt; this is the language of regular expressions).</p>
+<p>Although you can combine several regular expressions in a single character
+string using pipes, <code>drop</code> also accepts a vector of regular expressions.</p>
+<p>You can use the special character "!" (exclamation mark) to reverse the effect
+of the regular expression (this feature is specific to this function).
+For example <code>drop = "!Wind"</code> would drop any variable that does not contain "Wind".</p>
+<p>You can use the special character "%" (percentage) to make reference to the
+original variable name instead of the aliased name. For example, you have a
+variable named <code>"Month6"</code>, and use a dictionary <code>dict = c(Month6="June")</code>.
+Thus the variable will be displayed as <code>"June"</code>.
+If you want to delete that variable, you can use either <code>drop="June"</code>,
+or <code>drop="%Month6"</code> (which makes reference to its original name).</p>
 <p>The argument <code>order</code> takes in a vector of regular expressions, the order will follow the
-elements of this vector. The vector gives a list of priorities, on the left the elements with
-highest priority. For example, order = c("Wind", "!Inter", "!Temp") would give highest
-priorities to the variables containing "Wind" (which would then appear first), second highest
-priority is the variables not containing "Inter", last, with lowest priority, the variables not
-containing "Temp". If you had the following variables: (Intercept), Temp:Wind, Wind, Temp you
+elements of this vector. The vector gives a list of priorities,
+on the left the elements with highest priority.
+For example, order = c("Wind", "!Inter", "!Temp") would give highest priorities to
+the variables containing "Wind" (which would then appear first),
+second highest priority is the variables not containing "Inter", last,
+with lowest priority, the variables not containing "Temp".
+If you had the following variables: (Intercept), Temp:Wind, Wind, Temp you
 would end up with the following order: Wind, Temp:Wind, Temp, (Intercept).</p>
     </div>
     <div class="section level2">
@@ -980,27 +1028,30 @@ would end up with the following order: Wind, Temp:Wind, Temp, (Intercept).</p>
 
 
 
-<p>The argument <code>extralines</code> adds well... extra lines to the table. It accepts either a list, or a
-one-sided formula.</p>
-<p>For each line, you can define the values taken by each cell using 4 different ways: a) a vector,
-b) a list, c) a function, and d) a formula.</p>
-<p>If a vector, it should represent the values taken by each cell. Note that if the length of the
-vector is smaller than the number of models, its values are recycled across models, but the
-length of the vector is required to be a divisor of the number of models.</p>
-<p>If a list, it should be of the form <code>list("item1" = #item1, "item2" = #item2, etc)</code>. For example
-<code>list("A"=2, "B"=3)</code> leads to <code>c("A", "A", "B", "B", "B")</code>. Note that if the number of items is
-1, you don't need to add <code>= 1</code>. For example <code>list("A"=2, "B")</code> is valid and leads to
+<p>The argument <code>extralines</code> adds well... extra lines to the table.
+It accepts either a list, or a one-sided formula.</p>
+<p>For each line, you can define the values taken by each cell using 4 different ways:
+a) a vector, b) a list, c) a function, and d) a formula.</p>
+<p>If a vector, it should represent the values taken by each cell. Note that if the
+length of the vector is smaller than the number of models, its values are
+recycled across models, but the length of the vector is required to be a
+divisor of the number of models.</p>
+<p>If a list, it should be of the form <code>list("item1" = #item1, "item2" = #item2, etc)</code>.
+For example <code>list("A"=2, "B"=3)</code> leads to <code>c("A", "A", "B", "B", "B")</code>.
+Note that if the number of items is 1, you don't need to add <code>= 1</code>.
+For example <code>list("A"=2, "B")</code> is valid and leads to
 <code>c("A", "A", "B"</code>. As for the vector the values are recycled if necessary.</p>
 <p>If a function, it will be applied to each model and should return a scalar (<code>NA</code> values
 returned are accepted).</p>
 <p>If a formula, it must be one-sided and the elements in the formula must represent either
-<code>extralines</code> macros, either fit statistics (i.e. valid types of the function <code><a href="fitstat.html">fitstat</a></code>). One
-new line will be added for each element of the formula. To register <code>extralines</code> macros, you
-must first register them in <code><a href="extralines_register.html">extralines_register</a></code>.</p>
-<p>Finally, you can combine as many lines as wished by nesting them in a list. The names of the
-nesting list are the row titles (values in the leftmost cell). For example
-<code>extralines = list(~r2, Controls = TRUE, Group = list("A"=2, "B"))</code> will add three lines,
-the titles of which are "R2", "Controls" and "Group".</p>
+<code>extralines</code> macros, either fit statistics (i.e. valid types of
+the function <code><a href="fitstat.html">fitstat</a></code>).
+One new line will be added for each element of the formula.
+To register <code>extralines</code> macros, you must first register them in <code><a href="extralines_register.html">extralines_register</a></code>.</p>
+<p>Finally, you can combine as many lines as wished by nesting them in a list.
+The names of the nesting list are the row titles (values in the leftmost cell).
+For example <code>extralines = list(~r2, Controls = TRUE, Group = list("A"=2, "B"))</code> will
+add three lines, the titles of which are "R2", "Controls" and "Group".</p>
     </div>
     <div class="section level2">
     <h2 id="controlling-the-placement-of-extra-lines">Controlling the placement of extra lines<a class="anchor" aria-label="anchor" href="#controlling-the-placement-of-extra-lines"></a></h2>
@@ -1008,23 +1059,29 @@ the titles of which are "R2", "Controls" and "Group".</p>
 
 
 <p>The arguments <code>group</code>, <code>extralines</code> and <code>fixef.group</code> allow to add customized lines in the
-table. They can be defined via a list where the list name will be the row name. By default, the
-placement of the extra line is right after the coefficients (except for <code>fixef.group</code>, covered
-in the last paragraph). For instance, <code>group = list("Controls" = "x[[:digit:]]")</code> will create a
+table. They can be defined via a list where the list name will be the row name.
+By default, the placement of the extra line is right after the coefficients
+(except for <code>fixef.group</code>, covered in the last paragraph).
+For instance, <code>group = list("Controls" = "x[[:digit:]]")</code> will create a
 line right after the coefficients telling which models contain the control variables.</p>
-<p>But the placement can be customized. The previous example (of the controls) will be used for
-illustration (the mechanism for <code>extralines</code> and <code>fixef.group</code> is identical).</p>
-<p>The row names accept 2 special characters at the very start. The first character tells in which
-section the line should appear: it can be equal to <code>"^"</code>, <code>"-"</code>, or <code>"_"</code>, meaning respectively
-the coefficients, the fixed-effects and the statistics section (which typically appear at the
-top, mid and bottom of the table). The second one governs the placement of the new line within
+<p>But the placement can be customized. The previous example (of the controls) will
+be used for illustration (the mechanism for <code>extralines</code> and <code>fixef.group</code> is identical).</p>
+<p>The row names accept 2 special characters at the very start.
+The first character tells in which section the line should appear:
+it can be equal to <code>"^"</code>, <code>"-"</code>, or <code>"_"</code>, meaning respectively
+the coefficients, the fixed-effects and the statistics section
+(which typically appear at the top, mid and bottom of the table).
+The second one governs the placement of the new line within
 the section: it can be equal to <code>"^"</code>, meaning first line, or <code>"_"</code>, meaning last line.</p>
-<p>Let's have some examples. Using the previous example, writing <code>"_^Controls"</code> would place the new
-line at the top of the statistics section. Writing <code>"-_Controls"</code> places it as the last row of
-the fixed-effects section; <code>"^^Controls"</code> at the top row of the coefficients section; etc...</p>
-<p>The second character is optional, the default placement being in the bottom. This means that
-<code>"_Controls"</code> would place it at the bottom of the statistics section.</p>
-<p>The placement in <code>fixef.group</code> is defined similarly, only the default placement is different.
+<p>Let's have some examples. Using the previous example, writing <code>"_^Controls"</code>
+would place the new line at the top of the statistics section.
+Writing <code>"-_Controls"</code> places it as the last row of
+the fixed-effects section; <code>"^^Controls"</code> at the top row of
+the coefficients section; etc...</p>
+<p>The second character is optional, the default placement being in the bottom.
+This means that <code>"_Controls"</code> would place it at the bottom of the statistics section.</p>
+<p>The placement in <code>fixef.group</code> is defined similarly, only the default
+placement is different.
 Its default placement is at the top of the fixed-effects section.</p>
     </div>
     <div class="section level2">
@@ -1033,9 +1090,10 @@ Its default placement is at the top of the fixed-effects section.</p>
 
 
 <p>By default on all instances (with the notable exception of the elements of <code><a href="style.tex.html">style.tex</a></code>)
-special Latex characters are escaped. This means that <code>caption="Exports in million $."</code> will be
-exported as <code>"Exports in million \\$."</code>: the dollar sign will be escaped. This is true for the
-following characters: &amp;, <code>$</code>, %, _, ^ and #.</p>
+special Latex characters are escaped. This means that
+<code>caption="Exports in million $."</code> will be exported as
+<code>"Exports in million \\$."</code>: the dollar sign will be escaped.
+This is true for the following characters: &amp;, <code>$</code>, %, _, ^ and #.</p>
 <p>Note, importantly, that equations are NOT escaped. This means that
 <code>caption="Functional form $a_i \\times x^b$, variation in %."</code> will be displayed as:
 <code>"Functional form $a_i \\times x^b$, variation in \\%."</code>: only the
@@ -1054,7 +1112,8 @@ it is only recommended to super users.</p>
 
 <p>Within anything that is Latex-escaped (see previous section), you can use a markdown-style
 markup to put the text in italic and/or bold. Use <code>*text*</code>, <code>**text**</code> or <code>***text***</code> to
-put some text in, respectively, italic (with <code>\\textit</code>), bold (with <code>\\textbf</code>) and italic-bold.</p>
+put some text in, respectively, italic (with <code>\\textit</code>),
+bold (with <code>\\textbf</code>) and italic-bold.</p>
 <p>The markup can be escaped by using an backslash first. For example <code>"***This: \\***, are  three stars***"</code> will leave the three stars in the middle untouched.</p>
     </div>
     <div class="section level2">
@@ -1764,7 +1823,8 @@ fixed-effects coefficients.</p></div>
 <span class="r-in"><span><span class="va">est_1fe</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">Ozone</span> <span class="op">~</span> <span class="va">Solar.R</span> <span class="op">+</span> <span class="va">Temp</span> <span class="op">+</span> <span class="va">Wind</span> <span class="op">|</span> <span class="va">Month</span>, <span class="va">airquality</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: 42 observations removed because of NA values (LHS: 37, RHS: 7).</span>
 <span class="r-in"><span><span class="va">est_2fe</span> <span class="op">=</span> <span class="fu"><a href="feols.html">feols</a></span><span class="op">(</span><span class="va">Ozone</span> <span class="op">~</span> <span class="va">Solar.R</span> <span class="op">+</span> <span class="va">Temp</span> <span class="op">+</span> <span class="va">Wind</span> <span class="op">|</span> <span class="va">Month</span> <span class="op">+</span> <span class="va">Day</span>, <span class="va">airquality</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> NOTE: 42 observations removed because of NA values (LHS: 37, RHS: 7).</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> NOTES: 42 observations removed because of NA values (LHS: 37, RHS: 7).</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>        0/2 fixed-effect singletons were removed (2 observations).</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># A) automatic way =&gt; simply use fixef.group = TRUE</span></span></span>
 <span class="r-in"><span></span></span>
@@ -1780,8 +1840,8 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Month and Day                   No                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                109</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81588</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
@@ -1802,8 +1862,8 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Day                             No                 No                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________ __________________</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID                IID</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111                111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.63686            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111                109</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.63686            0.81588</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.53154            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
@@ -1822,8 +1882,8 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dates                           No                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                109</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81588</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
@@ -1850,8 +1910,8 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Day                             No                 No                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________ __________________</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID                IID</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111                111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.63686            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111                109</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.63686            0.81588</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.53154            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
@@ -1872,8 +1932,8 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544) -3.289*** (0.6740)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                109</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81588</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
@@ -1889,8 +1949,8 @@ fixed-effects coefficients.</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Wind            -3.334*** (0.6544) -3.289*** (0.6740)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> _______________ __________________ __________________</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> S.E. type                      IID                IID</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81604</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Observations                   111                109</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> R2                         0.60589            0.81588</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Within R2                       --            0.61471</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dates                           No                Yes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>

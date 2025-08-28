@@ -31,92 +31,82 @@ test = function(x, y, type = "=", tol = 1e-6){
 
   type = switch(type, "error" = "err", "warning" = "warn", type)
 
-  plural_core = function(PLURAL, type, s, verb = FALSE, past = FALSE){
-
-    if(!missing(type)){
-      args = strsplit(type, "\\.")[[1]]
-      s = "s" %in% args
-      past = "past" %in% args
-      verb = setdiff(args, c("s", "past"))
-      if(length(verb) == 0){
-        verb = FALSE
-      } else {
-        verb = verb[1]
-      }
-    }
-
-    if(isFALSE(verb)){
-      res = ifelse(PLURAL, "s", "")
-    } else {
-
-      if(verb %in% c("be", "are")){
-        verb = "is"
-      } else if(verb == "have"){
-        verb = "has"
-      } else if(verb == "does"){
-        verb = "do"
-      } else if(verb %in% c("do not", "does not", "don't", "doesn't")){
-        verb = "do not"
-      } else if(verb %in% c("is not", "are not", "isn't", "aren't")){
-        verb = "is not"
-      } else if(verb %in% c("was", "were")){
-        verb = "is"
-        past = TRUE
-      }
-
-      if(past){
-        if(verb %in% c("is", "is not", "has", "do", "do not")){
-          verb_format = switch(verb, is = ifelse(!PLURAL, "was", "were"), "is not" = ifelse(!PLURAL, "wasn't", "weren't"), has = "had", do = "did", "do not" = "didn't")
-        } else {
-          verb_format = paste0(verb, "ed")
-        }
-      } else {
-        if(verb %in% c("is", "is not", "has", "do", "do not")){
-          verb_format = switch(verb, is = ifelse(!PLURAL, "is", "are"), "is not" = ifelse(!PLURAL, "isn't", "aren't"), has = ifelse(!PLURAL, "has", "have"), do = ifelse(!PLURAL, "does", "do"), "do not" = ifelse(!PLURAL, "doesn't", "don't"))
-        } else {
-          verb_format = ifelse(PLURAL, verb, paste0(verb, "s"))
-        }
-      }
-
-      if(!missing(s) && isTRUE(s)){
-        res = paste0(ifelse(PLURAL, "s ", " "), verb_format)
-      } else {
-        res = verb_format
-      }
-
-    }
-
-    res
-  }
-
-
-  plural = function(x, type, s, verb = FALSE, past = FALSE){
-    # adds s if x > 1, can alternatively add a verb
-    PLURAL = x[1] > 1
-    plural_core(PLURAL, type, s, verb, past)
-  }
-
-  n_th = function(n){
-    if(length(n) == 0) return("")
-    dict = c("first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "nineth", "tenth", "eleventh", "twelfth", "thirteenth")
-    res = as.character(n)
-    qui = n <= 13
-    res[qui] = dict[n[qui]]
-    if(any(!is.na(qui) & !qui)){
-      other = n[!qui]
-      rest = other %% 10
-      rest[rest == 0 | rest >= 4] = 4
-      postfix = c("st", "nd", "rd", "th")
-      other = paste0(other, postfix[rest])
-      res[!qui] = other
-    }
-
-    res
-  }
-
   if(type == "=" && is.numeric(x)){
     type = "~"
     if(missing(tol)) tol = 1e-12
+  }
+  
+  actual   = "\n  actual: "
+  expected = "\nexpected: "
+  
+  fmt_num = function(x){
+    format(x, big.mark = ",")
+  }
+  
+  # deprec => second version better
+  fmt_xy = function(x, y){
+    if(length(x) != length(y)){
+      stop("internal error x and y must be of the same length")
+    }
+    
+    all_xy = rbind(x, y)
+    all_xy_fmt = apply(all_xy, 2, format, big.mark = ",", simplify = TRUE)
+    
+    lines_fmt = apply(all_xy_fmt, 1, paste, collapse = "  ")
+    
+    if(nchar(lines_fmt[1]) > getOption("width", 80)){
+      return("")
+    }
+    
+    res = paste0(actual, lines_fmt[1], expected, lines_fmt[2])
+    
+    res
+  }
+  
+  fmt_xy = function(x, y){
+    if(length(x) != length(y)){
+      stop("internal error x and y must be of the same length")
+    }
+    
+    n_x = length(x)
+    if(n_x > 15){
+      x = x[1:15]
+      y = y[1:15]
+    }
+    
+    width = getOption("width", 80) - nchar(actual)
+    
+    all_xy = rbind(x, y)
+    all_xy_fmt = apply(all_xy, 2, format, big.mark = ",", simplify = TRUE)
+    
+    all_widths = cumsum(nchar(all_xy_fmt[1, ]) + cumsum(rep(2, n_x) - 2))
+    
+    if(tail(all_widths, 1) < width){
+      lines_fmt = apply(all_xy_fmt, 1, paste, collapse = "  ")
+      res = paste0(actual, lines_fmt[1], expected, lines_fmt[2])
+      return(res)
+    }
+    
+    # we need to make it fit
+    extra = nchar("  [5 others]")
+    width = width - extra - ceiling(log10(n_x) - 1)
+    
+    all_ok = which(all_widths <= width)
+    
+    if(length(all_ok) == 0){
+      res = paste0(actual,   "x[1] = ", x[1], 
+                   expected, "y[1] = ", y[1])
+      return(res)
+    }
+    
+    k = tail(all_ok, 1)
+    n_remaining = n_x - k
+    extra = sma("[{n ? n_remaining} others]")
+    lines_fmt = apply(all_xy_fmt[, 1:k, drop = FALSE], 1, paste, collapse = "  ")
+    
+    res = paste0(actual,   lines_fmt[1], extra, 
+                 expected, lines_fmt[2], extra)
+    return(res)
   }
   
   if(type  == "warn"){
@@ -124,17 +114,22 @@ test = function(x, y, type = "=", tol = 1e-6){
     m = tryCatch(x, warning = function(w) structure(conditionMessage(w), class = "try-warning"))
     if(!"try-warning" %in% class(m)){
       stop("Expected a warning that did not occur.")
+      
     } else if(IS_Y && !grepl(tolower(y), tolower(m), fixed = TRUE)){
-      stop("This is a warning, but the messages don't match:\nEXPECTED: \n", y, "\n..ACTUAL: \n", x)
+      stopi("We get a warning as expected but the messages don't match:",
+            actual, "{''c ? m}", expected, y)
     }
   } else if(type == "err"){
     # we expect an error
     m = tryCatch(x, error = function(e) structure(conditionMessage(e), class = "try-error"))
     if(!"try-error" %in% class(m)){
       stop("Expected an error that did not occur.")
+      
     } else if(IS_Y && !grepl(tolower(y), tolower(m), fixed = TRUE)){
-      stop("This is an error, but the messages don't match:\nEXPECTED: \n", y, "\n..ACTUAL: \n", x)
+      stopi("This is an error, but the messages don't match:",
+            actual, "{''c ? m}", expected, y)
     }
+    
   } else if(length(x) == 0){
     stop("Argument 'x' is of length 0. This is not allowed.")
 
@@ -146,110 +141,106 @@ test = function(x, y, type = "=", tol = 1e-6){
     attributes(y_clean) = NULL
     
     if(!identical(x_clean, y_clean)){
-      stop("The two formulas differ:\n",
-           "EXPECTED: ", deparse_long(y), "\n",
-           "..ACTUAL: ", deparse_long(x))
+      stop("The two formulas differ:",
+           actual, deparse_long(x),
+           expected, deparse_long(y))
     }
     
   } else if(type %in% c("equal", "=")){
     if(length(x) != length(y)){
-      stop("Lengths differ: ", 
-            "\nEXPECTED: ", length(y), "\n",
-            "\n..ACTUAL: ", length(x))
+      stopi("Lengths differ: {len ? x} vs {len ? y}.", fmt_xy(x, y))
 
     } else if(anyNA(x)){
+      
       if(!all(is.na(x) == is.na(y))){
         if(sum(is.na(x)) != sum(is.na(y))){
-          stop("Number of NA values differ: ",
-          "\nEXPECTED: ", sum(is.na(y)), "\n",
-          "\n..ACTUAL: ", sum(is.na(x)))
+          stopi("Number of NA values differ: {n ? sum(is.na(x))} vs {n ? sum(is.na(y))}.",
+                fmt_xy(x, y))
         }
 
-        i = which(is.na(x) != is.na(y))[1]
+        pos_na = which(is.na(x) != is.na(y))
 
-        na_y = 1 + is.na(y)[i]
-        info = c("none", "one NA")
-
-        stop("Position of the NA values differ. ", 
-              "\nEXPECTED: ", info[na_y], " in position ", i, "\n",
-              "\n..ACTUAL: ", info[3 - na_y], ".")
+        stopi("NA values differ in position{$s} {n, enum.3 ? pos_na}.", 
+              fmt_xy(x, y))
 
       } else if(!all(is_na <- is.na(x)) && any(qui_pblm <- x[!is_na] != y[!is_na])){
 
         if(all(qui_pblm)){
           if(length(x) == 1){
-              stop("Non-NA values differ: ", 
-                    "\nEXPECTED: ", y[!is_na], "\n",
-                    "\n..ACTUAL: ", x[!is_na])
+            stopi("The two values differ: {x} vs {y}")
           } else {
-              stop("All non-NA values differ: 1st elem.: ", 
-                    "\nEXPECTED: ", y[!is_na][1], "\n",
-                    "\n..ACTUAL: ", x[!is_na][1])
+            stopi("All values differ:", fmt_xy(x, y))
           }
         } else {
-          n = sum(qui_pblm)
-          i = which(qui_pblm)[1]
-          stop(n, " non-NA value", plural(n, "s.differ"), ": ", n_th(i), " elem.: \nEXPECTED: ", y[!is_na][i], "\n..ACTUAL: ", x[!is_na][i])
+          n_pblm = sum(qui_pblm)
+          stopi("{n ? n_pblm} non-NA value{#s} differ in position{#s} {which, enum ? qui_pblm}.", 
+                fmt_xy(x, y))
         }
       }
 
     } else if(anyNA(y)){
-      stop("Number of NA values differ: ", 
-            "\nEXPECTED: ", sum(is.na(y)), "\n",
-            "\n..ACTUAL: ", sum(is.na(x)))
+      stopi("Number of NA values differ: {n ? sum(is.na(x))} vs {n ? sum(is.na(y))}.",
+            fmt_xy(x, y))
 
     } else if(!all(x == y)){
       qui_pblm = x != y
 
       if(all(qui_pblm)){
         if(length(x) == 1){
-          stop("Values differ: ", 
-                "\nEXPECTED: ", y, "\n",
-                "\n..ACTUAL: ", x)
+          stopi("The two values differ: {x} vs {y}")
         } else {
-          stop("All values differ: 1st elem.: ", 
-                "\nEXPECTED: ", y[1], "\n",
-                "\n..ACTUAL: ", x[1])
+          stopi("All values differ:", fmt_xy(x, y))
         }
       } else {
-        n = sum(qui_pblm)
-        i = which(qui_pblm)[1]
-        stop(n, " value", plural(n, "s.differ"), ": ", n_th(i), " elem.: \nEXPECTED: ", y[i], "\n..ACTUAL: ", x[i])
+        n_pblm = sum(qui_pblm)
+        stopi("{n ? n_pblm} non-NA value{#s} differ in position{#s} {which, enum ? qui_pblm}.", 
+              fmt_xy(x, y))
       }
     }
+    
   } else if(type %in% c("~", "approx")){
     if(length(x) != length(y)){
-      stop("Lengths differ: ", 
-            "\nEXPECTED: ", length(y), "\n",
-            "\n..ACTUAL: ", length(x))
+      stopi("Lengths differ: {len ? x} vs {len ? y}.", fmt_xy(x, y))
 
     } else if(anyNA(x)){
       if(!all(is.na(x) == is.na(y))){
         if(sum(is.na(x)) != sum(is.na(y))){
-          stop("Number of NA values differ: ", 
-                "\nEXPECTED: ", sum(is.na(y)), "\n",
-                "\n..ACTUAL: ", sum(is.na(x)))
+          stopi("Number of NA values differ: {n ? sum(is.na(x))} vs {n ? sum(is.na(y))}.",
+                fmt_xy(x, y))
         }
 
-        i = which(is.na(x) != is.na(y))[1]
+        pos_na = which(is.na(x) != is.na(y))
 
-        na_y = 1 + is.na(y)[i]
-        info = c("none", "one NA")
-
-        stop("Position of the NA values differ. ", 
-              "\nEXPECTED: ", info[na_y], " in position ", i, "\n",
-              "\n..ACTUAL: ", info[3 - na_y], ".")
+        stopi("NA values differ in position{$s} {n, enum.3 ? pos_na}.", 
+              fmt_xy(x, y))
 
       } else if(max(abs(x - y), na.rm = TRUE) > tol){
-        stop("Difference > tol: Max abs. diff: ", max(abs(x - y), na.rm = TRUE), " (in position ", which.max(abs(x - y)), ")")
+        qui_pblm = abs(x - y) > tol & !is.na(x)
+        stopi("{n ? sum(qui_pblm)} value{#s, differ} in position {which, enum.3 ? qui_pblm}.",
+              fmt_xy(x, y),
+              "\nMax abs. diff: ", max(abs(x - y), na.rm = TRUE))
       }
+      
     } else if(anyNA(y)){
-      stop("Number of NA values differ: ", 
-            "\nEXPECTED: ", sum(is.na(y)), "\n",
-            "\n..ACTUAL: ", sum(is.na(x)))
+      stopi("Number of NA values differ: {n ? sum(is.na(x))} vs {n ? sum(is.na(y))}.",
+            fmt_xy(x, y))
 
     } else if(max(abs(x - y)) > tol){
-      stop("Difference > tol: Max abs. diff: ", max(abs(x - y)), " (in position ", which.max(abs(x - y)), ")")
+      
+      if(length(x) == 1){
+        extra = ""
+        diff = max(abs(x - y))
+        if(diff < 1){
+          extra = sma("\nMax absolute difference: {diff}")
+        }
+        
+        stopi("The two values differ: {x} vs {y}.", extra)
+      }
+      
+      qui_pblm = abs(x - y) > tol & !is.na(x)
+      stopi("{n ? sum(qui_pblm)} value{#s, differ} in position {which, enum.3 ? qui_pblm}.",
+            fmt_xy(x, y),
+            "\nMax abs. diff: ", max(abs(x - y)))
     }
   }
 

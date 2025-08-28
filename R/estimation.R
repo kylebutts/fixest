@@ -5114,10 +5114,10 @@ multi_fixef = function(env, estfun){
       # We delay the computation by using isSplit = TRUE and split.full = FALSE
       # Real indexing will be done in the last reshape env
       res = get("res", my_env)
-      family.linkbounds = res$family.linkbounds
+      lhs_bounds = res$lhs_bounds
       info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars, 
                             fixef.rm = fixef.rm, family = family, 
-                            family.linkbounds = family.linkbounds, isSplit = TRUE, 
+                            lhs_bounds = lhs_bounds, isSplit = TRUE, 
                             split.full = FALSE, origin_type = origin_type, 
                             isSlope = isSlope, slope_flag = slope_flag, 
                             slope_df = slope_df, slope_vars_list = slope_vars_list, 

@@ -274,9 +274,9 @@ res = feols(y ~ x1 | bin(x2, "bin::1")^fe1 + fe1^fe2, base)
 
 # 1 obs (after FE removal) estimation
 base_1obs = data.frame(y = c(1, 0), fe = c(1, 2), x = c(1, 0))
-test(fepois(y ~ x | fe, base_1obs), "err")
+test(fepois(y ~ x | fe, base_1obs, fixef.rm = "infinite"), "err")
 # no error
-res = fepois(y ~ 1 | fe, base_1obs)
+res = fepois(y ~ 1 | fe, base_1obs, fixef.rm = "infinite")
 
 # warning when demeaning algo reaches max iterations 
 data(trade)
@@ -2150,9 +2150,12 @@ test(mean(hatvalues(ffm_fe, exact = FALSE, boot.size = 500)), mean(hatvalues(fm_
 # Detect leverage of 1 (P_ii = 1)
 base$species = as.character(base$species)
 base[1, "species"] = "foo"
-est_pii_singular = feols(y ~ x1 | species, base)
+est_pii_singular = feols(y ~ x1 | species, base, fixef.rm = "none")
 test(hatvalues(est_pii_singular)[1], 1.0)
 
+# with observation removal
+est_pii_singleton = feols(y ~ x1 | species, base, fixef.rm = "singleton")
+test(length(hatvalues(est_pii_singleton)), nrow(base) - 1)
 
 
 

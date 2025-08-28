@@ -173,7 +173,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
   # we check the family => only for femlm/feNmlm and feglm
   # PROBLEM: the argument family has the same name in femlm and feglm but different meanings
-  family.linkbounds = list()
+  lhs_bounds = list()
   if(origin_type == "feNmlm"){
     family_name = try(match.arg(family), silent = TRUE)
     if("try-error" %in% class(family_name)){
@@ -193,11 +193,11 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     family = family_name
     
     if(family %in% c("poisson", "logit", "negbin")){
-      family.linkbounds$zero = TRUE
+      lhs_bounds$zero = TRUE
     }
     
     if(family == "logit"){
-      family.linkbounds$zero = TRUE
+      lhs_bounds$zero = TRUE
     }
 
   } else if(origin_type == "feglm"){
@@ -252,11 +252,11 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
     family$family_equiv = family_equiv
     
     if(abs(family$linkinv(-100)) < 1e-15){
-      family.linkbounds$zero = TRUE
+      lhs_bounds$zero = TRUE
     }
     
     if(abs(family$linkinv(100) - 1) < 1e-15){
-      family.linkbounds$one = TRUE
+      lhs_bounds$one = TRUE
     }
 
     #
@@ -2351,7 +2351,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
     info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars,
                           fixef.rm = fixef.rm, family = family, 
-                          family.linkbounds = family.linkbounds, isSplit = isSplit,
+                          lhs_bounds = lhs_bounds, isSplit = isSplit,
                           split.full = split.full, origin_type = origin_type,
                           isSlope = isSlope, slope_flag = slope_flag, slope_df = slope_df,
                           slope_vars_list = slope_vars_list, nthreads = nthreads)
@@ -3278,7 +3278,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
   if(origin_type == "feglm"){
     res$family = family_funs
   }
-  res$family.linkbounds = family.linkbounds
+  res$lhs_bounds = lhs_bounds
 
   # Panel information
   if(!is.null(panel.id)){
@@ -3305,7 +3305,7 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 }
 
 
-setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, family.linkbounds, 
+setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, lhs_bounds, 
                        isSplit, split.full = FALSE,
                        origin_type, isSlope, slope_flag, slope_df, slope_vars_list,
                        fixef_names_old = NULL, fixef_sizes = NULL, obs2keep = NULL,
@@ -3316,8 +3316,8 @@ setup_fixef = function(fixef_df, lhs, fixef_vars, fixef.rm, family, family.linkb
 
   Q = length(fixef_vars) # terms: contains FEs + slopes
 
-  rm_0 = isTRUE(family.linkbounds$zero) && fixef.rm %in% c("infinite_coef", "perfect_fit")
-  rm_1 = isTRUE(family.linkbounds$one) && fixef.rm %in% c("infinite_coef", "perfect_fit")
+  rm_0 = isTRUE(lhs_bounds$zero) && fixef.rm %in% c("infinite_coef", "perfect_fit")
+  rm_1 = isTRUE(lhs_bounds$one) && fixef.rm %in% c("infinite_coef", "perfect_fit")
   rm_single = fixef.rm %in% c("singletons", "perfect_fit")
   do_sum_y = !origin_type %in% c("feols", "feglm")
 
@@ -3738,7 +3738,7 @@ reshape_env = function(env, obs2keep = NULL, lhs = NULL, rhs = NULL, assign_lhs 
     # We refactor the fixed effects => we may remove even more obs
     info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars,
                           fixef.rm = fixef.rm, family = family, 
-                          family.linkbounds = res$family.linkbounds,
+                          lhs_bounds = res$lhs_bounds,
                           isSplit = FALSE,
                           origin_type = origin_type, isSlope = isSlope, slope_flag = slope_flag,
                           slope_df = slope_df, slope_vars_list = slope_vars_list,
@@ -3765,7 +3765,7 @@ reshape_env = function(env, obs2keep = NULL, lhs = NULL, rhs = NULL, assign_lhs 
       # we need to continue this function => now we don't RM the FEs
       info_fe = setup_fixef(fixef_df = fixef_df, lhs = lhs, fixef_vars = fixef_vars,
                           fixef.rm = fixef.rm, family = family, 
-                          family.linkbounds = res$family.linkbounds, isSplit = FALSE,
+                          lhs_bounds = res$lhs_bounds, isSplit = FALSE,
                           origin_type = origin_type, isSlope = isSlope, slope_flag = slope_flag,
                           slope_df = slope_df, slope_vars_list = slope_vars_list,
                           fixef_names_old = fixef_names_old, fixef_sizes = fixef_sizes,

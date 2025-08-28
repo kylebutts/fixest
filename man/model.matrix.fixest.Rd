@@ -33,6 +33,7 @@ used when \code{data=NULL} (i.e. the original data is requested). By default,
 only the observations effectively used in the estimation are returned (it includes
 the observations with NA values or the fully explained by the fixed-effects (FE), or
 due to NAs in the weights).
+
 If \code{sample="original"}, all the observations are returned. In that case, if
 you use \code{na.rm=TRUE} (which is not the default), you can withdraw the observations
 with NA values (and keep the ones fully explained by the FEs).}

@@ -8,7 +8,8 @@ sparse_model_matrix(
   object,
   data,
   type = "rhs",
-  na.rm = TRUE,
+  sample = "estimation",
+  na.rm = FALSE,
   collin.rm = NULL,
   combine = TRUE,
   ...
@@ -17,20 +18,40 @@ sparse_model_matrix(
 \arguments{
 \item{object}{A \code{fixest} object. Obtained using the functions \code{\link{femlm}}, \code{\link{feols}} or \code{\link{feglm}}.}
 
-\item{data}{If missing (default) then the original data is obtained by evaluating the \code{call}. Otherwise, it should be a \code{data.frame}.}
+\item{data}{If missing (default) then the original data is obtained by evaluating the \code{call}.
+Otherwise, it should be a \code{data.frame}.}
 
-\item{type}{Character vector or one sided formula, default is "rhs". Contains the type of matrix/data.frame to be returned. Possible values are: "lhs", "rhs", "fixef", "iv.rhs1" (1st stage RHS), "iv.rhs2" (2nd stage RHS), "iv.endo" (endogenous vars.), "iv.exo" (exogenous vars), "iv.inst" (instruments).}
+\item{type}{Character vector or one sided formula, default is "rhs".
+Contains the type of matrix/data.frame to be returned. Possible values are:
+"lhs", "rhs", "fixef", "iv.rhs1" (1st stage RHS), "iv.rhs2" (2nd stage RHS),
+"iv.endo" (endogenous vars.), "iv.exo" (exogenous vars), "iv.inst" (instruments).}
 
-\item{na.rm}{Default is \code{TRUE}. Should observations with NAs be removed from the matrix?}
+\item{sample}{Character scalar equal to "estimation" (default) or "original". Only
+used when \code{data=NULL} (i.e. the original data is requested). By default,
+only the observations effectively used in the estimation are returned (it includes
+the observations with NA values or the fully explained by the fixed-effects (FE), or
+due to NAs in the weights).
 
-\item{collin.rm}{Logical scalar. Whether to remove variables that were found to be collinear during the estimation. Beware: it does not perform a collinearity check and bases on the \code{coef(object)}. Default is TRUE if object is a \code{fixest} object, or FALSE if object is a formula.}
+If \code{sample="original"}, all the observations are returned. In that case, if
+you use \code{na.rm=TRUE} (which is not the default), you can withdraw the observations
+with NA values (and keep the ones fully explained by the FEs).}
 
-\item{combine}{Logical scalar, default is \code{TRUE}. Whether to combine each resulting sparse matrix}
+\item{na.rm}{Default is \code{FALSE}. Should observations with NAs be removed from the matrix?}
+
+\item{collin.rm}{Logical scalar. Whether to remove variables that were
+found to be collinear during the estimation. Beware: it does not perform a
+collinearity check and bases on the \code{coef(object)}.
+Default is TRUE if object is a \code{fixest} object, or \code{FALSE} if object is a formula.}
+
+\item{combine}{Logical scalar, default is \code{TRUE}. Whether to combine each
+resulting sparse matrix.}
 
 \item{...}{Not currently used.}
 }
 \value{
-It returns either a single sparse matrix a list of matrices, depending whether \code{combine} is \code{TRUE} or \code{FALSE}. The sparse matrix is of class \code{dgCMatrix} from the \code{Matrix} package.
+It returns either a single sparse matrix a list of matrices,
+depending whether \code{combine} is \code{TRUE} or \code{FALSE}.
+The sparse matrix is of class \code{dgCMatrix} from the \code{Matrix} package.
 }
 \description{
 This function creates the left-hand-side or the right-hand-side(s) of a \code{\link{femlm}}, \code{\link{feols}} or \code{\link{feglm}} estimation.

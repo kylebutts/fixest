@@ -11,6 +11,7 @@ demean(
   slope.flag,
   data,
   weights,
+  sample = "estimation",
   nthreads = getFixest_nthreads(),
   notes = getFixest_notes(),
   iter = 2000,
@@ -52,6 +53,16 @@ formula, in which case \code{data} is mandatory.}
 
 \item{weights}{Vector, can be missing or NULL. If present, it must contain the same number of
 observations as in \code{X}.}
+
+\item{sample}{Character scalar equal to "estimation" (default) or "original". Only
+used when the argument \code{X} is a \code{fixest} estimation.
+
+By default, only the observations used in the estimation are demeaned. This will
+return a matrix with the same number of rows as the number of observations in
+the estimation. You can safely use the resulting matrix to recompute the coefficients
+from the estimation 'by hand'.
+
+To demean all the observations of the original sample, use \code{sample="original"}.}
 
 \item{nthreads}{Number of threads to be used. By default it is equal to \code{getFixest_nthreads()}.}
 

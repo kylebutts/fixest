@@ -435,7 +435,7 @@ est_reg = function(df, yvar, xvar, refgrp) {
   feols(.[yvar] ~ i(.[xvar], ref = refgrp), data = df)
 }
 
-est = est_reg(iris, "Sepal.Length", "Species", ref = "setosa")
+est = est_reg(iris, "Sepal.Length", "Species", refgrp = "setosa")
 
 # checking when it should not work
 base = setNames(iris, c("y", "x1", "x2", "x3", "species"))
@@ -629,7 +629,7 @@ cat("done.\n\n")
 cat("data.table...")
 # We just check there is no bug (consistency should be OK)
 
-library(data.table)
+suppressPackageStartupMessages(library(data.table))
 
 base_dt = data.table(id = c("A", "A", "B", "B"),
            time = c(1, 2, 1, 3),
@@ -1145,7 +1145,7 @@ vcov_HC3 <- sandwich::vcovHC(est, type = "HC3")
 est_HC3 <- summary(est, vcov = list("HC3" = vcov_HC3))
 test(attr(est_HC3$se, "type"), "HC3")
 est_tab <- etable(est_HC3)
-test(any(grepl("HC3", est_tab$est)), TRUE)
+test(any(grepl("HC3", est_tab[[2]])), TRUE)
 
 # Passing functions
 test(
@@ -1270,7 +1270,7 @@ base = data.frame(x = rnorm(20))
 base$y = base$x + rnorm(20)
 base$fe1 = rep(rep(1:3, c(4, 3, 3)), 2)
 base$fe2 = rep(rep(1:5, each = 2), 2)
-est = feols(y ~ x | fe1 + fe2, base)
+est = feols(y ~ x | fe1 + fe2, base, vcov = "cluster")
 
 # fe1: 3 FEs
 # fe2: 5 FEs
@@ -1404,7 +1404,7 @@ d = data.frame(y = rnorm(N), x = rnorm(N), grp = rep(1:G, T), tm = rep(1:T, each
 
 # Estimations
 est_lm    = lm(y ~ x + as.factor(grp) + as.factor(tm), data=d)
-est_feols = feols(y ~ x | grp + tm, data=d)
+est_feols = feols(y ~ x | grp + tm, data = d, vcov = "cluster")
 
 #
 # Standard
@@ -1507,11 +1507,9 @@ test(
 base$Species = as.character(base$Species)
 base[1, "Species"] = "foo"
 
-est_pii_singular = feols(Sepal.Length ~ Sepal.Width | Species, base)
+est_pii_singular = feols(Sepal.Length ~ Sepal.Width | Species, base, fixef.rm = "none")
 
-test(
-  vcov(est_pii_singular, "hc2"), "err"
-)
+test(vcov(est_pii_singular, "hc2"), "err")
 
 #
 # Newey-west + Driscoll-Kraay
@@ -1519,20 +1517,20 @@ test(
 
 if(requireNamespace("plm", quietly = TRUE)){
   
-  library(plm)
+  # library(plm)
   data(Grunfeld, package = "plm")
   
-  est_panel_plm = plm(inv ~ capital + as.factor(year), Grunfeld, 
-                index = c("firm", "year"), model = "within")
+  est_panel_plm = plm::plm(inv ~ capital + as.factor(year), Grunfeld, 
+                           index = c("firm", "year"), model = "within")
   est_panel_feols = feols(inv ~ capital | firm + year, Grunfeld, 
-                    panel.id = ~firm + year)
+                          panel.id = ~firm + year)
   
   # NW
-  se_plm_NW = se(vcovNW(est_panel_plm))["capital"]
+  se_plm_NW = se(plm::vcovNW(est_panel_plm))["capital"]
   test(se(est_panel_feols, vcov = NW ~ ssc(adj = FALSE, cluster.adj = FALSE)), se_plm_NW)
 
   # DK
-  se_plm_DK = se(vcovSCC(est_panel_plm))["capital"]
+  se_plm_DK = se(plm::vcovSCC(est_panel_plm))["capital"]
   test(se(est_panel_feols, vcov = DK ~ ssc(adj = FALSE, cluster.adj = FALSE)), se_plm_DK)
 }
 
@@ -1557,7 +1555,8 @@ test(se_clu_comb, se(est_pois, cluster = paste(trade$Product, trade$Destination)
 test(se_clu_comb, se(est_pois, cluster = ~Product^Destination))
 
 se_two_comb = se(est_pois, cluster = c("Origin^Destination", "Product"))
-test(se_two_comb, se(est_pois, cluster = list(paste(trade$Origin, trade$Destination), trade$Product)))
+test(se_two_comb, se(est_pois, cluster = list(paste(trade$Origin, trade$Destination), 
+                                              trade$Product)))
 test(se_two_comb, se(est_pois, cluster = ~Origin^Destination + Product))
 
 # With cluster removed
@@ -1578,7 +1577,8 @@ test(se_clu_comb, se(est_pois, cluster = paste(base$Product, base$Destination)))
 test(se_clu_comb, se(est_pois, cluster = ~Product^Destination))
 
 se_two_comb = se(est_pois, cluster = c("Origin^Destination", "Product"))
-test(se_two_comb, se(est_pois, cluster = list(paste(base$Origin, base$Destination), base$Product)))
+test(se_two_comb, se(est_pois, cluster = list(paste(base$Origin, base$Destination), 
+                                              base$Product)))
 test(se_two_comb, se(est_pois, cluster = ~Origin^Destination + Product))
 
 # With cluster removed and NAs
@@ -1604,7 +1604,8 @@ test(se_clu_comb, se(est_pois, cluster = paste(base$Product, base$Destination)))
 test(se_clu_comb, se(est_pois, cluster = ~Product^Destination))
 
 se_two_comb = se(est_pois, cluster = c("Origin^Destination", "Product"))
-test(se_two_comb, se(est_pois, cluster = list(paste(base$Origin, base$Destination), base$Product)))
+test(se_two_comb, se(est_pois, cluster = list(paste(base$Origin, base$Destination), 
+                                              base$Product)))
 test(se_two_comb, se(est_pois, cluster = ~Origin^Destination + Product))
 
 #
@@ -1637,7 +1638,8 @@ test(se_hetero, se_white)
 # We mostly check the absence of errors 
 data(base_did)
 
-est_panel = feols(y ~ x1, base_did, panel.id = ~id + period, subset = 1:500)
+est_panel = feols(y ~ x1, base_did, panel.id = ~id + period, 
+                  subset = 1:500, vcov = "cluster")
 
 se_est = se(est_panel)
 test(se(est_panel, ~id), se_est)
@@ -2092,7 +2094,7 @@ X_dm_slopes_bis = demean(base$ln_dist, fe, slope.vars = base$ln_euros, slope.fla
 test(X_dm_slopes[[1]], X_dm_slopes_bis)
 
 # with data table + formula call
-trade_dt = as.data.table(trade)
+trade_dt = data.table::as.data.table(trade)
 trade_dt$ln_dist = log(trade_dt$dist_km)
 
 dist_dm_dt = demean(ln_dist ~ Origin + Destination, data = trade_dt)
@@ -2277,7 +2279,7 @@ names(base) = c("y", "x1", "x2", "x3", "species")
 base$fe_bis = sample(letters, 150, TRUE)
 
 # predict without variable
-res = feols(y ~ 1, base)
+res = feols(y ~ 1, base, fixef.rm = "none")
 test(predict(res, newdata = base), predict(res))
 
 #
@@ -2285,28 +2287,28 @@ test(predict(res, newdata = base), predict(res))
 #
 
 # Predict with fixed-effects
-res = feols(y ~ x1 | species + fe_bis, base)
+res = feols(y ~ x1 | species + fe_bis, base, fixef.rm = "none")
 test(predict(res), predict(res, base))
 
-res = fepois(y ~ x1 | species + fe_bis, base)
+res = fepois(y ~ x1 | species + fe_bis, base, fixef.rm = "none")
 test(predict(res), predict(res, base))
 
-res = femlm(y ~ x1 | species + fe_bis, base)
+res = femlm(y ~ x1 | species + fe_bis, base, fixef.rm = "none")
 test(predict(res), predict(res, base))
 
 # Predict with varying slopes -- That's normal that tolerance is high (because FEs are computed with low precision)
-res = feols(y ~ x1 | species + fe_bis[x3], base)
+res = feols(y ~ x1 | species + fe_bis[x3], base, fixef.rm = "none")
 test(predict(res), predict(res, base), "~", tol = 1e-4)
 
-res = fepois(y ~ x1 | species + fe_bis[x3], base)
+res = fepois(y ~ x1 | species + fe_bis[x3], base, fixef.rm = "none")
 test(predict(res), predict(res, base), "~", tol = 1e-3)
 
 
 # Prediction with factors
-res = feols(y ~ x1 + i(species), base)
+res = feols(y ~ x1 + i(species), base, fixef.rm = "none")
 test(predict(res), predict(res, base))
 
-res = feols(y ~ x1 + i(species) + i(fe_bis), base)
+res = feols(y ~ x1 + i(species) + i(fe_bis), base, fixef.rm = "none")
 test(predict(res), predict(res, base))
 
 quoi = head(base[, c("y", "x1", "species", "fe_bis")])
@@ -2317,14 +2319,14 @@ quoi$species[1:3] = "zz"
 test(predict(res, quoi), "err")
 
 # combine FEs
-res = feols(y ~ x1 | species^fe_bis, base)
+res = feols(y ~ x1 | species^fe_bis, base, fixef.rm = "none")
 test(predict(res), predict(res, base))
 
 # Handling NAs properly
 base_NA = data.frame(a = 1:5, b = c(3:6, NA),
-           c = as.factor(c("a", "b", "a", "b", "a")))
+                     c = as.factor(c("a", "b", "a", "b", "a")))
 
-res = feols(a ~ b + c, base_NA)
+res = feols(a ~ b + c, base_NA, fixef.rm = "none")
 
 test(length(predict(res, newdata = base_NA)), 5)
 
@@ -2356,7 +2358,7 @@ test(tail(pred_all, 20), pred_tail)
 #
 
 
-res = feols(y ~ x1 | species^fe_bis[x2], base, fixef.keep_names = TRUE)
+res = feols(y ~ x1 | species^fe_bis[x2], base, fixef.keep_names = TRUE, fixef.rm = "none")
 
 obs_fe = predict(res, fixef = TRUE)
 fe_coef_all = fixef(res, sorted = FALSE)
@@ -2395,10 +2397,10 @@ b = feols(y ~ x1 + species, base)
 test(predict(a, se.fit = TRUE)$se.fit, predict(b, se.fit = TRUE)$se.fit)
 
 test(predict(a, se.fit = TRUE, interval = "con")$fit[, 2],
-   predict(b, se.fit = TRUE, interval = "con")$ci_low)
+     predict(b, se.fit = TRUE, interval = "con")$ci_low)
 
 test(suppressWarnings(predict(a, se.fit = TRUE, interval = "pre")$fit[, 2]),
-   predict(b, se.fit = TRUE, interval = "pre")$ci_low)
+     predict(b, se.fit = TRUE, interval = "pre")$ci_low)
 
 # With weights
 base$my_w = seq(0.01, 1, length.out = 150)
@@ -2408,10 +2410,10 @@ bw = feols(y ~ x1 + species, base, weights = ~my_w)
 test(predict(aw, se.fit = TRUE)$se.fit, predict(bw, se.fit = TRUE)$se.fit)
 
 test(predict(aw, se.fit = TRUE, interval = "con")$fit[, 2],
-   predict(bw, se.fit = TRUE, interval = "con")$ci_low)
+     predict(bw, se.fit = TRUE, interval = "con")$ci_low)
 
 test(suppressWarnings(predict(aw, se.fit = TRUE, interval = "pre")$fit[, 2]),
-   predict(bw, se.fit = TRUE, interval = "pre")$ci_low)
+     predict(bw, se.fit = TRUE, interval = "pre")$ci_low)
 
 
 #

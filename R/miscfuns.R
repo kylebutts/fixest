@@ -2212,6 +2212,7 @@ xpd = function(fml, ..., add = NULL, lhs = NULL, rhs = NULL, add.after_pipe = NU
 #' User-level access to internal demeaning algorithm of `fixest`.
 #' 
 #' @inheritParams feols
+#' @inheritParams model.matrix.fixest
 #' @inheritSection feols Varying slopes
 #'
 #' @param X A matrix, vector, data.frame or a list OR a formula OR a [`feols`] estimation. If equal 
@@ -2237,6 +2238,15 @@ xpd = function(fml, ..., add = NULL, lhs = NULL, rhs = NULL, add.after_pipe = NU
 #' formula, in which case `data` is mandatory.
 #' @param weights Vector, can be missing or NULL. If present, it must contain the same number of 
 #' observations as in `X`.
+#' @param sample Character scalar equal to "estimation" (default) or "original". Only
+#' used when the argument `X` is a `fixest` estimation. 
+#' 
+#' By default, only the observations used in the estimation are demeaned. This will 
+#' return a matrix with the same number of rows as the number of observations in
+#' the estimation. You can safely use the resulting matrix to recompute the coefficients 
+#' from the estimation 'by hand'.
+#' 
+#' To demean all the observations of the original sample, use `sample="original"`.
 #' @param nthreads Number of threads to be used. By default it is equal to `getFixest_nthreads()`.
 #' @param notes Logical, whether to display a message when NA values are removed. By default it is 
 #' equal to `getFixest_notes()`.
@@ -2351,6 +2361,7 @@ xpd = function(fml, ..., add = NULL, lhs = NULL, rhs = NULL, add.after_pipe = NU
 #'
 #'
 demean = function(X, f, slope.vars, slope.flag, data, weights,
+                  sample = "estimation",
                   nthreads = getFixest_nthreads(), notes = getFixest_notes(),
                   iter = 2000, tol = 1e-6, 
                   fixef.reorder = TRUE, fixef.algo = NULL,
@@ -2387,6 +2398,7 @@ demean = function(X, f, slope.vars, slope.flag, data, weights,
     check_arg(iter, "integer scalar GE{1}")
     check_arg(tol, "numeric scalar GT{0}")
     check_arg(notes, "logical scalar")
+    check_set_arg(sample, "match(original, estimation)")
     check_arg("NULL class(demeaning_algo)", fixef.algo)
 
     validate_dots(valid_args = "fe_info", stop = TRUE)
@@ -2417,6 +2429,13 @@ demean = function(X, f, slope.vars, slope.flag, data, weights,
 
       # Otherwise => we create data and X: formula
       data = fetch_data(X)
+      
+      if(sample == "estimation"){
+        for(obs in X$obs_selection){
+          data = data[obs, , drop = FALSE]
+        }
+      }
+      
       fml_linear = X$fml_all$linear
       fml_fixef = X$fml_all$fixef
 

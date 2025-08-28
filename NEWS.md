@@ -96,6 +96,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 
 - the method `model.matrix` gains the argument `sample` which can be equal to "estimation" or "original". The argument `na.rm` is now more coherent as it does not do more than what is suggests (as was the case earlier).
 
+- the function `demean` gains the argument `sample` to decide whether to get the demeaned variables: i) for only for the observations used in the estimation, or ii) for all the observations of the original data set.
+
 ## New vignette and data set
 
 - add a new vignette on collinearity
@@ -151,6 +153,8 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 - substantially improve the robustness (and speed) of the internal algorithms handling formulas
 
 - in all estimations: the argument `combine.quick` is renamed into `fixef.keep_names`
+
+- the removal of the fixed-effects due to infinite coefficients is now triggered more accurately for any GLM family (even uncommon ones)
 
 ## etable
 

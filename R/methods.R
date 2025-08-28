@@ -3610,6 +3610,7 @@ formula.fixest_multi = function(x, type = "full", fml.update = NULL,
 #' only the observations effectively used in the estimation are returned (it includes 
 #' the observations with NA values or the fully explained by the fixed-effects (FE), or
 #' due to NAs in the weights).
+#' 
 #' If `sample="original"`, all the observations are returned. In that case, if 
 #' you use `na.rm=TRUE` (which is not the default), you can withdraw the observations 
 #' with NA values (and keep the ones fully explained by the FEs).
@@ -4310,6 +4311,7 @@ hatvalues.fixest = function(model, exact = TRUE, boot.size = 1000, ...){
   # Sum the three parts to get the projection matrix
   P_ii_list = list()
   mats = list()
+  
   mats$fixef = sparse_model_matrix(model, type = "fixef", collin.rm = TRUE, sortCols = FALSE)
 
   # Check for slope.vars and move to seperate matrix
@@ -4327,11 +4329,12 @@ hatvalues.fixest = function(model, exact = TRUE, boot.size = 1000, ...){
   } else {
     weights = model$irls_weights
   }
+  
 
   if (!is.null(model$fixef_vars)) {
     # for `demean`
-    f = model.matrix(model, type = "fixef")
-    f = subset(f, select = model$fixef_vars)
+    fe_df = model.matrix(model, type = "fixef")
+    fe_df = subset(fe_df, select = model$fixef_vars)
 
     # Matrix of fixed effects times weights
     if (!is.null(weights)){
@@ -4349,7 +4352,7 @@ hatvalues.fixest = function(model, exact = TRUE, boot.size = 1000, ...){
     if (is.null(model$onlyFixef) & method == "feglm") {
       mats$rhs = demean(
         model.matrix(model, "rhs"),
-        f,
+        fe_df,
         weights = weights
       )
       
@@ -4362,7 +4365,7 @@ hatvalues.fixest = function(model, exact = TRUE, boot.size = 1000, ...){
     if (!is.null(mats$slope_vars)) {
       mats$slope_vars = demean(
         as.matrix(mats$slope_vars), 
-        f, 
+        fe_df, 
         weights = weights
       )
       
@@ -4381,7 +4384,6 @@ hatvalues.fixest = function(model, exact = TRUE, boot.size = 1000, ...){
       mats$rhs = mats$rhs * sqrt(weights)
     }
   }
-
 
   # Caclulate P_ii's
   if (!is.null(mats$fixef)) {

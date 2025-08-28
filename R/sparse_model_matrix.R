@@ -113,24 +113,17 @@ sparse_model_matrix = function(object, data, type = "rhs", sample = "estimation"
   isFormula = FALSE
   split_fml = NULL
   if (inherits(object, "formula")) {
-  split_fml = fml_split_internal(object)
-  if (isTRUE(collin.rm)) {
-    message("Formula passed to sparse_model_matrix with collin.rm == TRUE. Estimating feols with formula.")
-    object = feols(object, data = data)
-  } else if (length(split_fml) == 3) {
-    message("Formula passed to sparse_model_matrix with an iv formula. Estimating feols with formula.")
-    object = feols(object, data = data)
-  } else {
-    isFormula = TRUE
+    split_fml = fml_split_internal(object)
+    if (isTRUE(collin.rm)) {
+      message("Formula passed to sparse_model_matrix with collin.rm == TRUE. Estimating feols with formula.")
+      object = feols(object, data = data)
+    } else if (length(split_fml) == 3) {
+      message("Formula passed to sparse_model_matrix with an iv formula. Estimating feols with formula.")
+      object = feols(object, data = data)
+    } else {
+      isFormula = TRUE
+    }
   }
-  }
-
-  # na.rm = FALSE doesn't work with type = "fixef" (which FE col gets NA?)
-  if (("fixef" %in% type & !na.rm)) {
-    # na.rm = TRUE
-    message("na.rm = FALSE doesn't work with type = 'fixef'. It has been set to TRUE.")
-  }
-
 
   # Panel setup
   if (!isFormula) {

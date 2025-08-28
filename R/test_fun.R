@@ -43,43 +43,46 @@ test = function(x, y, type = "=", tol = 1e-6){
     format(x, big.mark = ",")
   }
   
-  # deprec => second version better
   fmt_xy = function(x, y){
-    if(length(x) != length(y)){
-      stop("internal error x and y must be of the same length")
-    }
-    
-    all_xy = rbind(x, y)
-    all_xy_fmt = apply(all_xy, 2, format, big.mark = ",", simplify = TRUE)
-    
-    lines_fmt = apply(all_xy_fmt, 1, paste, collapse = "  ")
-    
-    if(nchar(lines_fmt[1]) > getOption("width", 80)){
-      return("")
-    }
-    
-    res = paste0(actual, lines_fmt[1], expected, lines_fmt[2])
-    
-    res
-  }
-  
-  fmt_xy = function(x, y){
-    if(length(x) != length(y)){
-      stop("internal error x and y must be of the same length")
-    }
     
     n_x = length(x)
-    if(n_x > 15){
+    n_y = length(y)
+    n = max(n_x, n_y)
+    do_clean = FALSE
+    if(length(x) != length(y)){
+      do_clean = TRUE
+      x = x[1:n]
+      y = y[1:n]
+    }
+    
+    if(n > 15){
       x = x[1:15]
       y = y[1:15]
     }
     
-    width = getOption("width", 80) - nchar(actual)
+    n_x_fmt = min(n_x, 15)
+    n_y_fmt = min(n_y, 15)
+    n_fmt = max(n_x_fmt, n_y_fmt)
+    
+    width = getOption("width", 100) * 0.95 - nchar(actual)
     
     all_xy = rbind(x, y)
     all_xy_fmt = apply(all_xy, 2, format, big.mark = ",", simplify = TRUE)
     
-    all_widths = cumsum(nchar(all_xy_fmt[1, ]) + cumsum(rep(2, n_x) - 2))
+    if(do_clean){
+      n_diff = abs(n_x_fmt - n_y_fmt)
+      if(n_diff > 0){
+        if(n_x < n_y){
+          is_clean = 1:n_diff + n_x + 1 
+          all_xy_fmt[1, -is_clean] = gsub(".", " ", all_xy_fmt[1, -is_clean])
+        } else {
+          is_clean = 1:n_diff + n_y + 1 
+          all_xy_fmt[2, -is_clean] = gsub(".", " ", all_xy_fmt[2, -is_clean])
+        }
+      }
+    }
+    
+    all_widths = cumsum(nchar(all_xy_fmt[1, ])) + cumsum(rep(2, n_fmt))
     
     if(tail(all_widths, 1) < width){
       lines_fmt = apply(all_xy_fmt, 1, paste, collapse = "  ")
@@ -88,8 +91,8 @@ test = function(x, y, type = "=", tol = 1e-6){
     }
     
     # we need to make it fit
-    extra = nchar("  [5 others]")
-    width = width - extra - ceiling(log10(n_x) - 1)
+    extra = "  [5 others]"
+    width = width - nchar(extra) - ceiling(log10(n) - 1)
     
     all_ok = which(all_widths <= width)
     
@@ -100,12 +103,12 @@ test = function(x, y, type = "=", tol = 1e-6){
     }
     
     k = tail(all_ok, 1)
-    n_remaining = n_x - k
-    extra = sma("[{n ? n_remaining} others]")
+    extra_x = sma("  [{n ? n_x - k} others]")
+    extra_y = sma("  [{n ? n_y - k} others]")
     lines_fmt = apply(all_xy_fmt[, 1:k, drop = FALSE], 1, paste, collapse = "  ")
     
-    res = paste0(actual,   lines_fmt[1], extra, 
-                 expected, lines_fmt[2], extra)
+    res = paste0(actual,   lines_fmt[1], extra_x, 
+                 expected, lines_fmt[2], extra_y)
     return(res)
   }
   
@@ -227,17 +230,24 @@ test = function(x, y, type = "=", tol = 1e-6){
 
     } else if(max(abs(x - y)) > tol){
       
-      if(length(x) == 1){
+      qui_pblm = abs(x - y) > tol & !is.na(x)
+      
+      if(all(qui_pblm)){
         extra = ""
         diff = max(abs(x - y))
         if(diff < 1){
           extra = sma("\nMax absolute difference: {diff}")
         }
         
-        stopi("The two values differ: {x} vs {y}.", extra)
+        if(length(x) == 1){
+          stopi("The two values differ: {x} vs {y}.", extra)
+        } else {
+          stopi("All values differ.", fmt_xy(x, y), extra)
+        }
+        
       }
       
-      qui_pblm = abs(x - y) > tol & !is.na(x)
+      
       stopi("{n ? sum(qui_pblm)} value{#s, differ} in position {which, enum.3 ? qui_pblm}.",
             fmt_xy(x, y),
             "\nMax abs. diff: ", max(abs(x - y)))

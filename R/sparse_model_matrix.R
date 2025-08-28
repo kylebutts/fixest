@@ -5,16 +5,27 @@
 #' This function creates the left-hand-side or the right-hand-side(s) of a [`femlm`], [`feols`] or [`feglm`] estimation.
 #'
 #' @inheritParams nobs.fixest
+#' @inheritParams model.matrix.fixest
 #'
-#' @param data If missing (default) then the original data is obtained by evaluating the `call`. Otherwise, it should be a `data.frame`.
-#' @param type Character vector or one sided formula, default is "rhs". Contains the type of matrix/data.frame to be returned. Possible values are: "lhs", "rhs", "fixef", "iv.rhs1" (1st stage RHS), "iv.rhs2" (2nd stage RHS), "iv.endo" (endogenous vars.), "iv.exo" (exogenous vars), "iv.inst" (instruments).
-#' @param na.rm Default is `TRUE`. Should observations with NAs be removed from the matrix?
-#' @param collin.rm Logical scalar. Whether to remove variables that were found to be collinear during the estimation. Beware: it does not perform a collinearity check and bases on the `coef(object)`. Default is TRUE if object is a `fixest` object, or FALSE if object is a formula.
-#' @param combine Logical scalar, default is `TRUE`. Whether to combine each resulting sparse matrix 
+#' @param data If missing (default) then the original data is obtained by evaluating the `call`.
+#'  Otherwise, it should be a `data.frame`.
+#' @param type Character vector or one sided formula, default is "rhs". 
+#' Contains the type of matrix/data.frame to be returned. Possible values are: 
+#' "lhs", "rhs", "fixef", "iv.rhs1" (1st stage RHS), "iv.rhs2" (2nd stage RHS), 
+#' "iv.endo" (endogenous vars.), "iv.exo" (exogenous vars), "iv.inst" (instruments).
+#' @param na.rm Default is `FALSE`. Should observations with NAs be removed from the matrix?
+#' @param collin.rm Logical scalar. Whether to remove variables that were 
+#' found to be collinear during the estimation. Beware: it does not perform a 
+#' collinearity check and bases on the `coef(object)`. 
+#' Default is TRUE if object is a `fixest` object, or `FALSE` if object is a formula.
+#' @param combine Logical scalar, default is `TRUE`. Whether to combine each 
+#' resulting sparse matrix.
 #' @param ... Not currently used.
 #'
 #' @return
-#' It returns either a single sparse matrix a list of matrices, depending whether `combine` is `TRUE` or `FALSE`. The sparse matrix is of class `dgCMatrix` from the `Matrix` package.
+#' It returns either a single sparse matrix a list of matrices, 
+#' depending whether `combine` is `TRUE` or `FALSE`. 
+#' The sparse matrix is of class `dgCMatrix` from the `Matrix` package.
 #'
 #' @seealso
 #' See also the main estimation functions [`femlm`], [`feols`] or [`feglm`]. [`formula.fixest`], [`update.fixest`], [`summary.fixest`], [`vcov.fixest`].
@@ -29,8 +40,9 @@
 #' sparse_model_matrix(est)
 #' sparse_model_matrix(wt ~ i(vs) + hp | cyl, mtcars)
 #'
-sparse_model_matrix = function(object, data, type = "rhs", na.rm = TRUE,
-                               collin.rm = NULL, combine = TRUE, ...) {
+sparse_model_matrix = function(object, data, type = "rhs", sample = "estimation", 
+                               na.rm = FALSE, collin.rm = NULL, 
+                               combine = TRUE, ...) {
   # We evaluate the formula with the past call
   # type: lhs, rhs, fixef, iv.endo, iv.inst, iv.rhs1, iv.rhs2
   # if fixef => return a DF
@@ -43,6 +55,8 @@ sparse_model_matrix = function(object, data, type = "rhs", na.rm = TRUE,
   if (is_user_level_call()) {
     validate_dots(suggest_args = c("data", "type"))
   }
+  
+  check_set_arg(sample, "match(estimation, original)")
 
   # We allow type to be used in the location of data if data is missing
   if (!missing(data) && missing(type)) {
@@ -76,9 +90,9 @@ sparse_model_matrix = function(object, data, type = "rhs", na.rm = TRUE,
   }
 
   # Evaluation with the data
-  original_data = FALSE
+  is_original_data = FALSE
   if (missnull(data)) {
-    original_data = TRUE
+    is_original_data = TRUE
     data = fetch_data(object, "To apply 'sparse_model_matrix', ")
   }
 
@@ -301,7 +315,7 @@ sparse_model_matrix = function(object, data, type = "rhs", na.rm = TRUE,
         )
         select = unlist(select)
 
-        # When original_data isn't used, some FEs may not be in the new dataset, add them in
+        # When is_original_data isn't used, some FEs may not be in the new dataset, add them in
         missing_cols = setdiff(select, colnames(mat_FE))
         mat_FE = cbind(
           mat_FE, 
@@ -395,6 +409,23 @@ sparse_model_matrix = function(object, data, type = "rhs", na.rm = TRUE,
 
     res[["iv.rhs2"]] = iv_rhs2
   }
+  
+  if(is_original_data){
+    if(sample == "estimation"){
+      
+      if(length(object$obs_selection) > 0){
+        for(var in names(res)){
+          mat = res[[var]]
+          for(obs in object$obs_selection){
+            mat = mat[obs, , drop = FALSE]
+          }
+          res[[var]] = mat
+        }
+      }
+      
+      na.rm = FALSE
+    }
+  }
 
   if (na.rm) {
     na_rows = lapply(res, function(mat) {
@@ -403,11 +434,6 @@ sparse_model_matrix = function(object, data, type = "rhs", na.rm = TRUE,
     })
 
     na_rows = unlist(na_rows, use.names = FALSE)
-
-    if (original_data) {
-      na_rows = c(na_rows, -1 * object$obs_selection$obsRemoved)
-    }
-
     na_rows = unique(na_rows)
 
     if (length(na_rows) > 0) {

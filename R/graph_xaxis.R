@@ -247,7 +247,7 @@ xaxis_biased = function(at, labels, angle, cex, line.min = 0, line.max = 2,
   line_height = par("mai")[1] / par("mar")[1]
 
   if(DO_ALGO){
-    lab_max = labels_trunc[which.max(strwidth(labels_trunc))]
+    lab_max = labels_trunc[which.max(strwidth(labels_trunc, "in"))]
     n_angle = length(angle2check)
     w_all = rep(sapply(cex2check, function(x) strwidth(lab_max, "in", cex = x)), n_angle)*1.05
     SH_all = rep(sapply(cex2check, function(x) strheight("W", "in", cex = x)), n_angle)
@@ -271,7 +271,7 @@ xaxis_biased = function(at, labels, angle, cex, line.min = 0, line.max = 2,
     }
 
   } else if(only.params) {
-    lab_max = labels_trunc[which.max(strwidth(labels_trunc))]
+    lab_max = labels_trunc[which.max(strwidth(labels_trunc, "in"))]
     n_angle = length(angle2check)
     w_all = rep(sapply(cex2check, function(x) strwidth(lab_max, "in", cex = x)), n_angle)*1.05
     SH_all = rep(sapply(cex2check, function(x) strheight("W", "in", cex = x)), n_angle)

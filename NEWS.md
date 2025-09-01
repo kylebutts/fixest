@@ -1,6 +1,31 @@
 
 # fixest 0.13.0
 
+## Breaking changes
+
+- **the new default VCOV is `iid` for all estimations**. To change the default to the way it was, place `setFixest_vcov(all = "cluster", no_FE = "iid")` in your `.Rprofile`.
+ 
+- the function `dof` is removed (it was deprecated and replaced with the function `ssc` since 2021)
+
+- in `etable`, the argument `replace = TRUE` by default (it was `FALSE`)
+
+- the arguments of the function `ssc` are renamed:
+
+  - `adj` => `K.adj`
+  - `fixef.K` => `K.fixef`
+  - `fixef.force_exact` => `K.exact`
+  - `cluster.adj` => `G.adj`
+  - `cluster.df` => `G.df`
+  
+  Retro compatibility is ensured. Thanks to Kyle Butts and Grant McDermott for the brainstorm!
+
+- in the functions `coefplot` and `iplot`: the argument `object` is removed, now all models need to be passed in `...`. The dots do not accept arguments to summary methods any more. Retro-compatibility partly ensured.
+
+- in all estimations, now the default is to remove all observations that are perfectly fit by the fixed-effects (this includes the singletons). To go back to the previous case, use the argument `fixef.rm="infinite_coef"`, or add the following command in your `.Rprofile`: `setFixest_estimation(fixef.rm = "infinite_coef")`.
+
+- the argument `fixef.rm` is modified, the accepted values now become "singletons", "infinite_coef", "perfect_fit" (new default), or "none" (formerly it was "singleton", "perfect", "both", "none"). It leads to the removal of i) fixed-effects associated to a single observation, ii) fixed-effects fitting perfectly the outcome and leading to infinite coefficients (in GLM families, e.g. think to only 0 outcomes in a Poisson estimation), iii) the observations removed in the first two cases, iv) no observations is removed. In any case: the point estimates (coefficients) do not vary depending on the value of this argument. The inference on the other hand may vary (that is the standard-errors of the coefficients may change).
+
+
 ## New Features
 
 - new VCOVs: heteroskedaticity-robust HC2 and HC3 VCOVs available thanks to @kylebutts
@@ -103,30 +128,6 @@ feols(c(Ozone, Temp) ~ regex("!Day"), airquality)
 - add a new vignette on collinearity
 
 - new data set `base_pub`, based on publication data from the Microsoft Academic Graph, used to illustrate the new vignette
-
-## Breaking changes
-
-- **the new default VCOV is `iid` for all estimations**. To change the default to the way it was, place `setFixest_vcov(all = "cluster", no_FE = "iid")` in your `.Rprofile`.
- 
-- the function `dof` is removed (it was deprecated and replaced with the function `ssc` since 2021)
-
-- in `etable`, the argument `replace = TRUE` by default (it was `FALSE`)
-
-- the arguments of the function `ssc` are renamed:
-
-  - `adj` => `K.adj`
-  - `fixef.K` => `K.fixef`
-  - `fixef.force_exact` => `K.exact`
-  - `cluster.adj` => `G.adj`
-  - `cluster.df` => `G.df`
-  
-  Retro compatibility is ensured. Thanks to Kyle Butts and Grant McDermott for the brainstorm!
-
-- in the functions `coefplot` and `iplot`: the argument `object` is removed, now all models need to be passed in `...`. The dots do not accept arguments to summary methods any more. Retro-compatibility partly ensured.
-
-- in all estimations, now the default is to remove all observations that are perfectly fit by the fixed-effects (this includes the singletons). To go back to the previous case, use the argument `fixef.rm="infinite_coef"`, or add the following command in your `.Rprofile`: `setFixest_estimation(fixef.rm = "infinite_coef")`.
-
-- the argument `fixef.rm` is modified, the accepted values now become "singletons", "infinite_coef", "perfect_fit" (new default), or "none" (formerly it was "singleton", "perfect", "both", "none"). It leads to the removal of i) fixed-effects associated to a single observation, ii) fixed-effects fitting perfectly the outcome and leading to infinite coefficients (in GLM families, e.g. think to only 0 outcomes in a Poisson estimation), iii) the observations removed in the first two cases, iv) no observations is removed. In any case: the point estimates (coefficients) do not vary depending on the value of this argument. The inference on the other hand may vary (that is the standard-errors of the coefficients may change).
 
 ## Other changes
 

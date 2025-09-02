@@ -124,13 +124,16 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
   args_deprec = deprec_new_old[deprec_new_old %in% args]
   if(length(args_deprec) > 0){
+    
+    is_usr_call = identical(origin, as.character(sys.calls()[[1]][[1]]))
+    
     dots = list(...)
     for(i in seq_along(args_deprec)){
       # we assign the deprecated argument to the new one if not provided
       old = args_deprec[i]
       new = names(args_deprec)[i]
       
-      if(was_not_recently_used("combine.quick")){
+      if(is_usr_call && was_not_recently_used("combine.quick")){
         mema("Argument {q ? old} is deprecated. Please use {q ? new} instead.")
       }
       

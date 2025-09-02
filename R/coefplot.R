@@ -402,6 +402,12 @@ coefplot = function(..., objects = NULL, style = NULL, se, ci_low, ci_high, df.t
   # iplot
   #
   
+  # deprecated sd argument
+  if("sd" %in% names(dots)){
+    se = dots$sd
+    dots$sd = NULL
+  }
+  
   # catching the deprecated `internal.only.i` argument
   if("internal.only.i" %in% names(dots)){
     is_iplot = isTRUE(dots$internal.only.i)

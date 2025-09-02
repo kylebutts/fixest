@@ -20,6 +20,9 @@
 #' i) an estimation object (obtained for example from [`feols`]), 
 #' ii) a matrix of coefficients table, iii) a numeric vector of the point 
 #' estimates -- the latter requiring the extra arguments `sd` or `ci_low` and `ci_high`.
+#' @param objects A list of `fixest` estimation objects, or `NULL` (default). If provided, 
+#' the objects in `...` are ignored and the only coefficients reported are the ones in the
+#' argument `objects`.
 #' #' @param vcov Versatile argument to specify the VCOV. 
 #' In general, it is either a character scalar equal to a VCOV type, either a formula of the form:
 #'  vcov_type ~ variables. The VCOV types implemented are: "iid", "hetero" (or "HC1"), 
@@ -367,7 +370,7 @@
 #' coefplot(est, group = list(Sepal = "^^Sepal.", Species = "^^Species"))
 #'
 #'
-coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL, 
+coefplot = function(..., objects = NULL, style = NULL, sd, ci_low, ci_high, df.t = NULL, 
                     vcov = NULL, cluster = NULL,
                     x, x.shift = 0, horiz = FALSE,
                     dict = NULL, keep, drop, order, ci.width = "1%",
@@ -411,6 +414,14 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
     check_arg(i.select, "NULL integer scalar GE{1}")
     if(is.null(i.select)){
       i.select = 1
+    }
+  }
+  
+  if(!is.null(objects)){
+    if(!is.list(objects) || inherits(objects, "fixest")){
+      dots = list(objects)
+    } else {
+      dots = objects
     }
   }
   

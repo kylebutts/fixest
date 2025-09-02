@@ -393,14 +393,20 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   check_set_arg(lab.fit, "match(auto, simple, multi, tilted)")
 
   dots = list(...)
-  
   ylab_add_ci = missing(ci_low)
 
   #
   # iplot
   #
+  
+  # catching the deprecated `internal.only.i` argument
+  if("internal.only.i" %in% names(dots)){
+    is_iplot = isTRUE(dots$internal.only.i)
+    dots$internal.only.i = NULL
+  } else {
+    is_iplot = isTRUE(do_iplot)
+  }
 
-  is_iplot = isTRUE(do_iplot)
   if(is_iplot){
     check_arg(i.select, "integer scalar GE{1}")
   }

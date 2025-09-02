@@ -19,7 +19,7 @@
 #' @param ... Estimation results, which can be of the following form: 
 #' i) an estimation object (obtained for example from [`feols`]), 
 #' ii) a matrix of coefficients table, iii) a numeric vector of the point 
-#' estimates -- the latter requiring the extra arguments `sd` or `ci_low` and `ci_high`.
+#' estimates -- the latter requiring the extra arguments `se` or `ci_low` and `ci_high`.
 #' @param objects A list of `fixest` estimation objects, or `NULL` (default). If provided, 
 #' the objects in `...` are ignored and the only coefficients reported are the ones in the
 #' argument `objects`.
@@ -36,10 +36,10 @@
 #' If there is one model and several VCOVs, or if the first element of the list is equal to
 #' `"each"` or `"times"`, then the estimations will be replicated and the results
 #' for each estimation and each VCOV will be reported.
-#' @param sd The standard errors of the estimates. It may be missing.
-#' @param ci_low If `sd` is not provided, the lower bound of the confidence interval. 
+#' @param se The standard errors of the estimates. It may be missing.
+#' @param ci_low If `se` is not provided, the lower bound of the confidence interval. 
 #' For each estimate.
-#' @param ci_high If `sd` is not provided, the upper bound of the confidence interval. 
+#' @param ci_high If `se` is not provided, the upper bound of the confidence interval. 
 #' For each estimate.
 #' @param horiz A logical scalar, default is `FALSE`. Whether to display the confidence 
 #' intervals horizontally instead of vertically.
@@ -370,7 +370,7 @@
 #' coefplot(est, group = list(Sepal = "^^Sepal.", Species = "^^Species"))
 #'
 #'
-coefplot = function(..., objects = NULL, style = NULL, sd, ci_low, ci_high, df.t = NULL, 
+coefplot = function(..., objects = NULL, style = NULL, se, ci_low, ci_high, df.t = NULL, 
                     vcov = NULL, cluster = NULL,
                     x, x.shift = 0, horiz = FALSE,
                     dict = NULL, keep, drop, order, ci.width = "1%",
@@ -599,7 +599,7 @@ coefplot = function(..., objects = NULL, style = NULL, sd, ci_low, ci_high, df.t
   #
 
   info = coefplot_prms(all_models = all_models, is_root = TRUE, vcov = vcov,
-                       sd = sd, ci_low = ci_low, ci_high = ci_high,
+                       se = se, ci_low = ci_low, ci_high = ci_high,
                        x = x, x.shift = x.shift, dict = dict, keep = keep, drop = drop,
                        order = order, ci_level = ci_level, df.t = df.t, ref = ref, 
                        i.select = i.select, 
@@ -1743,7 +1743,7 @@ coefplot = function(..., objects = NULL, style = NULL, sd, ci_low, ci_high, df.t
 
 
 
-coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shift = 0, 
+coefplot_prms = function(all_models, vcov = NULL, se, ci_low, ci_high, x, x.shift = 0, 
                          dict, i.select = NULL, 
                          keep, drop, order, ci_level = 0.95, df.t = NULL, ref = "auto",
                          is_iplot = TRUE, sep, as.multiple = FALSE, is_root = TRUE){
@@ -1786,7 +1786,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
       for(i in 1:nb_est){
         # cat("Eval =", i, "\n")
         prms = try(coefplot_prms(all_models[[i]], is_root = FALSE, vcov = vcov,
-                                 sd = sd, ci_low = ci_low, ci_high = ci_high, x = x, 
+                                 se = se, ci_low = ci_low, ci_high = ci_high, x = x, 
                                  x.shift = x.shift, dict = dict, i.select = i.select,
                                  keep = keep, drop = drop, order = order, 
                                  ci_level = ci_level, df.t = df.t, ref = ref,
@@ -1919,7 +1919,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
         object$model_matrix_info = append(list(info_period), object$model_matrix_info)
       }
 
-      sd = mat[, 2]
+      se = mat[, 2]
       estimate = mat[, 1]
 
       names(estimate) = rownames(mat)
@@ -1961,7 +1961,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
       m_names = tolower(colnames(mat))
       if(ncol(mat) == 4 || (grepl("estimate", m_names[1]) && 
                                grepl("std\\.? error", m_names[1]))){
-        sd = mat[, 2]
+        se = mat[, 2]
         estimate = mat[, 1]
 
         names(estimate) = rownames(mat)
@@ -1974,7 +1974,7 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
       m_names = tolower(colnames(object))
       if(ncol(object) == 4 || (grepl("estimate", m_names[1]) && 
                                grepl("std\\.? error", m_names[1]))){
-        sd = object[, 2]
+        se = object[, 2]
         estimate = object[, 1]
 
         names(estimate) = rownames(object)
@@ -1996,17 +1996,17 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
 
     n = length(estimate)
 
-    if(missing(sd)){
+    if(missing(se)){
       if(missing(ci_low) || missing(ci_high)){
         stop_up("When passing a vector of coefficients, the values for ",
-                "`sd` or `ci_low` and `ci_high` must be explicitly provided.\n",
-                "Problem: `sd`, `ci_low` and `ci_high` are missing.")
+                "`se` or `ci_low` and `ci_high` must be explicitly provided.\n",
+                "Problem: `se`, `ci_low` and `ci_high` are missing.")
       }
 
       varlist$ci = NULL
     } else {
       if(!missing(ci_low) || !missing(ci_high)){
-        warning("Since 'sd' is provided, arguments 'ci_low' or 'ci_high' are ignored.")
+        warning("Since 'se' is provided, arguments 'ci_low' or 'ci_high' are ignored.")
       }
 
       # We compute the CI
@@ -2043,8 +2043,8 @@ coefplot_prms = function(all_models, vcov = NULL, sd, ci_low, ci_high, x, x.shif
         nb = abs( qt( (1-ci_level) / 2, df.t) )
       }
       
-      ci_high = estimate + nb*sd
-      ci_low = estimate - nb*sd
+      ci_high = estimate + nb*se
+      ci_low = estimate - nb*se
     }
 
     #
@@ -2728,7 +2728,7 @@ setFixest_coefplot = function(style, horiz = FALSE, dict = getFixest_dict(), kee
 
   fm_cp = formals(coefplot)
   arg_list = names(fm_cp)
-  # arg_no_default = c("object", "sd", "ci_low", "ci_high", "drop", "order", "ref", "add", "only.params", "as.multiple", "...", "x", "x.shift")
+  # arg_no_default = c("object", "se", "ci_low", "ci_high", "drop", "order", "ref", "add", "only.params", "as.multiple", "...", "x", "x.shift")
   # m = fm_cp[!names(fm_cp) %in% arg_no_default]
   # cat(gsub(" = ,", ",", paste0(names(m), " = ", sapply(m, deparse), collapse = ", ")))
 

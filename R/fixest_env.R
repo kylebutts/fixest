@@ -781,7 +781,13 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       } else {
         # Later: automatic deduction using the first two clusters
         if(missnull(panel.id)){
-          stop("To use lag/leads (with l()/f()): either provide the argument 'panel.id' with the panel identifiers OR set your data as a panel with function panel().")
+          all_funs = setdiff(all.vars(fml, functions = TRUE, unique = FALSE),
+                             all.vars(fml, functions = FALSE, unique = FALSE))
+          fun_pblm = intersect(c("d", "l", "f"), all_funs)
+          lag_dict = c("d" = "differences", "l" = "lags", "f" = "leads")
+          stopi("To use {'/'c ? lag_dict[fun_pblm]} (with {'/'c ! {fun_pblm}()}): ",
+                "either i) provide the argument 'panel.id' with the panel identifiers ",
+                "or ii) set your data as a panel with function panel().")
         }
         
         panel__meta__info = panel_setup(data, panel.id, 

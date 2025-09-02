@@ -556,7 +556,9 @@ fixest_fml_rewriter = function(fml){
     fml[[3]] = rhs
   }
   
-  isPanel = any(c("l", "d", "f") %in% all.vars(fml, functions = TRUE, unique = FALSE))
+  all_funs = setdiff(all.vars(fml, functions = TRUE, unique = FALSE),
+                     all.vars(fml, functions = FALSE, unique = FALSE))
+  isPanel = any(c("l", "d", "f") %in% all_funs)
 
   res = list(fml = fml, isPanel = isPanel)
 

@@ -408,7 +408,10 @@ coefplot = function(..., style = NULL, sd, ci_low, ci_high, df.t = NULL,
   }
 
   if(is_iplot){
-    check_arg(i.select, "integer scalar GE{1}")
+    check_arg(i.select, "NULL integer scalar GE{1}")
+    if(is.null(i.select)){
+      i.select = 1
+    }
   }
   
   if(length(dots) == 0){

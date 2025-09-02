@@ -138,12 +138,16 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       }
       
       if(!new %in% args){
-        assign(new, dots[[old]])
+        if(old == "combine.quick"){
+          # of course a special case...
+          assign(new, !dots[[old]])
+        } else {
+          assign(new, dots[[old]])
+        }
       }
     }
-
   }
-
+  
   #
   # Internal quirks
   #

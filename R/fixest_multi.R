@@ -477,7 +477,7 @@ summary.fixest_multi = function(object, type = "etable", vcov = NULL, se = NULL,
     dots[[".vcov"]] = NULL
   }
   
-  check_arg(vcov, "NULL | matrix | list | function")
+  vcov = oldargs_to_vcov(se, cluster, vcov)
 
   if(!missing(type) || is.null(attr(object, "print_request"))){
     attr(object, "print_request") = type

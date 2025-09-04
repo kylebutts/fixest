@@ -1,4 +1,10 @@
 
+# fixest 0.13.1
+
+## bug fixes
+
+- fix bug in the package startup message
+
 # fixest 0.13.0
 
 ## Breaking changes

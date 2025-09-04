@@ -62,16 +62,16 @@ initialize_startup_msg = function(all_startup_msg){
   if(getRversion() < "4.0.0"){
     # No startup message for version < 4.0
     # because there's no way to monitor the messages
-    return(FALSE)
+    return(NULL)
   }
 
   if(is_Rmarkdown()){
     # Never in Rmarkdown: too ugly
-    return(FALSE)
+    return(NULL)
   }
 
   if(is.null(find_project_path())){
-    return(FALSE)
+    return(NULL)
   }
 
   # message("getting version")
@@ -91,7 +91,7 @@ initialize_startup_msg = function(all_startup_msg){
 
   if(!is_pkg_version(current_version)){
     # If we're here, it's a bug: this should NEVER happen
-    return(FALSE)
+    return(NULL)
   }
 
   if(!is_pkg_version(previous_version)){

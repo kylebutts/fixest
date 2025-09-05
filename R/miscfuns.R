@@ -1492,6 +1492,10 @@ i = function(factor_var, var, ref, keep, bin, ref2, keep2, bin2, ...){
     # Clean names
     
     # make it compatible with did2s < 1.0.2
+    # NOTA: it may introduce a bug if sparse = TRUE is called
+    # out of a did2s call when did2s old is loaded
+    # ideally we would also need to check if we're in a did2s call using sys.calls()
+    # 
     old_did2s = isNamespaceLoaded("did2s") && packageVersion("did2s") <= package_version("1.0.2")
     if(!old_did2s){
       col_names = sub("^.*__CLEAN__", "", col_names)

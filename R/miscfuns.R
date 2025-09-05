@@ -1475,6 +1475,7 @@ i = function(factor_var, var, ref, keep, bin, ref2, keep2, bin2, ...){
   }
 
   if(is_sparse){
+    
     # Internal call: we return the row ids + the values + the indexes + the names
 
     if(length(who_is_dropped) > 0){
@@ -1489,7 +1490,13 @@ i = function(factor_var, var, ref, keep, bin, ref2, keep2, bin2, ...){
     values = if(length(var) == 1) rep(1, length(valid_row)) else var
 
     # Clean names
-    col_names = sub("^.*__CLEAN__", "", col_names)
+    
+    # make it compatible with did2s < 1.0.2
+    old_did2s = isNamespaceLoaded("did2s") && packageVersion("did2s") <= package_version("1.0.2")
+    if(!old_did2s){
+      col_names = sub("^.*__CLEAN__", "", col_names)
+    }
+    
 
     res = list(rowid = which(valid_row), values = values,
                colid = fe_colid, col_names = col_names)

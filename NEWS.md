@@ -1,4 +1,10 @@
 
+# fixest 0.13.2
+
+## bug fixes
+
+- fix ad hoc bug with the reverse dependency `did2s` < `1.0.2`
+
 # fixest 0.13.1
 
 ## bug fixes

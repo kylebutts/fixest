@@ -1,13 +1,24 @@
 
+# fixest 0.13.3
+
+## New features
+
+- `etable`: arguments `extralines` and `headers` are more robust and the behavior is slightly modified. You can now position the values using integer indexes which give the columns position, inseadof column spans. It also errors more gracefully. This change is retro compatible. 
+
+## Bug fixes
+
+- `etable`: fix bug when etralines or headers was single valued (fixes #399)
+
+
 # fixest 0.13.2
 
-## bug fixes
+## Bug fixes
 
 - fix ad hoc bug with the reverse dependency `did2s` < `1.0.2`
 
 # fixest 0.13.1
 
-## bug fixes
+## Bug fixes
 
 - fix bug in the package startup message
 

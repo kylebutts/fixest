@@ -470,23 +470,38 @@
 #' It accepts either a list, or a one-sided formula.
 #'
 #' For each line, you can define the values taken by each cell using 4 different ways: 
-#' a) a vector, b) a list, c) a function, and d) a formula.
+#' 1) a vector, 2) a list, 3) a function, and 4) a formula.
 #'
-#' If a vector, it should represent the values taken by each cell. Note that if the 
+#' 1) If a vector, it should represent the values taken by each cell. Note that if the 
 #' length of the vector is smaller than the number of models, its values are 
 #' recycled across models, but the length of the vector is required to be a 
 #' divisor of the number of models.
 #'
-#' If a list, it should be of the form `list("item1" = #item1, "item2" = #item2, etc)`. 
-#' For example `list("A"=2, "B"=3)` leads to `c("A", "A", "B", "B", "B")`. 
+#' 2) If a list, it should be of the form `list("item1" = nb1, "item2" = nb2, etc)`. 
+#' Numbers given as integers represent column positions.
+#' For exemple: `list("A" = 2L, "B" = 3L)` leads
+#' to `c("", "A", "B")`.
+#' 
+#' Numbers in 'double' format (the default number format in `R`) represent spans.
+#' For example: `list("A"=2, "B"=3)` leads to `c("A", "A", "B", "B", "B")`. 
 #' Note that if the number of items is 1, you don't need to add `= 1`. 
-#' For example `list("A"=2, "B")` is valid and leads to 
-#' `c("A", "A", "B"`. As for the vector the values are recycled if necessary.
+#' For example: `list("A"=2, "B")` is valid and leads to `c("A", "A", "B")`. 
+#' The spans can be larger than the number of models (to fill all columns).
+#' 
+#' The resolution of spans or column positions is done from left to right.
+#' The spans always start at the rightmost unfilled column on the right.
+#' For example: `list("A" = 2L, "B" = 2)` lead to `c("", "A", "B", "B")`.
+#' Another example: `list("B" = 3, "A" = 2L)` leads to `c("B", "A", "B")`.
+#' 
+#' Note that contrary to the vector (see point 1)) the values provided are
+#' not recycled, instead the right side is filled with empty columns. 
+#' The only exception is when multiple VCOVs in the `vcov` argument leads to the repetition
+#' of models, and in that case the values are recycled accordingly (if that does make sense).
 #'
-#' If a function, it will be applied to each model and should return a scalar (`NA` values 
+#' 3) If a function, it will be applied to each model and should return a scalar (`NA` values 
 #' returned are accepted).
 #'
-#' If a formula, it must be one-sided and the elements in the formula must represent either 
+#' 4) If a formula, it must be one-sided and the elements in the formula must represent either 
 #' `extralines` macros, either fit statistics (i.e. valid types of 
 #' the function [`fitstat`]). 
 #' One new line will be added for each element of the formula. 
@@ -1832,59 +1847,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
 
   # default values for dict
   dict = setup_dict(dict)
-
-  # headers => must be a list
-  # We get the automatic headers, if split is used
-  AUTO_HEADERS = FALSE
-  i_auto_headers = 1
-  if(is.list(headers)){
-    if(length(headers) > 0){
-      qui = sapply(headers, function(x) identical(x, "auto"))
-      if(any(qui)){
-        i_auto_headers = which(qui)[1]
-        headers = headers[!qui]
-        AUTO_HEADERS = TRUE
-      }
-
-      # We expand the headers if needed
-      if(length(headers) > 0){
-        # ex: headers = list(Gender = list("M"=2, "F"=2))
-
-        if(length(headers[[1]]) == 1){
-          # ex: headers = list("M"=2, "F"=2)
-          # or list("M", "F" = 2)
-          if(is.numeric(headers[[1]]) || # case list("M" = 2, "F" = 3)
-             (!is.null(names(headers)) && nchar(names(headers)[1]) == 0 && is.character(headers[[1]]))){ # case list("M", "F" = 2)
-            headers = list(headers)
-          }
-        }
-
-        for(i in seq_along(headers)){
-          # expand_list_vector: list("A"=2, "B") => c("A", "A", "B")
-          headers[[i]] = expand_list_vector(headers[[i]])
-        }
-
-        # We ensure headers have names
-        if(is.null(names(headers))){
-          names(headers) = character(length(headers))
-        }
-
-      }
-    }
-  } else if(anyNA(headers)){
-    headers = list()
-  } else {
-    # It's a character vector
-    if(identical(headers, "auto")){
-      headers = list()
-      AUTO_HEADERS = TRUE
-    } else {
-      # we need names
-      headers = list(headers)
-      names(headers) = ""
-    }
-  }
-
+  
   # formatting the names of the models
   dots_names = names(dots_call)
   if(!is.null(dots_names)){
@@ -1909,7 +1872,63 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
 
   if(length(all_models) == 0) stop_up("Not any 'fixest' model as argument!")
 
-  n_models = length(all_models)
+  n_models = n_models_origin = length(all_models)
+  
+  # auto headers => we quickly scan the headers to see if the user asked for auto headers
+  # we also prepare the format of the headers variables
+  # only when we know the real number of models we expand the headers
+  # We get the automatic headers, if split is used
+  AUTO_HEADERS = FALSE
+  i_auto_headers = 1
+  if(is.list(headers)){
+    if(length(headers) > 0){
+      qui = sapply(headers, function(x) identical(x, "auto"))
+      if(any(qui)){
+        i_auto_headers = which(qui)[1]
+        headers = headers[!qui]
+        AUTO_HEADERS = TRUE
+      }
+
+      # We expand the headers if needed
+      if(length(headers) > 0){
+        # ex: headers = list(Gender = list("M"=2, "F"=2))
+
+        if(length(headers[[1]]) == 1){
+          # ex: headers = list("M"=2, "F"=2)
+          # or list("M", "F" = 2)
+          if(is.numeric(headers[[1]]) || # case list("M" = 2, "F" = 3)
+             (!is.null(names(headers)) && nchar(names(headers)[1]) == 0 && 
+              is.character(headers[[1]]))){ 
+            # CASE 1: list("M", "F" = 2), only one row
+            # CASE 2: list("sample" = "all", "control" = TRUE), two rows
+            if(!is.null(names(headers)) && all(nchar(names(headers)) > 0)){
+              # CASE 2: no nesting
+            } else {
+              headers = list(headers)
+            }
+          }
+        }
+
+        # We ensure headers have names
+        if(is.null(names(headers))){
+          names(headers) = character(length(headers))
+        }
+
+      }
+    }
+  } else if(anyNA(headers)){
+    headers = list()
+  } else {
+    # It's a character vector
+    if(identical(headers, "auto")){
+      headers = list()
+      AUTO_HEADERS = TRUE
+    } else {
+      # we need names
+      headers = list(headers)
+      names(headers) = ""
+    }
+  }
 
   auto_headers = list()
   if(AUTO_HEADERS){
@@ -1917,7 +1936,6 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
     # SAMPLE (ie split)
     sample_info = lapply(all_models, function(x) x$model_info$sample)
     sample_info_ok = which(lengths(sample_info) > 0)
-
 
     for(i in sample_info_ok){
       my_headers = list()
@@ -2023,7 +2041,18 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
                   .message = "If 'vcov' is a list, it must be of the same length as the number of models, or you should add the 'each' or 'times' keyword as the first element of the list.")
     }
   }
-
+  
+  # headers => we have a garantee that it is a named list (see preparation above) w/t auto headers
+  # => we expand the header elements now that we know the number of models
+  if(length(headers) > 0){
+    for(i in seq_along(headers)){
+      # expand_list_vector: list("A"=2, "B") => c("A", "A", "B")
+      headers[[i]] = expand_list_vector(headers[[i]], n_models, n_models_origin, 
+                                        "headers", IS_EACH)
+    }
+  }
+  
+  # we add the auto headers
   auto_headers_clean = list()
   if(length(auto_headers) > 0){
     # We reconstruct the headers properly
@@ -2250,11 +2279,15 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
     extralines = list(extralines)
 
   } else if(length(extralines) > 0 && all(lengths(extralines) == 1) &&
-        !inherits(extralines[[1]], "formula") && !is.function(extralines[[1]])){
-    # list("A" = 2, "B")
-    extralines = list(extralines)
+            !inherits(extralines[[1]], "formula") && !is.function(extralines[[1]])){
+    # CASE 1: list("A" = 2, "B") => list(list("A" = 2, "B")), only one row
+    # CASE 2: list(subsample = "All", other_info = "none") => no list nesting, two rows
+    if(!is.null(names(extralines)) && all(nchar(names(extralines)) > 0)){
+      # CASE 2: no nesting
+    } else {
+      extralines = list(extralines)
+    }
   }
-
 
   el_new = list() # I need it to cope with list(~f+ivf+macro, "my vars" = TRUE)
   # => the first command will create several lines
@@ -2278,9 +2311,7 @@ results2formattedList = function(dots, vcov = NULL, ssc = getFixest_ssc(), stage
 
       if(!is.function(el)){
 
-        if(is.list(el)){
-          el = expand_list_vector(el)
-        }
+        el = expand_list_vector(el, n_models, n_models_origin, "extralines", IS_EACH)
 
         if(length(el) < n_models){
           # we extend
@@ -6940,29 +6971,114 @@ is_fixest_model = function(x){
 }
 
 
-expand_list_vector = function(x){
+expand_list_vector = function(x, n_models, n_models_origin, argname, is_each = FALSE){
   # we transform list("A" = 2, "B", "C" = 3) into c("A", "A", "B", "C", "C", "C")
 
   x_names = names(x)
+  
+  if(is.atomic(x)){
+    # c("a", "a", "c") => recycled
+    x_new = x
+    n_x = length(x)
+    
+    if(n_x > n_models){
+      row = capture.output(dput(x))
+      stop_up("The argument {bq ? argname} represents rows. Currently, there are {n ? n_models} columns.\n",
+              "Problem: the input below contains {n_x} elements (> {n ? n_models}):\n",
+              "{row}")
+    }
+    
+    if(n_x < n_models){
+      
+      if(n_models %% n_x != 0){
+        row = capture.output(dput(x))
+        stop_up("In {bq ? argname}, the number of elements must be a divisor of the number of models.\n",
+                "Problem: in the vector below, we have {n_x} elements for {n_models} models")
+      }
 
-  if(is.null(x_names)){
-    # either list("m", "f") or c("a", "a", "c")
+      if(is_each){
+        x_new = rep(x, each = n_models/n_x)
+      } else {
+        x_new = rep(x, n_models/n_x)
+      }
+      
+    }
+    
+  } else if(is.null(x_names)){
+    # list("m", "f") => not recycled
     x_new = unlist(x)
+    
+    n_x_new = length(x_new)
+    
+    if(n_x_new > n_models){
+      row = capture.output(dput(x))
+      stop_up("The argument {bq ? argname} represents rows. Currently, there are {n ? n_models} columns.\n",
+              "Problem: the input below contains {n_x_new} elements (> {n ? n_models}):\n",
+              "{row}")
+    }
+    
+    if(n_x_new < n_models_origin){
+      x_new = c(x_new, rep(NA_character_, n_models_origin - length(x_new)))
+    }
+    
   } else {
     # ex: list("M", "F"=2)
+    
     x_new = c()
     for(j in seq_along(x)){
 
       if(nchar(x_names[j]) == 0){
-        x_new = c(x_new, x[j])
+        x_new = c(x_new, x[[j]])
+        
       } else {
-        x_new = c(x_new, rep(x_names[j], x[j]))
+        
+        n = x[[j]]
+        
+        if(!is.numeric(n)){
+          row = capture.output(dput(x))
+          stop_up("The argument {bq ?argname} is a list of rows. A row can be of the form:\n",
+                  " - `c(\"value1\", \"value2\")`, one element per column\n",
+                  " - `list(\"value1\" = 2, \"value2\")`, numeric numbers represent column spans\n",
+                  " - `list(\"value1\" = 2L, \"value2\" = 4L)`, integers represent column position\n",
+                  "Problem, the current row below is not of the form above:\n",
+                  "{row}")
+        }
+        
+        if(is.integer(n)){
+          x_new[n] = x_names[j]
+          
+        } else {
+          n_adj = max(min(n, n_models - length(x_new)), 0)
+          x_new = c(x_new, rep(x_names[j], n_adj))
+        }
+        
       }
     }
+    
+    if(length(x_new) < n_models_origin){
+      x_new = c(x_new, rep(NA_character_, n_models_origin - length(x_new)))
+    }
+    
   }
   
   if(is.list(x_new)){
     x_new = as.character(x_new)
+  }
+  
+  x_new[is.na(x_new)] = ""
+  
+  n_x_new = length(x_new)
+  if(n_x_new < n_models){
+    
+    if(n_x_new == n_models_origin){
+      # we recycle
+      if(is_each){
+        x_new = rep(x, each = n_models/n_x_new)
+      } else {
+        x_new = rep(x, n_models/n_x_new)
+      }
+    }
+    
   }
 
   return(x_new)

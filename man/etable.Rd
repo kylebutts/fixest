@@ -851,27 +851,42 @@ The argument \code{extralines} adds well... extra lines to the table.
 It accepts either a list, or a one-sided formula.
 
 For each line, you can define the values taken by each cell using 4 different ways:
-a) a vector, b) a list, c) a function, and d) a formula.
-
-If a vector, it should represent the values taken by each cell. Note that if the
+\enumerate{
+\item a vector, 2) a list, 3) a function, and 4) a formula.
+\item If a vector, it should represent the values taken by each cell. Note that if the
 length of the vector is smaller than the number of models, its values are
 recycled across models, but the length of the vector is required to be a
 divisor of the number of models.
+\item If a list, it should be of the form \code{list("item1" = nb1, "item2" = nb2, etc)}.
+Numbers given as integers represent column positions.
+For exemple: \code{list("A" = 2L, "B" = 3L)} leads
+to \code{c("", "A", "B")}.
+}
 
-If a list, it should be of the form \verb{list("item1" = #item1, "item2" = #item2, etc)}.
-For example \code{list("A"=2, "B"=3)} leads to \code{c("A", "A", "B", "B", "B")}.
+Numbers in 'double' format (the default number format in \code{R}) represent spans.
+For example: \code{list("A"=2, "B"=3)} leads to \code{c("A", "A", "B", "B", "B")}.
 Note that if the number of items is 1, you don't need to add \verb{= 1}.
-For example \code{list("A"=2, "B")} is valid and leads to
-\verb{c("A", "A", "B"}. As for the vector the values are recycled if necessary.
+For example: \code{list("A"=2, "B")} is valid and leads to \code{c("A", "A", "B")}.
+The spans can be larger than the number of models (to fill all columns).
 
-If a function, it will be applied to each model and should return a scalar (\code{NA} values
+The resolution of spans or column positions is done from left to right.
+The spans always start at the rightmost unfilled column on the right.
+For example: \code{list("A" = 2L, "B" = 2)} lead to \code{c("", "A", "B", "B")}.
+Another example: \code{list("B" = 3, "A" = 2L)} leads to \code{c("B", "A", "B")}.
+
+Note that contrary to the vector (see point 1)) the values provided are
+not recycled, instead the right side is filled with empty columns.
+The only exception is when multiple VCOVs in the \code{vcov} argument leads to the repetition
+of models, and in that case the values are recycled accordingly (if that does make sense).
+\enumerate{
+\item If a function, it will be applied to each model and should return a scalar (\code{NA} values
 returned are accepted).
-
-If a formula, it must be one-sided and the elements in the formula must represent either
+\item If a formula, it must be one-sided and the elements in the formula must represent either
 \code{extralines} macros, either fit statistics (i.e. valid types of
 the function \code{\link{fitstat}}).
 One new line will be added for each element of the formula.
 To register \code{extralines} macros, you must first register them in \code{\link{extralines_register}}.
+}
 
 Finally, you can combine as many lines as wished by nesting them in a list.
 The names of the nesting list are the row titles (values in the leftmost cell).

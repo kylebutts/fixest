@@ -687,6 +687,11 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
       for(i in 1:n_lhs){
         is_na_current = !is.finite(lhs[[i]])
         n_na_current = sum(is_na_current)
+        
+        if(all(is_na_current)){
+          msg = sma("The dep.var. {bq ? lhs_names[i]} contains only NAs.")
+          stack_multi_notes(msg)
+        }
 
         if(i == 1){
           lhs_group_id = 1
@@ -910,6 +915,7 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
 
     rhs_names = sapply(multi_rhs_fml_full, function(x) as.character(x)[[2]])
 
+    SKIP_DUE_TO_NA = FALSE
     for(i in seq_along(lhs_group)){
       for(j in seq_along(rhs_group)){
 
@@ -967,6 +973,12 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
         
         # NOTA: reshape_env can remove singletons, hence we need to reassign the lhs/rhs
         if(!no_na){
+          
+          if(all(is_na_current)){
+            SKIP_DUE_TO_NA = TRUE
+            next
+          }
+          
           my_env = reshape_env(env, obs2keep = which(!is_na_current), 
                                lhs = my_lhs, rhs = my_rhs)
           
@@ -1168,9 +1180,17 @@ feols = function(fml, data, vcov, weights, offset, subset, split, fsplit, split.
 
     # Meta information for fixest_multi
     values = list(lhs = rep(lhs_names, each = n_rhs),
-            rhs = rep(rhs_names, n_lhs))
+                  rhs = rep(rhs_names, n_lhs))
     if(n_lhs == 1) values$lhs = NULL
     if(n_rhs == 1) values$rhs = NULL
+    
+    if(SKIP_DUE_TO_NA){
+      id_keep = which(lengths(res) > 0)
+      res = res[id_keep]
+      for(i in seq_along(values)){
+        values[[i]] = values[[i]][id_keep]
+      }
+    }
 
     # result
     res_multi = setup_multi(res, values)

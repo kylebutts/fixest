@@ -409,12 +409,20 @@ default). To suppress the significance codes, use \code{signif.code=NA} or \code
 also be equal to \code{"letters"}, then the default becomes \code{c("a"=0.01, "b"=0.05, "c"=0.10)}.}
 
 \item{headers}{Character vector or list. Adds one or more header lines in the table. A header
-line can be represented by a character vector or a named list of numbers where the names are the
-cell values and the numbers are the span. Example: \code{headers=list("M"=2, "F"=3)} will create a
+line can be represented by a character vector or a named list.
+This argument can be many things, \strong{please have a look at the dedicated help section};
+a simplified description follows.
+If a named list, each element of the list represents a line, the names of the list are
+the row names and the values are the content of the cells.
+A line can be represented by: i) a character vector, ii) a list of the form
+\code{list("value1" = nb1, "value2" = nb2, etc)}. In the list form, numeric numbers
+represent spans and integers represent absolute positions.
+Example: \code{headers=lits(Gender = list("M"=2, "F"=3))} will create a
 row with 2 times "M" and three time "F" (this is identical to
-\code{headers=rep(c("M", "F"), c(2, 3))}). You can stack header lines within a list, in that case the
+\code{headers=list(Gender = c("M", "M", "F", "F", "F"))}).
+You can stack header lines within a list, in that case the
 list names will be displayed in the leftmost cell.
-Example: \verb{headers=list(Gender=list("M"=2, "F"=3), Country="US"} will create two header lines.
+Example: \code{headers=list(Gender=list("M"=2, "F"=3), Country="US")} will create two header lines.
 When \code{tex = TRUE}, you can add a rule to separate groups by using \code{":_:"} somewhere in the row
 name (ex: \code{headers=list(":_:Gender"=list("M"=2, "F"=3))}. You can monitor the placement by
 inserting a special character in the row name: "^" means at the top, "-" means in the middle
@@ -483,8 +491,8 @@ the coefficients section. For details, see the dedicated section.}
 
 \item{extralines}{A vector, a list or a one sided formula. The list elements should be either a
 vector representing the value of each cell, a list of the form
-\verb{list("item1" = #item1, "item2" = #item2, etc)}, or a function.
-This argument can be many things, please have a look at the dedicated help section;
+\code{list("item1" = nb1, "item2" = nb2, etc)}, or a function.
+This argument can be many things, \strong{please have a look at the dedicated help section};
 a simplified description follows. For each elements of this list: A new line in the table is
 created, the list name being the row name and the vector being the content of the cells.
 Example: \code{extralines=list("Sub-sample"=c("<20 yo", "all", ">50 yo"))} will create an new line
@@ -842,6 +850,43 @@ second highest priority is the variables not containing "Inter", last,
 with lowest priority, the variables not containing "Temp".
 If you had the following variables: (Intercept), Temp:Wind, Wind, Temp you
 would end up with the following order: Wind, Temp:Wind, Temp, (Intercept).
+}
+
+\section{The argument \code{headers}}{
+
+
+Use the argument \code{headers} to add one or more lines in the header (top part of the table).
+It accepts a list where each element of the list is a line, the names of the list
+(if provided) are the row name.
+
+The content (not the row name) of each line can be defined in two ways:
+\enumerate{
+\item a character vector, or 2) a list.
+\item If a vector, it should represent the values taken by each cell. Note that if the
+length of the vector is smaller than the number of models, its values are
+recycled across models, but the length of the vector is required to be a
+divisor of the number of models.
+\item If a list, it should be of the form \code{list("item1" = nb1, "item2" = nb2, etc)}.
+Numbers given as integers represent column positions.
+For exemple: \code{list("A" = 2L, "B" = 3L)} leads
+to \code{c("", "A", "B")}.
+}
+
+Numbers in 'double' format (the default number format in \code{R}) represent spans.
+For example: \code{list("A"=2, "B"=3)} leads to \code{c("A", "A", "B", "B", "B")}.
+Note that if the number of items is 1, you don't need to add \verb{= 1}.
+For example: \code{list("A"=2, "B")} is valid and leads to \code{c("A", "A", "B")}.
+The spans can be larger than the number of models (to fill all columns).
+
+The resolution of spans or column positions is done from left to right.
+The spans always start at the rightmost unfilled column on the right.
+For example: \code{list("A" = 2L, "B" = 2)} lead to \code{c("", "A", "B", "B")}.
+Another example: \code{list("B" = 3, "A" = 2L)} leads to \code{c("B", "A", "B")}.
+
+Note that contrary to the vector (see point \verb{1)}) the values provided are
+not recycled, instead the right side is filled with empty columns.
+The only exception is when multiple VCOVs in the \code{vcov} argument leads to the repetition
+of models, and in that case the values are recycled accordingly (if that does make sense).
 }
 
 \section{The argument \code{extralines}}{

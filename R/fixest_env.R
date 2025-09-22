@@ -1186,6 +1186,10 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       for(i in seq_along(lhs)){
         lhs[[i]] = check_set_value(lhs[[i]], "numeric vector conv", 
                                    .prefix = sma("Problem in the {nth?i} left hand side. It"))
+        
+        if(is.logical(lhs[[i]])){
+          lhs[[i]] = as.numeric(lhs[[i]])
+        }
       }
 
       if(length(lhs) == 1){
@@ -1198,6 +1202,12 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
       lhs = check_set_value(lhs, "numeric vmatrix ncol(1) conv", 
                             .prefix = "The left hand side")
       if(is.matrix(lhs)) lhs = as.vector(lhs)
+      
+      if(is.logical(lhs)){
+        # => only NA bug
+        lhs = as.numeric(lhs)
+      }
+      
       lhs_names = deparse_long(lhs_call)
     }
 
@@ -1239,6 +1249,10 @@ fixest_env = function(fml, data, family = c("poisson", "negbin", "logit", "gauss
 
       if(info$any_na) ANY_NA = TRUE
       if(info$any_inf) ANY_INF = TRUE
+      
+      if(all(info$is_na_inf)){
+        stop("The dependent variable contains only NAs, the estimation cannot be done.")
+      }
 
       anyNA_y = TRUE
       isNA_y = info$is_na_inf

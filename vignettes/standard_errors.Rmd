@@ -77,11 +77,11 @@ When the estimation contains fixed-effects, the value of $K$ in the previous adj
 
 The standard-errors are clustered with respect to the `cluster` variable, further we can see that the variable `id` is nested within the `cluster` variable (i.e. each value of `id` "belongs" to only one value of `cluster`; e.g. `id` could represent US counties and `cluster` US states).
 
-The argument `K.fixef` can be equal to either `"none"`, `"nested"` or `"full"`. Then $K$ will be computed as follows:
+The argument `K.fixef` can be equal to either `"none"`, `"nonnested"` or `"full"`. Then $K$ will be computed as follows:
 
 ![](https://github.com/lrberge/fixest/blob/master/vignettes/images/SE/K_computation.png?raw=true)
 
-Where $K_{vars}$ is the number of estimated coefficients associated to the variables. `K.fixef="none"` discards all fixed-effects coefficients. `K.fixef="nested"` discards all coefficients that are nested (here the 5 coefficients from `id`). Finally `K.fixef="full"` accounts for all fixed-effects coefficients (here 6: equal to 5 from `id`, plus 2 from `time`, minus one used as a reference [otherwise collinearity arise]). Note that if `K.fixef="nested"` and the standard-errors are *not* clustered, this is equivalent to using `K.fixef="full".`
+Where $K_{vars}$ is the number of estimated coefficients associated to the variables. `K.fixef="none"` discards all fixed-effects coefficients. `K.fixef="nonnested"` discards all coefficients that are nested (here the 5 coefficients from `id`). Finally `K.fixef="full"` accounts for all fixed-effects coefficients (here 6: equal to 5 from `id`, plus 2 from `time`, minus one used as a reference [otherwise collinearity arise]). Note that if `K.fixef="nonnested"` and the standard-errors are *not* clustered, this is equivalent to using `K.fixef="full".`
 
 The last argument of `ssc` is `G.adj`. This argument is only relevant when the standard-errors are clustered or when they are corrected for serial correlation (Newey-West or Driscoll-Kraay). Let $M$ be the sandwich estimator of the VCOV without adjustment. Then for one-way clustered standard errors:
  

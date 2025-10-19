@@ -1619,8 +1619,7 @@ kp_stat = function(x){
   # internal function => x must be a fixest object
   #
   # The code here is a translation of the ranktest.jl function from the Vcov.jl package
-  # from @matthieugomez (see https://github.com/matthieugomez/Vcov.jl)
-  #
+  # from @matthieugomez (see https://github.com/FixedEffects/Vcov.jl)
 
 
   if(!isTRUE(x$iv) || !x$iv_stage == 2) return(NA)
@@ -1650,7 +1649,7 @@ kp_stat = function(x){
   } else {
     PI = coef(summary(x, stage = 1))
   }
-  PI = PI[, colnames(PI) %in% x$iv_inst_names_xpd, drop = FALSE]
+  PI = as.matrix(PI[, colnames(PI) %in% x$iv_inst_names_xpd, drop = FALSE])
 
   Fmat = chol(crossprod(Z_proj))
   Gmat = chol(crossprod(X_proj))
@@ -1707,9 +1706,18 @@ kp_stat = function(x){
     vcov = x$summary_flags$vcov
     ssc = x$summary_flags$ssc
 
-    meat = vcov(x_new, vcov = vcov, ssc = ssc, sandwich = FALSE)
-    vhat = solve(K, t(solve(K, meat)))
-
+    if(ncol(x$scores) == ncol(x_new$scores)) {
+      meat = vcov(x_new, vcov = vcov, ssc = ssc, sandwich = FALSE)
+      vhat = solve(K, t(solve(K, meat)))
+    } else {
+      warning(stringmagic::string_magic(
+        "KP calculation not implemented for this case:\n",
+        " * vcov type: {VCOV_TYPE}\n",
+        " * n_endo: {n_endo}\n",
+        " * n_inst: {n_inst}"
+      ))
+      vhat <- matrix(NA_real_, nrow=ncol(kronv), ncol=ncol(kronv))
+    }
     # DOF correction now
     n = nobs(x) - identical(VCOV_TYPE, "cluster")
     df_resid = degrees_freedom(x, "resid", stage = 1)

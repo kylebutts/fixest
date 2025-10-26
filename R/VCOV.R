@@ -893,7 +893,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
                 call. = FALSE)
       } 
     } else if(!isFALSE(dots$warn)){
-      warning("The VCOV matrix is not positive semi-definite and was 'fixed' (see ?vcov).", 
+      warning("The VCOV matrix is not positive semi-definite (see ?vcov).", 
               call. = FALSE)
     }
   }

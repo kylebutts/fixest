@@ -416,6 +416,7 @@ vcov.fixest = function(object, vcov = NULL, se = NULL, cluster, ssc = NULL, attr
   extra_args = NULL
   if(inherits(vcov, "fixest_vcov_request")){
     if(!is.null(vcov$ssc)) ssc = vcov$ssc
+    if(!is.null(vcov$vcov_fix)) vcov_fix = vcov$vcov_fix
     var_names_all = vcov$var_names_all
     var_values_all = vcov$vcov_vars
     extra_args = vcov$extra_args
@@ -1167,7 +1168,7 @@ vcov_hetero = function(x, type = "hc1", exact = TRUE, boot.size = NULL,
   use_request = IS_REQUEST
 
   extra_args = list(exact = exact, boot.size = boot.size)
-  vcov_request = list(vcov = type, ssc = ssc, extra_args = extra_args)
+  vcov_request = list(vcov = type, ssc = ssc, vcov_fix = vcov_fix, extra_args = extra_args)
   class(vcov_request) = "fixest_vcov_request"
 
 
@@ -1320,9 +1321,9 @@ vcov_cluster = function(x, cluster = NULL, ssc = NULL, vcov_fix = TRUE){
 
   }
 
-  if(use_request || !is.null(ssc)){
+  if(use_request || !is.null(ssc) || isFALSE(vcov_fix)){
     vcov_request = list(vcov = vcov, vcov_vars = vcov_vars,
-              var_names_all = var_names_all, ssc = ssc)
+              var_names_all = var_names_all, ssc = ssc, vcov_fix = vcov_fix)
     class(vcov_request) = "fixest_vcov_request"
 
   } else {
@@ -1455,9 +1456,9 @@ vcov_DK = function(x, time = NULL, lag = NULL, ssc = NULL, vcov_fix = TRUE){
   # recreating the call
   vcov = .xpd(lhs = "dk", rhs = time)
 
-  if(!is.null(lag) || !is.null(ssc)){
+  if(!is.null(lag) || !is.null(ssc) || isFALSE(vcov_fix)){
     extra_args = list(lag = lag)
-    vcov_request = list(vcov = vcov, ssc = ssc, extra_args = extra_args)
+    vcov_request = list(vcov = vcov, ssc = ssc, extra_args = extra_args, vcov_fix = vcov_fix)
     class(vcov_request) = "fixest_vcov_request"
   } else {
     # Everything can fit into a vcov formula
@@ -1510,9 +1511,9 @@ vcov_NW = function(x, unit = NULL, time = NULL, lag = NULL, ssc = NULL, vcov_fix
   # recreating the call
   vcov = .xpd(lhs = "nw", rhs = c(unit, time))
 
-  if(!is.null(lag) || !is.null(ssc)){
+  if(!is.null(lag) || !is.null(ssc) || isFALSE(vcov_fix)){
     extra_args = list(lag = lag)
-    vcov_request = list(vcov = vcov, ssc = ssc, extra_args = extra_args)
+    vcov_request = list(vcov = vcov, ssc = ssc, extra_args = extra_args, vcov_fix = vcov_fix)
     class(vcov_request) = "fixest_vcov_request"
   } else {
     # Everything can fit into a vcov formula
@@ -1646,7 +1647,7 @@ vcov_conley = function(x, lat = NULL, lon = NULL, cutoff = NULL, pixel = 0,
   vcov = .xpd(lhs = "conley", rhs = c(lat, lon))
 
   extra_args = list(cutoff = cutoff, pixel = pixel, distance = distance)
-  vcov_request = list(vcov = vcov, ssc = ssc, extra_args = extra_args)
+  vcov_request = list(vcov = vcov, ssc = ssc, vcov_fix = vcov_fix, extra_args = extra_args)
   class(vcov_request) = "fixest_vcov_request"
 
   if(IS_REQUEST){

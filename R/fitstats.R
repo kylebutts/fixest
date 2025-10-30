@@ -1710,11 +1710,11 @@ kp_stat = function(x){
       meat = vcov(x_new, vcov = vcov, ssc = ssc, sandwich = FALSE)
       vhat = solve(K, t(solve(K, meat)))
     } else {
-      warning(stringmagic::string_magic(
-        "KP calculation not implemented for this case:\n",
-        " * vcov type: {VCOV_TYPE}\n",
-        " * n_endo: {n_endo}\n",
-        " * n_inst: {n_inst}"
+      warning(paste0(
+        "KP calculation is only implemented for the cases:\n",
+        " * vcov type is IID or\n",
+        " * number of endogenous variables == number of instruments",
+        "Results are NA for other cases."
       ))
       vhat <- matrix(NA_real_, nrow=ncol(kronv), ncol=ncol(kronv))
     }

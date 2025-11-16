@@ -2825,6 +2825,19 @@ est_clu = update(est, vcov = ~species)
 est_clu = feols(y ~ x1 | species, base)
 test(se(est_add_fe), se(est_add_fe_noup))
 
+# No warnings when using use_calling_env = FALSE
+# https://github.com/lrberge/fixest/issues/618
+est_to_update = feols(mpg ~ hp, data = mtcars)
+update_is_silent <- tryCatch(
+  {
+    update(est_to_update, data = mtcars, use_calling_env = FALSE)
+    TRUE 
+  },
+  error = function(e) FALSE,
+  warning = function(e) FALSE
+)
+test(update_is_silent, TRUE)
+
 #
 # FE estimation
 #

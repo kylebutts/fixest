@@ -3250,7 +3250,7 @@ update.fixest = function(object, fml.update = NULL, fml = NULL, nframes = 1,
 
   # new call: call_clear
   call_clear = call_old
-  for(arg in setdiff(names(call_new)[-1], c("fml.update", "nframes", "evaluate", "object"))){
+  for(arg in setdiff(names(call_new)[-1], c("fml.update", "nframes", "evaluate", "object", "use_calling_env"))){
     if(is.null(call_new[[arg]])){
       # for some raeson, it wouldn't work if call_new[[arg]] is NULL
       call_clear[[arg]] = NULL

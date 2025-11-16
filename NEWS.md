@@ -13,6 +13,8 @@
 
 - fix bug leading to R crach when the dependent variable contained only missing values (reported by @Orgron, #603)
 
+- `update.fixest()` and `update.fixest_multi()` no longer throw a warning if `use_calling_env` is used (#619, @etiennebacher).
+
 # fixest 0.13.2
 
 ## Bug fixes

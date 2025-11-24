@@ -2972,6 +2972,7 @@ base$cl_var = rep(1:50, 3) # using `fe` to cluster causes a vcov PSD warning
 est_iv = feols(y ~ x1 | x_endo_1 + x_endo_2 ~ x_inst_1 + x_inst_2, base)
 
 fitstat(est_iv, ~ f + ivf + ivf2 + wald + ivwald + ivwald2 + wh + sargan + kpr + rmse + g + n + ll + sq.cor + r2)
+test(c(length(est_iv$iv_first_stage), est_iv$iv_n_inst), c(2, 2)) # kpr relies on accessing these
 
 est_iv_uneven = feols(y ~ x1 | x_endo_1 ~ x_inst_1 + x_inst_2, base, cluster = "cl_var")
 fitstat(est_iv_uneven, ~ f + ivf + ivf2 + wald + ivwald + ivwald2 + wh + sargan + kpr + rmse + g + n + ll + sq.cor + r2)

@@ -1624,6 +1624,18 @@ kp_stat = function(x){
 
   if(!isTRUE(x$iv) || !x$iv_stage == 2) return(NA)
 
+  n_endo = length(x$iv_first_stage)
+  n_inst = x$iv_n_inst
+  VCOV_TYPE = attr(x$cov.scaled, "type")
+  if (!identical(VCOV_TYPE, "IID") && n_inst != n_endo) {
+    warning(paste0(
+      "KP calculation is only implemented for the cases:\n",
+      " * vcov type is IID or\n",
+      " * number of endogenous variables == number of instruments"
+    ))
+    return(NA)
+  }
+
   # Necessary data
 
   X_proj = as.matrix(resid(summary(x, stage = 1)))
@@ -1636,8 +1648,8 @@ kp_stat = function(x){
   Z = model.matrix(x, type = "iv.inst")
   Z_proj = proj_on_U(x, Z)
 
-  k = n_endo = ncol(X_proj)
-  l = n_inst = ncol(Z)
+  k = n_endo
+  l = n_inst
 
   # We assume l >= k
   q = min(k, l) - 1
@@ -1690,8 +1702,6 @@ kp_stat = function(x){
   # There is need to compute the vcov specifically for this case
   # We do it the same way as it was for x
 
-  VCOV_TYPE = attr(x$cov.scaled, "type")
-
   if(identical(VCOV_TYPE, "IID")){
     vlab = chol(tcrossprod(kronv) / nrow(X_proj))
 
@@ -1706,18 +1716,9 @@ kp_stat = function(x){
     vcov = x$summary_flags$vcov
     ssc = x$summary_flags$ssc
 
-    if(ncol(x$scores) == ncol(x_new$scores)) {
-      meat = vcov(x_new, vcov = vcov, ssc = ssc, sandwich = FALSE)
-      vhat = solve(K, t(solve(K, meat)))
-    } else {
-      warning(paste0(
-        "KP calculation is only implemented for the cases:\n",
-        " * vcov type is IID or\n",
-        " * number of endogenous variables == number of instruments",
-        "Results are NA for other cases."
-      ))
-      vhat <- matrix(NA_real_, nrow=ncol(kronv), ncol=ncol(kronv))
-    }
+    meat = vcov(x_new, vcov = vcov, ssc = ssc, sandwich = FALSE)
+    vhat = solve(K, t(solve(K, meat)))
+
     # DOF correction now
     n = nobs(x) - identical(VCOV_TYPE, "cluster")
     df_resid = degrees_freedom(x, "resid", stage = 1)

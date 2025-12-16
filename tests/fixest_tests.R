@@ -2579,6 +2579,8 @@ test(names(m_lhs_rhs_fixef), c("y1", "fit_x2", "x1", "species"))
 #### sparse_model_matrix ####
 ####
 
+chunk("Sparse model matrix")
+
 # unit tests: i(..., sparse = TRUE) 
 x <- c(1, 1, 3, 1, 3)
 sp1 <- i(x, sparse = TRUE)
@@ -2712,6 +2714,7 @@ test(nrow(sm_lag), nobs(res_lag))
 # Interacted fixef
 res = feols(y1 ~ x1 + x2 + x3 | species^fe2, base)
 sm_ife = sparse_model_matrix(res, data = base, type = "fixef", collin.rm = FALSE)
+test(ncol(sm_ife), 45)
 
 # fixef
 res = feols(y1 ~ x1 + x2 + x3 | species + fe2, base)
@@ -2966,6 +2969,7 @@ names(base) = c("y", "x1", "x_endo_1", "x_inst_1", "fe")
 set.seed(2)
 base$x_inst_2 = 0.2 * base$y + 0.2 * base$x_endo_1 + rnorm(150, sd = 0.5)
 base$x_endo_2 = 0.2 * base$y - 0.2 * base$x_inst_1 + rnorm(150, sd = 0.5)
+base$w = sample(c(0.5, 0.25), nrow(base), replace = TRUE)
 
 # Checking a basic estimation
 est_iv = feols(y ~ x1 | x_endo_1 + x_endo_2 ~ x_inst_1 + x_inst_2, base)
@@ -2973,8 +2977,11 @@ est_iv = feols(y ~ x1 | x_endo_1 + x_endo_2 ~ x_inst_1 + x_inst_2, base)
 fitstat(est_iv, ~ f + ivf + ivf2 + wald + ivwald + ivwald2 + wh + sargan + rmse + g + n + ll + sq.cor + r2)
 
 est_fe = feols(y ~ x1 | fe, base)
-
 fitstat(est_fe, ~ wf)
+
+# https://github.com/lrberge/fixest/issues/584
+est_weighted = feols(y ~ x1 | fe, base, weights = ~w)
+fitstat(est_weighted, ~ rmse)
 
 # fitstat works with `split` and `lean` (https://github.com/lrberge/fixest/issues/566)
 est_split = feols(y ~ x1, base, fsplit = ~fe)
